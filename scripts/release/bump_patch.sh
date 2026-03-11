@@ -4,7 +4,7 @@ set -euo pipefail
 PROJECT_ROOT="/home/pi/docker/astromanager"
 VERSION_FILE="${PROJECT_ROOT}/VERSION"
 UNRELEASED_FILE="${PROJECT_ROOT}/CHANGELOG.unreleased.md"
-BACKUP_SCRIPT="${PROJECT_ROOT}/backup_astromanager.sh"
+BACKUP_SCRIPT="${PROJECT_ROOT}/backup_astromanager_nomedia_zip.sh"
 
 if [ $# -lt 1 ]; then
   echo "Nutzung: ./bump_patch.sh \"Änderung am Skript\""
@@ -66,3 +66,28 @@ echo "Starte Backup-Skript: $BACKUP_SCRIPT"
 "$BACKUP_SCRIPT"
 
 echo "Patch-Bump inkl. Backup abgeschlossen."
+
+if [ "${ASTROMANAGER_GIT_PUSH:-1}" = "1" ]; then
+  if git -C "$PROJECT_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    CURRENT_BRANCH="$(git -C "$PROJECT_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+
+    if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "HEAD" ]; then
+      git -C "$PROJECT_ROOT" add -A .
+
+      if ! git -C "$PROJECT_ROOT" diff --cached --quiet; then
+        GIT_COMMIT_MSG="release: bump patch to ${NEW_VERSION} - ${CHANGE_TEXT}"
+        git -C "$PROJECT_ROOT" commit -m "$GIT_COMMIT_MSG"
+        git -C "$PROJECT_ROOT" push origin "$CURRENT_BRANCH"
+        echo "Git-Commit und Push abgeschlossen: $CURRENT_BRANCH"
+      else
+        echo "Hinweis: Keine Git-Änderungen zum Committen."
+      fi
+    else
+      echo "Hinweis: Kein normaler Git-Branch erkannt, Push übersprungen."
+    fi
+  else
+    echo "Hinweis: $PROJECT_ROOT ist kein Git-Repository, Git-Schritt übersprungen."
+  fi
+else
+  echo "Hinweis: Git-Push per ASTROMANAGER_GIT_PUSH=0 deaktiviert."
+fi

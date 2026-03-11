@@ -10,7 +10,7 @@ SCHEMA_DIR="${PROJECT_ROOT}/code/db/schema"
 SCHEMA_FILE="${SCHEMA_DIR}/0001_current_baseline.sql"
 MIGRATIONS_DIR="${PROJECT_ROOT}/code/db/migrations"
 
-BACKUP_SCRIPT="${PROJECT_ROOT}/backup_astromanager.sh"
+BACKUP_SCRIPT="${PROJECT_ROOT}/backup_astromanager_nomedia_zip.sh"
 
 RUNNER_CONTAINER="astromanager-runner"
 DB_PATH_IN_CONTAINER="/runtime/pipeline.db"
@@ -166,3 +166,28 @@ echo "Starte Backup-Skript: $BACKUP_SCRIPT"
 "$BACKUP_SCRIPT"
 
 echo "Minor-Bump inkl. neuem Baseline-Schema, Migrations-Cleanup und Backup abgeschlossen."
+
+if [ "${ASTROMANAGER_GIT_PUSH:-1}" = "1" ]; then
+  if git -C "$PROJECT_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    CURRENT_BRANCH="$(git -C "$PROJECT_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+
+    if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "HEAD" ]; then
+      git -C "$PROJECT_ROOT" add -A .
+
+      if ! git -C "$PROJECT_ROOT" diff --cached --quiet; then
+        GIT_COMMIT_MSG="release: bump minor to ${NEW_VERSION} - ${RELEASE_SUMMARY}"
+        git -C "$PROJECT_ROOT" commit -m "$GIT_COMMIT_MSG"
+        git -C "$PROJECT_ROOT" push origin "$CURRENT_BRANCH"
+        echo "Git-Commit und Push abgeschlossen: $CURRENT_BRANCH"
+      else
+        echo "Hinweis: Keine Git-Änderungen zum Committen."
+      fi
+    else
+      echo "Hinweis: Kein normaler Git-Branch erkannt, Push übersprungen."
+    fi
+  else
+    echo "Hinweis: $PROJECT_ROOT ist kein Git-Repository, Git-Schritt übersprungen."
+  fi
+else
+  echo "Hinweis: Git-Push per ASTROMANAGER_GIT_PUSH=0 deaktiviert."
+fi

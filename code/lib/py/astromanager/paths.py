@@ -14,3 +14,5 @@ TARGET_WIKIDATA_NAME_RESOLVER_MODULE = "astromanager.targets.wikidata_name_resol
 TARGET_RESOLVE_WIKIDATA_NAME_COMMAND_MODULE = "astromanager.commands.targets.resolve_wikidata_names"
 TARGET_SIMBAD_RESOLVER_MODULE = "astromanager.targets.simbad_resolver"
 TARGET_RESOLVE_SIMBAD_COMMAND_MODULE = "astromanager.commands.targets.resolve_simbad"
+TARGET_NED_RESOLVER_MODULE = "astromanager.targets.ned_resolver"
+TARGET_RESOLVE_NED_COMMAND_MODULE = "astromanager.commands.targets.resolve_ned"
