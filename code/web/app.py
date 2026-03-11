@@ -216,61 +216,157 @@ def _load_target_cards(where_sql: str = "", params: tuple[Any, ...] = (), limit:
         if not db_table_exists(conn, "targets"):
             return []
 
-        columns = set(db_table_columns(conn, "targets"))
-        wanted = [
-            "id",
-            "canonical_name",
-            "category",
-            "constellation",
-            "final_name",
-            "final_objtype",
-            "final_ra_deg",
-            "final_dec_deg",
-            "final_distance_value",
-            "final_distance_unit",
-            "final_source_summary",
-            "nasa_title",
-            "nasa_page_url",
-            "nasa_thumb_url",
-            "nasa_status",
-            "wikidata_id",
-            "name_status",
-            "meta_status",
-            "ned_status",
-            "simbad_status",
-        ]
-        existing = [c for c in wanted if c in columns]
-        if not existing:
-            return []
+        has_target_final = db_table_exists(conn, "target_final")
+        has_session_targets = db_table_exists(conn, "session_targets")
+        has_session_target_resolve_item = db_table_exists(conn, "session_target_resolve_item")
 
-        sort_col = "final_name" if "final_name" in columns else ("canonical_name" if "canonical_name" in columns else "id")
-        where_clause = f"WHERE {where_sql}" if where_sql.strip() else ""
+        sessions_join = ""
+        if has_session_targets:
+            sessions_join = """
+            LEFT JOIN (
+                SELECT target_id, COUNT(DISTINCT session_id) AS session_count
+                FROM session_targets
+                WHERE target_id IS NOT NULL
+                GROUP BY target_id
+            ) sc
+              ON sc.target_id = t.id
+            """
+        elif has_session_target_resolve_item:
+            sessions_join = """
+            LEFT JOIN (
+                SELECT target_id, COUNT(DISTINCT session_id) AS session_count
+                FROM session_target_resolve_item
+                WHERE target_id IS NOT NULL
+                GROUP BY target_id
+            ) sc
+              ON sc.target_id = t.id
+            """
+        if has_target_final:
+            where_clause = f"WHERE {where_sql}" if where_sql.strip() else ""
+            rows = conn.execute(
+                f"""
+                SELECT
+                    t.id,
+                    t.canonical_name,
+                    t.display_name,
+                    t.slug,
+                    t.category,
+                    t.wikidata_id,
+                    t.nasa_title,
+                    t.nasa_page_url,
+                    t.nasa_thumb_url,
 
-        rows = conn.execute(
-            f"""
-            SELECT {", ".join(existing)}
-            FROM targets
-            {where_clause}
-            ORDER BY {sort_col} COLLATE NOCASE ASC
-            LIMIT ?
-            """,
-            (*params, limit),
-        ).fetchall()
+                    tf.final_name,
+                    tf.final_name_source,
+                    tf.final_objtype,
+                    tf.final_objtype_source,
+                    tf.final_ra_deg,
+                    tf.final_dec_deg,
+                    tf.final_coord_source,
+                    tf.final_distance_value,
+                    tf.final_distance_unit,
+                    tf.distance_ly,
+                    tf.distance_source,
+                    tf.distance_ref,
+                    tf.mag_value,
+                    tf.mag_band,
+                    tf.mag_source,
+                    tf.constellation_code,
+                    tf.constellation_name,
+                    tf.constellation_source,
+                    tf.identity_method,
+                    tf.identity_confidence,
+                    tf.coord_match_sep_arcsec,
+                    tf.angular_size_arcmin,
+                    tf.final_source_summary,
+                    tf.merge_status,
+                    tf.merge_notes,
+                    COALESCE(sc.session_count, 0) AS session_count
+                FROM targets t
+                LEFT JOIN target_final tf
+                  ON tf.target_id = t.id
+                {sessions_join}
+                {where_clause}
+                ORDER BY COALESCE(tf.final_name, t.display_name, t.canonical_name) COLLATE NOCASE ASC
+                LIMIT ?
+                """,
+                (*params, limit),
+            ).fetchall()
+        else:
+            columns = set(db_table_columns(conn, "targets"))
+            wanted = [
+                "id",
+                "canonical_name",
+                "display_name",
+                "slug",
+                "category",
+                "constellation",
+                "final_name",
+                "final_objtype",
+                "final_ra_deg",
+                "final_dec_deg",
+                "final_distance_value",
+                "final_distance_unit",
+                "final_source_summary",
+                "nasa_title",
+                "nasa_page_url",
+                "nasa_thumb_url",
+                "wikidata_id",
+            ]
+            existing = [c for c in wanted if c in columns]
+            if not existing:
+                return []
+
+            sort_col = "final_name" if "final_name" in columns else ("canonical_name" if "canonical_name" in columns else "id")
+            where_clause = f"WHERE {where_sql}" if where_sql.strip() else ""
+
+            rows = conn.execute(
+                f"""
+                SELECT {", ".join("t." + c for c in existing)},
+                       COALESCE(sc.session_count, 0) AS session_count
+                FROM targets t
+                {sessions_join}
+                {where_clause}
+                ORDER BY t.{sort_col} COLLATE NOCASE ASC
+                LIMIT ?
+                """,
+                (*params, limit),
+            ).fetchall()
 
         items: list[dict[str, Any]] = []
         for row in rows:
             d = row_to_dict(row)
-            d["display_name"] = (d.get("final_name") or d.get("canonical_name") or "").strip()
+
+            d["display_name"] = (d.get("final_name") or d.get("display_name") or d.get("canonical_name") or "").strip()
             d["subtitle"] = (d.get("canonical_name") or "").strip()
-            d["objtype"] = (d.get("final_objtype") or "").strip()
+            d["objtype"] = (d.get("final_objtype") or d.get("objtype") or "").strip()
+
             ra = d.get("final_ra_deg")
             dec = d.get("final_dec_deg")
             d["final_ra_deg_fmt"] = f"{ra:.6f}" if isinstance(ra, (int, float)) else ""
             d["final_dec_deg_fmt"] = f"{dec:.6f}" if isinstance(dec, (int, float)) else ""
+
             dist = d.get("final_distance_value")
             unit = (d.get("final_distance_unit") or "").strip()
-            d["distance_fmt"] = f"{dist:,.0f}".replace(",", ".") if isinstance(dist, (int, float)) else ""
+            if isinstance(dist, (int, float)):
+                if abs(dist) >= 1000:
+                    d["distance_fmt"] = f"{dist:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                else:
+                    d["distance_fmt"] = f"{dist:.1f}".replace(".", ",")
+            else:
+                d["distance_fmt"] = ""
             d["distance_label"] = f'{d["distance_fmt"]} {unit}'.strip() if d["distance_fmt"] else ""
+
+            size = d.get("angular_size_arcmin")
+            d["angular_size_arcmin_fmt"] = (
+                f"{size:.1f}".replace(".", ",") if isinstance(size, (int, float)) else ""
+            )
+
+            d["session_count"] = int(d.get("session_count") or 0)
+
+            source_summary = (d.get("final_source_summary") or "").strip()
+            d["source_summary_readable"] = source_summary.replace(";", " · ")
+
             items.append(d)
         return items
     finally:
@@ -279,7 +375,7 @@ def _load_target_cards(where_sql: str = "", params: tuple[Any, ...] = (), limit:
 
 def deepsky_targets(limit: int = 100) -> list[dict[str, Any]]:
     return _load_target_cards(
-        "lower(coalesce(category,'')) not in ('sun','moon')",
+        "lower(coalesce(t.category,'')) not in ('sun','moon')",
         (),
         limit,
     )
@@ -287,7 +383,7 @@ def deepsky_targets(limit: int = 100) -> list[dict[str, Any]]:
 
 def system_targets(limit: int = 50) -> list[dict[str, Any]]:
     return _load_target_cards(
-        "lower(coalesce(category,'')) in ('sun','moon')",
+        "lower(coalesce(t.category,'')) in ('sun','moon')",
         (),
         limit,
     )
