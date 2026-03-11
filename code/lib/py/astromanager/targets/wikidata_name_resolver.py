@@ -23,7 +23,6 @@ from astromanager.targets.wikidata_search_utils import collect_candidates, get_e
 
 DB_PATH = os.environ.get("DB_PATH", "/runtime/pipeline.db")
 MAX_SEP_DEG = float(os.environ.get("WIKIDATA_MAX_SEP_DEG", "2.0"))
-DEBUG_WIKIDATA_RESOLVER = os.environ.get("DEBUG_WIKIDATA_RESOLVER", "0") == "1"
 
 
 def db():
@@ -172,8 +171,6 @@ def resolve_one(conn, row):
     target_dec = row["dec_deg"]
 
     aggregated = collect_candidates(row)
-    if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
-        print(f"debug target_id={row['id']} stage=collected candidate_count={len(aggregated)} qids={','.join(sorted(aggregated.keys()))}")
     if not aggregated:
         update_error(conn, row["id"])
         return
@@ -184,8 +181,6 @@ def resolve_one(conn, row):
             for qid, item in aggregated.items()
             if "catalog_exact" in item.get("sources", [])
         }
-        if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
-            print(f"debug target_id={row['id']} stage=filtered_to_catalog_exact candidate_count={len(aggregated)} qids={','.join(sorted(aggregated.keys()))}")
 
     checked = []
 
@@ -195,8 +190,6 @@ def resolve_one(conn, row):
             continue
 
         rejected, reject_reason = reject_entity_mismatch(row, entity)
-        if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
-            print(f"debug target_id={row['id']} qid={qid} stage=reject_check rejected={rejected} reason={reject_reason} sources={','.join(item.get('sources', []))} terms={' || '.join(item['terms'])}")
         if rejected:
             continue
 
@@ -211,15 +204,6 @@ def resolve_one(conn, row):
 
         if "catalog_exact" in item.get("sources", []):
             total_score += 120
-
-        if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
-            print(
-                f"debug target_id={row['id']} qid={qid} stage=scored "
-                f"sources={','.join(item.get('sources', []))} "
-                f"anchor_score={anchor_score} name_score={name_score} "
-                f"sep={sep} total_score={total_score} "
-                f"terms={' || '.join(item['terms'])}"
-            )
 
         checked.append(
             {
@@ -248,15 +232,6 @@ def resolve_one(conn, row):
     )
 
     chosen = checked[0]
-
-    if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
-        print(
-            f"debug target_id={row['id']} chosen_qid={chosen['qid']} "
-            f"sources={','.join(chosen.get('sources', []))} "
-            f"anchor_score={chosen['anchor_score']} "
-            f"name_score={chosen['name_score']} "
-            f"sep={chosen['sep']} total_score={chosen['total_score']}"
-        )
 
     if (
         chosen["anchor_score"] < 80
@@ -288,16 +263,6 @@ def resolve_one(conn, row):
 
     catalog_fallback_name = best_catalog_fallback_name(entity)
 
-    if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
-        print(
-            f"debug target_id={row['id']} stage=before_update_success "
-            f"qid={qid} label_de={label_de!r} label_en={label_en!r} "
-            f"wiki_de_title={wiki_de_title!r} wiki_en_title={wiki_en_title!r} "
-            f"object_type={object_type!r} mag_value={mag_value!r} "
-            f"distance_value={distance_value!r} distance_unit={distance_unit!r} "
-            f"distance_ly={distance_ly!r} catalog_fallback_name={catalog_fallback_name!r}"
-        )
-
     update_success(
         conn,
         row["id"],
@@ -317,9 +282,6 @@ def resolve_one(conn, row):
         catalog_fallback_name,
     )
 
-    if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
-        print(f"debug target_id={row['id']} stage=after_update_success qid={qid}")
-
 
 def run(only_pending: bool = True, limit: int = 1000) -> int:
     conn = db()
@@ -330,9 +292,7 @@ def run(only_pending: bool = True, limit: int = 1000) -> int:
             print(f"resolving id={row['id']} canonical_name={row['canonical_name']}")
             try:
                 resolve_one(conn, row)
-            except Exception as e:
-                if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
-                    print(f"debug target_id={row['id']} stage=exception error={e!r}")
+            except Exception:
                 update_error(conn, row["id"])
             time.sleep(0.25)
     finally:

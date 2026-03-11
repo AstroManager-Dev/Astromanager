@@ -1,3 +1,4 @@
+0.2.036 | 2026-03-11 15:47:42 | Wikidata-Resolver um exakten Katalog-Lookup via P528/P373 erweitert, Rate-Limit robuster gemacht und problematische Katalogobjekte wie Messier 32 und NGC 206 sauber aufgelöst
 0.2.035 | 2026-03-11 15:42:57 | Wikidata-Resolver um exakten Katalog-Lookup via P528/P373 erweitert, Rate-Limit-toleranter gemacht und problematische Katalogobjekte wie M32 und NGC 206 sauber aufgelöst
 0.2.034 | 2026-03-11 13:48:59 | Wikidata-Matching um harte Resolver-Konsistenzchecks sowie P528/P373-Kataloganker erweitert und Fallback-Display für label-lose Katalogobjekte ergänzt
 0.2.033 | 2026-03-11 12:44:03 | Zentrale Distanz-Harmonisierung nach Lichtjahren eingeführt und Wikidata-Resolver auf gemeinsame Distance-Normalisierung umgestellt
