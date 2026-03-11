@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}AstroManager{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <img
+          class="brand-logo"
+          src="/static/logo.jpeg"
+          alt="AstroManager Logo"
+          onerror="this.style.display='none';"
+        >
+        <div class="brand-title-wrap">
+          <p class="brand-subtitle">Astro-Bilder verwalten und stacken</p>
+        </div>
+      </div>
+
+      {% include "includes/_menu.html" %}
+    </header>
+
+    {% block content %}{% endblock %}
+  </div>
+
+  <script src="/static/js/app.js"></script>
+  <script src="/static/progress.js"></script>
+</body>
+</html>

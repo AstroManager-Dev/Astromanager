@@ -1,0 +1,128 @@
+<section class="tab-panel" data-panel="targets">
+  <div class="card">
+    <h2>Targets</h2>
+    <p class="muted">Logische Zielansicht mit finalen Feldern, NASA-Bild und Quellstatus.</p>
+
+    <h3 class="section-headline">Deep-Sky-Targets</h3>
+    <div class="targets-grid">
+      {% for item in deepsky_targets_view %}
+      <div class="card target-card">
+        <div>
+          {% if item.nasa_thumb_url %}
+          <a href="{{ item.nasa_page_url or '#' }}" target="_blank" rel="noopener noreferrer">
+            <img class="target-thumb" src="{{ item.nasa_thumb_url }}" alt="{{ item.display_name }}">
+          </a>
+          {% else %}
+          <div class="target-thumb"></div>
+          {% endif %}
+        </div>
+
+        <div class="target-meta">
+          <h3>{{ item.display_name or 'Unbenanntes Target' }}</h3>
+          <div class="sub">{{ item.subtitle or '' }}</div>
+
+          <div class="kv">
+            <div>Typ</div><div>{{ item.objtype or '—' }}</div>
+            <div>Sternbild</div><div>{{ item.constellation or '—' }}</div>
+            <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
+            <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
+            <div>Distanz</div><div>{{ item.distance_label or '—' }}</div>
+            <div>NASA</div><div>{{ item.nasa_title or '—' }}</div>
+          </div>
+
+          <div class="status-row">
+            <span class="status-pill">Name: {{ item.name_status or '—' }}</span>
+            <span class="status-pill">Meta: {{ item.meta_status or '—' }}</span>
+            <span class="status-pill">NED: {{ item.ned_status or '—' }}</span>
+            <span class="status-pill">SIMBAD: {{ item.simbad_status or '—' }}</span>
+            <span class="status-pill">NASA: {{ item.nasa_status or '—' }}</span>
+          </div>
+
+          <div class="target-links">
+            {% if item.nasa_page_url %}<a href="{{ item.nasa_page_url }}" target="_blank" rel="noopener noreferrer">NASA-Seite</a>{% endif %}
+            {% if item.wikidata_id %}<span class="pill">{{ item.wikidata_id }}</span>{% endif %}
+          </div>
+
+          {% if item.final_source_summary %}
+          <div class="source-row">
+            {% for part in item.final_source_summary.split('|') %}
+              {% set bits = part.split('=') %}
+              {% if bits|length == 2 %}
+              <span class="source-pill"><b>{{ bits[0] }}</b>: {{ bits[1] }}</span>
+              {% else %}
+              <span class="source-pill">{{ part }}</span>
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="card">
+        <p class="muted">Keine Deep-Sky-Targets vorhanden.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3 class="section-headline">Systemziele</h3>
+    <div class="targets-grid">
+      {% for item in system_targets_view %}
+      <div class="card target-card">
+        <div>
+          {% if item.nasa_thumb_url %}
+          <a href="{{ item.nasa_page_url or '#' }}" target="_blank" rel="noopener noreferrer">
+            <img class="target-thumb" src="{{ item.nasa_thumb_url }}" alt="{{ item.display_name }}">
+          </a>
+          {% else %}
+          <div class="target-thumb"></div>
+          {% endif %}
+        </div>
+
+        <div class="target-meta">
+          <h3>{{ item.display_name or 'Unbenanntes Ziel' }}</h3>
+          <div class="sub">{{ item.subtitle or '' }}</div>
+
+          <div class="kv">
+            <div>Typ</div><div>{{ item.objtype or '—' }}</div>
+            <div>Sternbild</div><div>{{ item.constellation or '—' }}</div>
+            <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
+            <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
+            <div>Distanz</div><div>{{ item.distance_label or '—' }}</div>
+            <div>NASA</div><div>{{ item.nasa_title or '—' }}</div>
+          </div>
+
+          <div class="status-row">
+            <span class="status-pill">Name: {{ item.name_status or '—' }}</span>
+            <span class="status-pill">Meta: {{ item.meta_status or '—' }}</span>
+            <span class="status-pill">NED: {{ item.ned_status or '—' }}</span>
+            <span class="status-pill">SIMBAD: {{ item.simbad_status or '—' }}</span>
+            <span class="status-pill">NASA: {{ item.nasa_status or '—' }}</span>
+          </div>
+
+          <div class="target-links">
+            {% if item.nasa_page_url %}<a href="{{ item.nasa_page_url }}" target="_blank" rel="noopener noreferrer">NASA-Seite</a>{% endif %}
+            {% if item.wikidata_id %}<span class="pill">{{ item.wikidata_id }}</span>{% endif %}
+          </div>
+
+          {% if item.final_source_summary %}
+          <div class="source-row">
+            {% for part in item.final_source_summary.split('|') %}
+              {% set bits = part.split('=') %}
+              {% if bits|length == 2 %}
+              <span class="source-pill"><b>{{ bits[0] }}</b>: {{ bits[1] }}</span>
+              {% else %}
+              <span class="source-pill">{{ part }}</span>
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="card">
+        <p class="muted">Keine Systemziele vorhanden.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

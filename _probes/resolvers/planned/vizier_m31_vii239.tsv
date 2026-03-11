@@ -1,0 +1,52 @@
+#
+#   VizieR Astronomical Server vizier.cds.unistra.fr
+#    Date: 2026-03-09T13:25:53 [V7.5.6]
+#   In case of problem, please report to:	cds-question@unistra.fr
+#
+#
+#Coosys	J2000:	eq_FK5 J2000
+#INFO	service_protocol=ASU	  IVOID of the protocol through which the data was retrieved
+#INFO	request_date=2026-03-09T13:25:53	  Query execution date
+#INFO	request=https://vizier.cds.unistra.fr/viz-bin/asu-tsv?-c=M31&-c.rs=0.2&-source=VII/239	  Full request URL
+#INFO	contact=cds-question@unistra.fr	  Email or URL to contact publisher
+#INFO	server_software=VizieR/7.5.6	  Software version
+#INFO	publisher=CDS	  Data centre that produced the VOTable
+#INFO	MaxTuples=50000	
+#INFO	-c=010.684708+41.268750,rs=0.2	
+#Constraint -source=VII/239
+
+#RESOURCE=yCat_7239
+#Name: VII/239A
+#Title: History and Accurate Positions for the NGC/IC Objects (Corwin, 2004)
+#INFO	ivoid=ivo://cds.vizier/vii/239a	    IVOID of underlying data collection
+#INFO	data_ivoid=ivo://cds.vizier/vii/239a	    IVOID of underlying data collection
+#INFO	creator=Corwin H. G. Jr	    First author or institution
+#INFO	cites=bibcode:2004yCat.7239....0C	    Bibcode of the dataset
+#INFO	journal=yCat	    Journal name
+#INFO	original_date=2004	    Year of the article publication
+#INFO	reference_url=https://cdsarc.cds.unistra.fr/viz-bin/cat/VII/239A	    Dataset landing page
+#INFO	publication_date=2018-01-26	    Date of first publication in the data centre
+#INFO	rights_uri=https://cds.unistra.fr/vizier-org/licences_vizier.html	    Licence URI
+#Coosys	B1950:	eq_FK4 B1950
+#Table	VII_239A_icdata:
+#Name: VII/239A/icdata
+#Title: IC referenced positions and notes
+#Column	Cat	(A1)	[IN] Catalog: N=NGC, I=IC	[ucd=meta.note]
+#Column	NGC/IC	(A4)	Number in the NGC or IC catalog	[ucd=meta.id;meta.main]
+#Column	n_NGC/IC	(a14)	Component or remarks (G1)	[ucd=meta.note]
+#Column	RAB1950	(A13)	Right Ascension B1950	[ucd=pos.eq.ra;meta.main]
+#Column	DEB1950	(A13)	Declination B1950	[ucd=pos.eq.dec;meta.main]
+#Column	qPos	(A1)	[a-g] Precision on position (G2)	[ucd=meta.code.qual]
+#Column	f_Pos	(A1)	[*o] rejected or original position (1)	[ucd=meta.code]
+#Column	r_Pos	(a5)	Reference of position in "refs.dat"	[ucd=meta.ref;pos.frame]
+#Column	N	(I2)	? Number of observations from original source	[ucd=meta.number]
+#Column	Comm	(a121)	Comments, Notes and Remarks (2)	[ucd=meta.note]
+#Column	Simbad	(a6)	Simbad column added by the CDS	[ucd=meta.ref.url]
+#Column	NED	(A3)	NED column added by the CDS	[ucd=meta.ref.url]
+#Column	_RA.icrs	(A13)	Right ascension (ICRS) (computed by VizieR, not part of the original data)	[ucd=pos.eq.ra]
+#Column	_DE.icrs	(A13)	Declination (ICRS) (computed by VizieR, not part of the original data)	[ucd=pos.eq.dec]
+Cat	NGC/IC	n_NGC/IC	RAB1950	DEB1950	qPos	f_Pos	r_Pos	N	Comm	Simbad	NED	_RA.icrs	_DE.icrs
+ 	 	 	"h:m:s"	"d:m:s"	 	 	 	 	 	 	 	"h:m:s"	"d:m:s"
+-	----	--------------	-------------	-------------	-	-	-----	--	-------------------------------------------------------------------------------------------------------------------------	------	---	-------------	-------------
+N	0224	              	00 40 00.0900	+40 59 41.700	c	 	HC2m 	  	                                                                                                                         	Simbad	NED	00 42 44.3270	+41 16 07.469
+

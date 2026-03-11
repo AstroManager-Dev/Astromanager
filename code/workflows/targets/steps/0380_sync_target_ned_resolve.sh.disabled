@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+step_run() {
+  log "targets step55: sync target_ned_resolve"
+  python3 /app/bin/sync_target_resolver_tables.py "$DB_PATH" ned
+}

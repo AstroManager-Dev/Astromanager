@@ -1,0 +1,533 @@
+#!/usr/bin/env python3
+import os
+import sqlite3
+import subprocess
+from pathlib import Path
+from typing import Any
+
+from flask import Flask, jsonify, render_template, request
+
+from actions import ACTION_HANDLERS
+from progress_runtime import get_live_progress
+
+APP = Flask(__name__)
+
+LOG_ROOT = Path(os.environ.get("LOG_ROOT", "/logs"))
+LOG_FILE = LOG_ROOT / "master" / "webui.log"
+DB_PATH = Path(os.environ.get("DB_PATH", "/runtime/pipeline.db"))
+ASTROCTL = "/app/bin/astroctl"
+
+DB_TABLE_DEFAULTS = {
+    "sessions": {
+        "default_sort": "id",
+        "search_columns": ["raw_session_path", "target", "category", "status", "filter_set", "session_type"],
+    },
+    "targets": {
+        "default_sort": "id",
+        "search_columns": ["canonical_name", "display_name", "category", "final_name"],
+    },
+    "capture_profiles": {
+        "default_sort": "id",
+        "search_columns": ["camera", "filter_set"],
+    },
+    "calibration_assets": {
+        "default_sort": "id",
+        "search_columns": ["asset_type", "asset_origin", "camera", "abs_path", "rel_path"],
+    },
+    "raw_files": {
+        "default_sort": "id",
+        "search_columns": [
+            "file_name", "abs_path", "rel_path", "source_domain", "source_subtype",
+            "filter_set", "file_status", "derivative_kind", "header_object",
+            "header_bayerpat", "header_date_obs",
+        ],
+    },
+}
+
+
+def append_web_log(message: str) -> None:
+    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with LOG_FILE.open("a", encoding="utf-8") as handle:
+        handle.write(message.rstrip() + "\n")
+
+
+def db_conn() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    return {k: row[k] for k in row.keys()}
+
+
+def db_table_exists(conn: sqlite3.Connection, table: str) -> bool:
+    row = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name=? LIMIT 1",
+        (table,),
+    ).fetchone()
+    return row is not None
+
+
+def db_table_columns(conn: sqlite3.Connection, table: str) -> list[str]:
+    rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+    return [str(r["name"]) for r in rows]
+
+
+def db_all_tables(conn: sqlite3.Connection) -> list[str]:
+    rows = conn.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+          AND name NOT LIKE 'sqlite_%'
+        ORDER BY name COLLATE NOCASE ASC
+        """
+    ).fetchall()
+    return [str(r["name"]) for r in rows]
+
+
+def build_table_config(conn: sqlite3.Connection) -> dict[str, dict[str, Any]]:
+    cfg: dict[str, dict[str, Any]] = {}
+    for table in db_all_tables(conn):
+        columns = db_table_columns(conn, table)
+        default_cfg = DB_TABLE_DEFAULTS.get(table, {})
+        default_sort = default_cfg.get("default_sort", "id")
+        if default_sort not in columns:
+            default_sort = "id" if "id" in columns else (columns[0] if columns else "id")
+        search_columns = [c for c in default_cfg.get("search_columns", []) if c in columns]
+        if not search_columns:
+            search_columns = columns[:]
+        cfg[table] = {
+            "default_sort": default_sort,
+            "search_columns": search_columns,
+        }
+    return cfg
+
+
+def parse_int_arg(name: str, default: int, minimum: int, maximum: int) -> int:
+    raw = request.args.get(name, str(default)).strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(minimum, min(maximum, value))
+
+
+def parse_text_arg(name: str, default: str = "") -> str:
+    return request.args.get(name, default).strip()
+
+
+def dedupe_runs(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
+
+    for row in rows:
+        item = dict(row)
+        key = (
+            str(item.get("job_name", "")),
+            str(item.get("started_at", "")),
+            str(item.get("status", "")),
+        )
+
+        current = grouped.get(key)
+        if current is None:
+            grouped[key] = item
+            continue
+
+        current_source = str(current.get("source", ""))
+        new_source = str(item.get("source", ""))
+
+        def source_rank(value: str) -> int:
+            if value == "workflow":
+                return 3
+            if value == "astroctl":
+                return 2
+            if value == "web":
+                return 2
+            return 1
+
+        if source_rank(new_source) > source_rank(current_source):
+            grouped[key] = item
+            continue
+
+        current_note = str(current.get("note", "") or "")
+        new_note = str(item.get("note", "") or "")
+        if len(new_note) > len(current_note):
+            current["note"] = new_note
+
+    deduped = list(grouped.values())
+    deduped.sort(key=lambda x: int(x.get("id", 0)), reverse=True)
+    return deduped[:15]
+
+
+def db_recent_runs() -> list[dict[str, Any]]:
+    if not DB_PATH.exists():
+        return []
+    conn = db_conn()
+    try:
+        rows = conn.execute(
+            """
+            SELECT id, job_name, status, started_at, finished_at, source, note
+            FROM job_runs
+            ORDER BY id DESC
+            LIMIT 100
+            """
+        ).fetchall()
+        return dedupe_runs(rows)
+    except sqlite3.OperationalError:
+        return []
+    finally:
+        conn.close()
+
+
+def db_tables_summary() -> list[dict[str, Any]]:
+    conn = db_conn()
+    try:
+        table_cfg = build_table_config(conn)
+        items: list[dict[str, Any]] = []
+        for table in table_cfg:
+            exists = db_table_exists(conn, table)
+            columns = db_table_columns(conn, table) if exists else []
+            count = None
+            if exists:
+                try:
+                    count = conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
+                except sqlite3.OperationalError:
+                    count = None
+            items.append(
+                {
+                    "name": table,
+                    "exists": exists,
+                    "columns": columns,
+                    "default_sort": table_cfg[table]["default_sort"],
+                    "search_columns": table_cfg[table]["search_columns"],
+                    "row_count": count,
+                }
+            )
+        return items
+    finally:
+        conn.close()
+
+
+def _load_target_cards(where_sql: str = "", params: tuple[Any, ...] = (), limit: int = 100) -> list[dict[str, Any]]:
+    conn = db_conn()
+    try:
+        if not db_table_exists(conn, "targets"):
+            return []
+
+        columns = set(db_table_columns(conn, "targets"))
+        wanted = [
+            "id",
+            "canonical_name",
+            "category",
+            "constellation",
+            "final_name",
+            "final_objtype",
+            "final_ra_deg",
+            "final_dec_deg",
+            "final_distance_value",
+            "final_distance_unit",
+            "final_source_summary",
+            "nasa_title",
+            "nasa_page_url",
+            "nasa_thumb_url",
+            "nasa_status",
+            "wikidata_id",
+            "name_status",
+            "meta_status",
+            "ned_status",
+            "simbad_status",
+        ]
+        existing = [c for c in wanted if c in columns]
+        if not existing:
+            return []
+
+        sort_col = "final_name" if "final_name" in columns else ("canonical_name" if "canonical_name" in columns else "id")
+        where_clause = f"WHERE {where_sql}" if where_sql.strip() else ""
+
+        rows = conn.execute(
+            f"""
+            SELECT {", ".join(existing)}
+            FROM targets
+            {where_clause}
+            ORDER BY {sort_col} COLLATE NOCASE ASC
+            LIMIT ?
+            """,
+            (*params, limit),
+        ).fetchall()
+
+        items: list[dict[str, Any]] = []
+        for row in rows:
+            d = row_to_dict(row)
+            d["display_name"] = (d.get("final_name") or d.get("canonical_name") or "").strip()
+            d["subtitle"] = (d.get("canonical_name") or "").strip()
+            d["objtype"] = (d.get("final_objtype") or "").strip()
+            ra = d.get("final_ra_deg")
+            dec = d.get("final_dec_deg")
+            d["final_ra_deg_fmt"] = f"{ra:.6f}" if isinstance(ra, (int, float)) else ""
+            d["final_dec_deg_fmt"] = f"{dec:.6f}" if isinstance(dec, (int, float)) else ""
+            dist = d.get("final_distance_value")
+            unit = (d.get("final_distance_unit") or "").strip()
+            d["distance_fmt"] = f"{dist:,.0f}".replace(",", ".") if isinstance(dist, (int, float)) else ""
+            d["distance_label"] = f'{d["distance_fmt"]} {unit}'.strip() if d["distance_fmt"] else ""
+            items.append(d)
+        return items
+    finally:
+        conn.close()
+
+
+def deepsky_targets(limit: int = 100) -> list[dict[str, Any]]:
+    return _load_target_cards(
+        "lower(coalesce(category,'')) not in ('sun','moon')",
+        (),
+        limit,
+    )
+
+
+def system_targets(limit: int = 50) -> list[dict[str, Any]]:
+    return _load_target_cards(
+        "lower(coalesce(category,'')) in ('sun','moon')",
+        (),
+        limit,
+    )
+
+
+def db_list_table(
+    conn: sqlite3.Connection,
+    table: str,
+    limit: int,
+    offset: int,
+    sort: str,
+    order: str,
+    q: str,
+) -> dict[str, Any]:
+    table_cfg = build_table_config(conn)
+    if table not in table_cfg:
+        raise ValueError("unknown table")
+    if not db_table_exists(conn, table):
+        raise ValueError("table missing")
+
+    columns = db_table_columns(conn, table)
+    if sort not in columns:
+        sort = table_cfg[table]["default_sort"]
+    order = "DESC" if order.upper() == "DESC" else "ASC"
+
+    where_parts: list[str] = []
+    params: list[Any] = []
+
+    if q:
+        like_value = f"%{q}%"
+        search_columns = [c for c in table_cfg[table]["search_columns"] if c in columns]
+        if search_columns:
+            where_parts.append(
+                "(" + " OR ".join([f"CAST({col} AS TEXT) LIKE ?" for col in search_columns]) + ")"
+            )
+            params.extend([like_value] * len(search_columns))
+
+    for key, value in request.args.items():
+        if not key.startswith("filter_"):
+            continue
+        col = key.removeprefix("filter_")
+        if col not in columns or value.strip() == "":
+            continue
+        where_parts.append(f"CAST({col} AS TEXT) = ?")
+        params.append(value.strip())
+
+    where_sql = ""
+    if where_parts:
+        where_sql = "WHERE " + " AND ".join(where_parts)
+
+    total = conn.execute(
+        f"SELECT COUNT(*) AS n FROM {table} {where_sql}",
+        params,
+    ).fetchone()["n"]
+
+    rows = conn.execute(
+        f"""
+        SELECT *
+        FROM {table}
+        {where_sql}
+        ORDER BY {sort} {order}
+        LIMIT ? OFFSET ?
+        """,
+        [*params, limit, offset],
+    ).fetchall()
+
+    prev_offset = max(0, offset - limit)
+    next_offset = offset + limit
+
+    return {
+        "table": table,
+        "columns": columns,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "sort": sort,
+        "order": order,
+        "q": q,
+        "rows": [row_to_dict(r) for r in rows],
+        "has_prev": offset > 0,
+        "has_next": next_offset < total,
+        "prev_offset": prev_offset,
+        "next_offset": next_offset,
+        "page_current": (offset // limit) + 1 if limit > 0 else 1,
+        "page_total": max(1, ((total - 1) // limit) + 1) if total else 1,
+    }
+
+
+@APP.get("/")
+def index():
+    latest = ""
+    if LOG_FILE.exists():
+        try:
+            latest = "".join(LOG_FILE.read_text(encoding="utf-8").splitlines(keepends=True)[-40:])
+        except Exception:
+            latest = ""
+
+    selected_table = ""
+    q = ""
+    db_view = None
+
+    conn = db_conn()
+    try:
+        table_cfg = build_table_config(conn)
+        table_names = list(table_cfg.keys())
+
+        selected_table = request.args.get("table", "sessions").strip()
+        if selected_table not in table_cfg:
+            if "sessions" in table_cfg:
+                selected_table = "sessions"
+            elif table_names:
+                selected_table = table_names[0]
+            else:
+                selected_table = ""
+
+        limit = parse_int_arg("limit", 25, 1, 200)
+        offset = parse_int_arg("offset", 0, 0, 1_000_000)
+        sort = parse_text_arg("sort", table_cfg.get(selected_table, {}).get("default_sort", "id"))
+        order = parse_text_arg("order", "DESC")
+        q = parse_text_arg("q", "")
+
+        if selected_table and db_table_exists(conn, selected_table):
+            db_view = db_list_table(conn, selected_table, limit, offset, sort, order, q)
+    finally:
+        conn.close()
+
+    return render_template(
+        "index.html",
+        latest_log=latest,
+        runs=db_recent_runs(),
+        deepsky_targets_view=deepsky_targets(),
+        system_targets_view=system_targets(),
+        db_tables=db_tables_summary(),
+        db_selected_table=selected_table,
+        db_view=db_view,
+        db_query=q,
+    )
+
+
+
+@APP.get("/api/progress/current")
+def api_progress_current():
+    return jsonify(get_live_progress())
+
+
+@APP.get("/api/status")
+def api_status():
+    return jsonify(
+        {
+            "ok": True,
+            "service": "astromanager-web",
+            "raw_root": os.environ.get("RAW_ROOT", ""),
+            "data_root": os.environ.get("DATA_ROOT", ""),
+            "runtime_root": os.environ.get("RUNTIME_ROOT", ""),
+            "log_root": os.environ.get("LOG_ROOT", ""),
+            "db_path": str(DB_PATH),
+            "recent_runs": db_recent_runs(),
+        }
+    )
+
+
+@APP.get("/api/runs")
+def api_runs():
+    return jsonify({"ok": True, "runs": db_recent_runs()})
+
+
+@APP.get("/api/db/tables")
+def api_db_tables():
+    return jsonify({"ok": True, "tables": db_tables_summary()})
+
+
+@APP.get("/api/db/<table>")
+def api_db_table(table: str):
+    limit = parse_int_arg("limit", 50, 1, 500)
+    offset = parse_int_arg("offset", 0, 0, 1_000_000)
+
+    conn = db_conn()
+    try:
+        table_cfg = build_table_config(conn)
+        sort = parse_text_arg("sort", table_cfg.get(table, {}).get("default_sort", "id"))
+        order = parse_text_arg("order", "DESC")
+        q = parse_text_arg("q", "")
+        data = db_list_table(conn, table, limit, offset, sort, order, q)
+        return jsonify({"ok": True, **data})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 404
+    except sqlite3.OperationalError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+    finally:
+        conn.close()
+
+
+@APP.get("/api/db/<table>/<int:row_id>")
+def api_db_row(table: str, row_id: int):
+    conn = db_conn()
+    try:
+        table_cfg = build_table_config(conn)
+        if table not in table_cfg:
+            return jsonify({"ok": False, "error": "unknown table"}), 404
+        if not db_table_exists(conn, table):
+            return jsonify({"ok": False, "error": "table missing"}), 404
+
+        columns = db_table_columns(conn, table)
+        if "id" not in columns:
+            return jsonify({"ok": False, "error": "table has no id column"}), 400
+
+        row = conn.execute(
+            f"SELECT * FROM {table} WHERE id = ? LIMIT 1",
+            (row_id,),
+        ).fetchone()
+        if row is None:
+            return jsonify({"ok": False, "error": "row not found"}), 404
+
+        return jsonify({"ok": True, "table": table, "row": row_to_dict(row)})
+    finally:
+        conn.close()
+
+
+@APP.post("/api/run/<action>")
+def api_run(action: str):
+    if action not in ACTION_HANDLERS:
+        return jsonify({"ok": False, "error": "unknown action"}), 404
+
+    subprocess.run([ASTROCTL, "db", "init"], capture_output=True, text=True)
+
+    append_web_log(f"[web] trigger action={action}")
+    result = ACTION_HANDLERS[action]()
+
+    stdout = str(result.get("stdout", "") or "")
+    stderr = str(result.get("stderr", "") or "")
+
+    if stdout.strip():
+        append_web_log(stdout.strip())
+    if stderr.strip():
+        append_web_log(stderr.strip())
+
+    result["recent_runs"] = db_recent_runs()
+    return jsonify(result)
+
+
+if __name__ == "__main__":
+    subprocess.run([ASTROCTL, "db", "init"], capture_output=True, text=True)
+    APP.run(host="0.0.0.0", port=int(os.environ.get("WEB_PORT", "8080")), debug=False)

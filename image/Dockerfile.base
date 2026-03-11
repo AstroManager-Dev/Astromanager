@@ -1,0 +1,51 @@
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    ca-certificates \
+    coreutils \
+    findutils \
+    gawk \
+    grep \
+    sed \
+    procps \
+    util-linux \
+    tzdata \
+    sqlite3 \
+    python3 \
+    python3-pip \
+    python3-astropy \
+    python3-venv \
+    python3-flask \
+    lftp \
+    rsync \
+    curl \
+    cpio \
+    rpm2cpio \
+    astrometry.net \
+    astrometry-data-tycho2 \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /app /raw /data /runtime /logs /work /tmp /cache /config /opt/astrometry-extra /tmp/astrometry-rpms
+
+RUN set -eux; \
+    cd /tmp/astrometry-rpms; \
+    curl -fL -O "https://lv-o-mirrors2.its.maine.edu/Fedora/updates/42/Everything/aarch64/Packages/a/astrometry-data-4107-4119-0.98-1.fc42.noarch.rpm"; \
+    curl -fL -O "https://lv-o-mirrors2.its.maine.edu/Fedora/updates/42/Everything/aarch64/Packages/a/astrometry-data-5205-0.98-1.fc42.noarch.rpm"; \
+    curl -fL -O "https://lv-o-mirrors2.its.maine.edu/Fedora/updates/42/Everything/aarch64/Packages/a/astrometry-data-5206-0.98-1.fc42.noarch.rpm"; \
+    for rpm in *.rpm; do \
+      mkdir -p /tmp/astrometry-rpms/extract; \
+      cd /tmp/astrometry-rpms/extract; \
+      rpm2cpio "/tmp/astrometry-rpms/${rpm}" | cpio -idmv; \
+      find /tmp/astrometry-rpms/extract/usr/share/astrometry -maxdepth 2 -type f -name 'index-*.fits' -exec cp -v {} /opt/astrometry-extra/ \; ; \
+      rm -rf /tmp/astrometry-rpms/extract; \
+    done; \
+    rm -rf /tmp/astrometry-rpms
+
+RUN cp /etc/astrometry.cfg /etc/astrometry.cfg.bak && \
+    printf "\nadd_path /opt/astrometry-extra\nadd_path /data/astrometry\n" >> /etc/astrometry.cfg
+
+WORKDIR /app
+CMD ["bash"]

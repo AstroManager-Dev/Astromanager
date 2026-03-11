@@ -1,0 +1,5 @@
+# Eine Tabelle pro Zeile
+# Leerzeilen und Zeilen mit # werden ignoriert
+
+device_sources
+external_source_state

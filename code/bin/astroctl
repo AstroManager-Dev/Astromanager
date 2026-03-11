@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="/app"
+
+# shellcheck source=/dev/null
+source "$ROOT/lib/pipeline_env.sh"
+# shellcheck source=/dev/null
+source "$ROOT/lib/common.sh"
+# shellcheck source=/dev/null
+source "$ROOT/lib/db.sh"
+
+mkdir -p "${LOG_ROOT:-/logs}/master"
+LOG="${LOG:-${LOG_ROOT:-/logs}/master/astroctl.log}"
+
+usage() {
+  cat <<'USAGE'
+usage:
+  astroctl db init
+  astroctl raw sync
+  astroctl index sessions
+  astroctl calibration masterdarks
+  astroctl targets resolve
+  astroctl siril session
+  astroctl siril group
+  astroctl status
+USAGE
+}
+
+run_dummy() {
+  local script="$1"
+  local job_name="$2"
+  shift 2
+
+  if [[ ! -x "$script" ]]; then
+    echo "astroctl: missing executable: $script" >&2
+    exit 22
+  fi
+
+  db_init "$ROOT"
+  local run_id
+  run_id="$(db_job_start "$job_name" "astroctl" "")"
+
+  if "$script" "$@"; then
+    db_job_finish "$run_id" "ok" "dummy run finished"
+    db_set_state "last_job" "$job_name"
+    db_set_state "last_status" "ok"
+  else
+    db_job_finish "$run_id" "error" "dummy run failed"
+    db_set_state "last_job" "$job_name"
+    db_set_state "last_status" "error"
+    exit 1
+  fi
+}
+
+main() {
+  local domain="${1:-}"
+  local action="${2:-}"
+
+  case "${domain}:${action}" in
+    db:init)
+      db_init "$ROOT"
+      echo "db: initialized at $DB_PATH"
+      ;;
+    raw:sync)
+      run_dummy "$ROOT/workflows/raw/sync.sh" "raw_sync"
+      ;;
+    index:sessions)
+      run_dummy "$ROOT/workflows/index/sessions.sh" "index_sessions"
+      ;;
+    calibration:masterdarks)
+      run_dummy "$ROOT/workflows/calibration/masterdarks.sh" "masterdarks"
+      ;;
+    targets:resolve)
+      run_dummy "$ROOT/workflows/targets/resolve.sh" "targets_resolve"
+      ;;
+    siril:session)
+      run_dummy "$ROOT/workflows/siril/session.sh" "siril_session"
+      ;;
+    siril:group)
+      run_dummy "$ROOT/workflows/siril/group_stack.sh" "siril_group"
+      ;;
+    status:*)
+      db_init "$ROOT"
+      echo "status: ok"
+      echo "raw_root=${RAW_ROOT:-}"
+      echo "data_root=${DATA_ROOT:-}"
+      echo "runtime_root=${RUNTIME_ROOT:-}"
+      echo "log_root=${LOG_ROOT:-}"
+      echo "db_path=${DB_PATH:-}"
+      ;;
+    *)
+      usage >&2
+      exit 2
+      ;;
+  esac
+}
+
+main "$@"

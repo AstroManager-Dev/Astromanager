@@ -1,0 +1,70 @@
+<section class="tab-panel active" data-panel="overview">
+  <div class="actions-grid">
+    <button class="btn" data-action="raw_sync">RAW Sync</button>
+    <button class="btn" data-action="index_sessions">Index Sessions</button>
+    <button class="btn" data-action="masterdarks">Master Darks</button>
+    <button class="btn" data-action="siril_session">Siril Session</button>
+    <button class="btn" data-action="siril_group">Siril Group</button>
+    <button class="btn" id="status-btn">Status</button>
+  </div>
+
+  <div class="card">
+    <h2>Antwort</h2>
+    <pre id="response-box">Bereit.</pre>
+  </div>
+
+  <div class="card" id="live-progress-card">
+    <h2>Live-Fortschritt</h2>
+    <div class="progress-block">
+      <div id="live-progress-status">Warte auf Fortschritt ...</div>
+      <div id="live-progress-meta" class="progress-meta"></div>
+      <div class="progress-bar-wrap">
+        <div id="live-progress-bar" class="progress-bar"></div>
+      </div>
+      <div id="live-progress-path" class="progress-path"></div>
+    </div>
+    <pre id="live-progress-tail" class="progress-tail">Noch keine Live-Daten.</pre>
+  </div>
+
+  <div class="card">
+    <h2>Letztes Web-Log</h2>
+    <pre>{{ latest_log or 'Kein Log vorhanden.' }}</pre>
+  </div>
+
+  <div class="card">
+    <h2>Letzte Runs</h2>
+    <div class="mobile-note">Seitlich wischen, falls die Tabelle auf dem Handy abgeschnitten ist.</div>
+    <div class="scroll-x">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Job</th>
+            <th>Status</th>
+            <th>Start</th>
+            <th>Ende</th>
+            <th>Quelle</th>
+            <th>Notiz</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for run in runs %}
+          <tr>
+            <td>{{ run.id }}</td>
+            <td>{{ run.job_name }}</td>
+            <td class="status-{{ run.status }}">{{ run.status }}</td>
+            <td>{{ run.started_at or '' }}</td>
+            <td>{{ run.finished_at or '' }}</td>
+            <td>{{ run.source or '' }}</td>
+            <td>{{ run.note or '' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7">Keine Runs vorhanden.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
