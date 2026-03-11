@@ -1,3 +1,4 @@
+0.2.032 | 2026-03-11 12:16:45 | Wikidata-Meta-Label-Resolver modularisiert und alte 0390-Heuristik durch saubere Label-Auflösung ersetzt
 0.2.031 | 2026-03-11 11:23:01 | NED-Resolver modularisiert und um zusätzliche NED-Felder erweitert; obsoleten NED-Sync-Step als Legacy markiert
 0.2.030 | 2026-03-10 23:49:07 | SIMBAD-Resolver auf TAP-only mit Koordinaten-Priorität umgestellt und Resolverdaten erweitert
 0.2.029 | 2026-03-10 22:15:26 | Obsoleten disabled Sesame-Sync-Step 0320 entfernt, da target_sesame_resolve direkt vom Resolver gepflegt wird
