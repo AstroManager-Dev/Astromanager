@@ -4,6 +4,8 @@ import sqlite3
 import sys
 import time
 
+from astromanager.targets.distance_normalizer import normalize_distance_to_ly
+
 APP_ROOT = os.environ.get("APP_ROOT", "/app")
 LIB_PY_ROOT = os.path.join(APP_ROOT, "lib", "py")
 if LIB_PY_ROOT not in sys.path:
@@ -32,23 +34,6 @@ def pick(*vals):
             return v
     return None
 
-
-def normalize_distance_to_ly(value, unit):
-    if value is None:
-        return None, ""
-
-    u = (unit or "").strip().lower()
-
-    if u in ("lichtjahr", "lichtjahre", "light-year", "light-years", "ly"):
-        return float(value), "Lichtjahr"
-    if u in ("parsec", "pc"):
-        return float(value) * 3.26156, "Lichtjahr"
-    if u in ("kiloparsec", "kpc"):
-        return float(value) * 3261.56, "Lichtjahr"
-    if u in ("megaparsec", "mpc"):
-        return float(value) * 3261560.0, "Lichtjahr"
-
-    return float(value), unit or ""
 
 
 def select_targets(conn, limit: int):

@@ -7,6 +7,8 @@ import time
 import urllib.parse
 import urllib.request
 
+from astromanager.targets.distance_normalizer import normalize_distance_to_ly
+
 DB_PATH = os.environ.get("DB_PATH", "/runtime/pipeline.db")
 TIMEOUT = float(os.environ.get("WIKIDATA_TIMEOUT", "20"))
 USER_AGENT = os.environ.get("WIKIDATA_UA", "AstroManager/1.0")
@@ -224,6 +226,7 @@ def update_success(
     mag_band: str,
     distance_value,
     distance_unit: str,
+    distance_ly,
 ):
     effective_label_de = label_de or (aliases_de[0] if aliases_de else "")
     effective_display = effective_label_de or label_en or (aliases_en[0] if aliases_en else "")
@@ -244,6 +247,8 @@ def update_success(
                mag_band=?,
                distance_value=?,
                distance_unit=?,
+               distance_ly=?,
+               distance_source=case when ? is not null then 'wikidata' else distance_source end,
                display_name=case when ?<>'' then ? else display_name end,
                name_status=?,
                name_source='wikidata',
@@ -267,6 +272,8 @@ def update_success(
             mag_band,
             distance_value,
             distance_unit,
+            distance_ly,
+            distance_ly,
             effective_display,
             effective_display,
             name_status,
@@ -363,6 +370,13 @@ def resolve_one(conn, row):
     mag_band = "P1215"
     distance_value, distance_unit = claim_quantity(chosen_entity, "P2583")
 
+    distance_ly, _distance_norm_unit = normalize_distance_to_ly(
+        distance_value,
+        distance_unit,
+        "",
+        "",
+    )
+
     update_success(
         conn,
         row["id"],
@@ -378,6 +392,7 @@ def resolve_one(conn, row):
         mag_band if mag_value is not None else "",
         distance_value,
         distance_unit,
+        distance_ly,
     )
 
 

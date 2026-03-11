@@ -5,6 +5,8 @@ import sqlite3
 import time
 import urllib.request
 
+from astromanager.targets.distance_normalizer import normalize_distance_to_ly
+
 DB_PATH = os.environ.get("DB_PATH", "/runtime/pipeline.db")
 TIMEOUT = float(os.environ.get("WIKIDATA_TIMEOUT", "20"))
 USER_AGENT = os.environ.get("WIKIDATA_UA", "AstroManager/1.0")
@@ -48,7 +50,7 @@ def fetch_labels(qid: str):
 def select_targets(conn, only_missing: bool, limit: int):
     if only_missing:
         sql = """
-        SELECT id, canonical_name, object_type, distance_unit,
+        SELECT id, canonical_name, object_type, distance_unit, distance_value,
                object_type_label_de, object_type_label_en,
                distance_unit_label_de, distance_unit_label_en
           FROM targets
@@ -74,7 +76,7 @@ def select_targets(conn, only_missing: bool, limit: int):
         """
     else:
         sql = """
-        SELECT id, canonical_name, object_type, distance_unit,
+        SELECT id, canonical_name, object_type, distance_unit, distance_value,
                object_type_label_de, object_type_label_en,
                distance_unit_label_de, distance_unit_label_en
           FROM targets
@@ -89,7 +91,7 @@ def select_targets(conn, only_missing: bool, limit: int):
     return conn.execute(sql, (limit,)).fetchall()
 
 
-def update_target(conn, row_id: int, obj_de: str, obj_en: str, dist_de: str, dist_en: str):
+def update_target(conn, row_id: int, obj_de: str, obj_en: str, dist_de: str, dist_en: str, distance_ly):
     conn.execute(
         """
         UPDATE targets
@@ -97,10 +99,12 @@ def update_target(conn, row_id: int, obj_de: str, obj_en: str, dist_de: str, dis
                object_type_label_en=?,
                distance_unit_label_de=?,
                distance_unit_label_en=?,
+               distance_ly=COALESCE(?, distance_ly),
+               distance_source=case when ? is not null then 'wikidata' else distance_source end,
                updated_at=datetime('now')
          WHERE id=?
         """,
-        (obj_de, obj_en, dist_de, dist_en, row_id),
+        (obj_de, obj_en, dist_de, dist_en, distance_ly, distance_ly, row_id),
     )
 
 
@@ -116,7 +120,14 @@ def run(only_missing: bool = True, limit: int = 1000) -> int:
             obj_de, obj_en = fetch_labels(row["object_type"] or "")
             dist_de, dist_en = fetch_labels(row["distance_unit"] or "")
 
-            update_target(conn, row["id"], obj_de, obj_en, dist_de, dist_en)
+            distance_ly, _distance_norm_unit = normalize_distance_to_ly(
+                row["distance_value"],
+                row["distance_unit"] or "",
+                dist_de,
+                dist_en,
+            )
+
+            update_target(conn, row["id"], obj_de, obj_en, dist_de, dist_en, distance_ly)
             conn.commit()
             time.sleep(0.25)
     finally:
