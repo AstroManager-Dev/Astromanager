@@ -1,3 +1,4 @@
+0.2.039 | 2026-03-11 17:44:06 | Target-Final-Merge eingeführt, VizieR-TAP-Daten integriert, Distanz auf Lichtjahre harmonisiert und target_final als saubere Endstand-Tabelle aufgebaut
 0.2.038 | 2026-03-11 16:53:40 | VizieR-Resolver auf TAP/ADQL modernisiert, auf echten NGC2000-Katalog VII/118 umgestellt und modulare TAP-basierte Katalogauflösung eingeführt
 0.2.037 | 2026-03-11 16:00:27 | Constellation-Resolver modularisiert, auf bevorzugte Targets-Koordinaten mit Base-Fallback umgestellt und um gespeicherte Koordinatenquelle sowie Positionsfelder erweitert
 0.2.036 | 2026-03-11 15:47:42 | Wikidata-Resolver um exakten Katalog-Lookup via P528/P373 erweitert, Rate-Limit robuster gemacht und problematische Katalogobjekte wie Messier 32 und NGC 206 sauber aufgelöst
