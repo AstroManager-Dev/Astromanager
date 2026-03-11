@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import json
-import math
 import os
 import sqlite3
 import time
@@ -8,6 +7,21 @@ import urllib.parse
 import urllib.request
 
 from astromanager.targets.distance_normalizer import normalize_distance_to_ly
+from astromanager.targets.wikidata_match_utils import (
+    angular_sep_deg,
+    best_catalog_fallback_name,
+    claim_coord,
+    claim_entity_id,
+    claim_quantity,
+    coord_score,
+    entity_anchor_score,
+    hit_name_score,
+    labels_aliases,
+    norm,
+    reject_entity_mismatch,
+    row_search_terms,
+    sitelink_title,
+)
 
 DB_PATH = os.environ.get("DB_PATH", "/runtime/pipeline.db")
 TIMEOUT = float(os.environ.get("WIKIDATA_TIMEOUT", "20"))
@@ -23,10 +37,6 @@ def db():
     return conn
 
 
-def norm(s: str) -> str:
-    return " ".join((s or "").strip().split())
-
-
 def http_json(url: str):
     req = urllib.request.Request(
         url,
@@ -36,164 +46,17 @@ def http_json(url: str):
         return json.loads(resp.read().decode("utf-8", "replace"))
 
 
-def angular_sep_deg(ra1, dec1, ra2, dec2):
-    r1 = math.radians(float(ra1))
-    d1 = math.radians(float(dec1))
-    r2 = math.radians(float(ra2))
-    d2 = math.radians(float(dec2))
-    cosv = math.sin(d1) * math.sin(d2) + math.cos(d1) * math.cos(d2) * math.cos(r1 - r2)
-    cosv = max(-1.0, min(1.0, cosv))
-    return math.degrees(math.acos(cosv))
-
-
-def hit_name_score(canonical_name: str, hit: dict, entity: dict) -> int:
-    canonical_l = norm(canonical_name).lower()
-    compact = canonical_l.replace(" ", "")
-    score = 0
-
-    label = norm(hit.get("label", "")).lower()
-    match_text = norm(hit.get("match", {}).get("text", "")).lower()
-    desc = norm(hit.get("description", "")).lower()
-
-    if label == canonical_l:
-        score += 100
-    elif label.replace(" ", "") == compact:
-        score += 90
-
-    if match_text == canonical_l:
-        score += 80
-    elif match_text.replace(" ", "") == compact:
-        score += 70
-
-    aliases = []
-    for lang in ("de", "en"):
-        for row in entity.get("aliases", {}).get(lang, []):
-            value = norm(row.get("value", "")).lower()
-            if value:
-                aliases.append(value)
-
-    if canonical_l in aliases:
-        score += 60
-    elif compact in [a.replace(" ", "") for a in aliases]:
-        score += 50
-
-    astro_words = (
-        "galaxy", "nebula", "cluster", "quasar", "astronomical", "astronomy",
-        "spiral", "barred", "emission", "planetary", "h ii", "region"
-    )
-    if any(word in desc for word in astro_words):
-        score += 10
-
-    return score
-
-
-def pick_best_search_hit(canonical_name: str, hits: list[dict], entities: dict[str, dict]) -> dict | None:
-    if not hits:
-        return None
-
-    ranked = []
-    for hit in hits:
-        qid = hit.get("id", "")
-        entity = entities.get(qid, {})
-        ranked.append((hit_name_score(canonical_name, hit, entity), hit))
-
-    ranked.sort(key=lambda item: item[0], reverse=True)
-    return ranked[0][1] if ranked else None
-
-
-def labels_aliases(entity: dict, lang: str):
-    labels = entity.get("labels", {})
-    aliases = entity.get("aliases", {})
-    label = norm(labels.get(lang, {}).get("value", ""))
-
-    alias_values = []
-    for row in aliases.get(lang, []):
-        value = norm(row.get("value", ""))
-        if value and value not in alias_values:
-            alias_values.append(value)
-
-    return label, alias_values
-
-
-def sitelink_title(entity: dict, key: str) -> str:
-    return norm(entity.get("sitelinks", {}).get(key, {}).get("title", ""))
-
-
-def claim_first(entity: dict, prop: str):
-    claims = entity.get("claims", {})
-    rows = claims.get(prop, [])
-    if not rows:
-        return None
-
-    preferred = []
-    normal = []
-
-    for row in rows:
-        rank = row.get("rank", "")
-        value = row.get("mainsnak", {}).get("datavalue", {}).get("value")
-        if value is None:
-            continue
-        if rank == "preferred":
-            preferred.append(value)
-        elif rank == "normal":
-            normal.append(value)
-
-    if preferred:
-        return preferred[0]
-    if normal:
-        return normal[0]
-    return None
-
-
-def claim_entity_id(entity: dict, prop: str) -> str:
-    value = claim_first(entity, prop)
-    if isinstance(value, dict):
-        return norm(str(value.get("id", "")))
-    return ""
-
-
-def claim_quantity(entity: dict, prop: str):
-    value = claim_first(entity, prop)
-    if not isinstance(value, dict):
-        return None, ""
-
-    amount = value.get("amount")
-    unit = value.get("unit", "")
-    number = None
-
-    if amount is not None:
-        try:
-            number = float(str(amount).replace("+", ""))
-        except Exception:
-            number = None
-
-    if unit and unit.startswith("http://www.wikidata.org/entity/"):
-        unit = unit.rsplit("/", 1)[-1]
-
-    return number, unit
-
-
-def claim_coord(entity: dict):
-    ra, _ = claim_quantity(entity, "P6257")
-    dec, _ = claim_quantity(entity, "P6258")
-    if ra is None or dec is None:
-        return None, None
-
-    try:
-        return float(ra), float(dec)
-    except Exception:
-        return None, None
-
-
 def select_targets(conn, only_pending: bool, limit: int):
     if only_pending:
         sql = """
-        select id, canonical_name, display_name, category, coord_status, name_status, meta_status, ra_deg, dec_deg
+        select id, canonical_name, display_name, final_name, simbad_main_id, ned_preferred_name,
+               wikidata_id, category, coord_status, name_status, meta_status, ra_deg, dec_deg
         from targets
         where coord_status='resolved'
           and (
                 coalesce(name_status,'pending') in ('pending','error')
              or coalesce(meta_status,'pending') in ('pending','error')
+             or coalesce(wikidata_id,'')=''
           )
           and lower(coalesce(category,'')) not in ('sun','moon')
         order by id
@@ -201,7 +64,8 @@ def select_targets(conn, only_pending: bool, limit: int):
         """
     else:
         sql = """
-        select id, canonical_name, display_name, category, coord_status, name_status, meta_status, ra_deg, dec_deg
+        select id, canonical_name, display_name, final_name, simbad_main_id, ned_preferred_name,
+               wikidata_id, category, coord_status, name_status, meta_status, ra_deg, dec_deg
         from targets
         where coord_status='resolved'
           and lower(coalesce(category,'')) not in ('sun','moon')
@@ -227,9 +91,10 @@ def update_success(
     distance_value,
     distance_unit: str,
     distance_ly,
+    catalog_fallback_name: str,
 ):
     effective_label_de = label_de or (aliases_de[0] if aliases_de else "")
-    effective_display = effective_label_de or label_en or (aliases_en[0] if aliases_en else "")
+    effective_display = effective_label_de or label_en or (aliases_en[0] if aliases_en else "") or catalog_fallback_name
     name_status = "resolved" if effective_display else "unresolved"
 
     conn.execute(
@@ -287,7 +152,21 @@ def update_error(conn, target_id: int):
     conn.execute(
         """
         update targets
-           set name_status='error',
+           set wikidata_id='',
+               label_de='',
+               label_en='',
+               aliases_de='[]',
+               aliases_en='[]',
+               wiki_de_title='',
+               wiki_en_title='',
+               object_type='',
+               mag_value=null,
+               mag_band='',
+               distance_value=null,
+               distance_unit='',
+               distance_ly=null,
+               distance_source='',
+               name_status='error',
                name_source='wikidata',
                name_resolved_at=datetime('now'),
                meta_status='error',
@@ -301,74 +180,105 @@ def update_error(conn, target_id: int):
     conn.commit()
 
 
+def collect_candidates(row):
+    aggregated = {}
+
+    for term in row_search_terms(row):
+        search_data = http_json(SEARCH_URL + urllib.parse.quote(term))
+        for hit in search_data.get("search", []):
+            qid = norm(hit.get("id", ""))
+            if not qid:
+                continue
+
+            entry = aggregated.setdefault(
+                qid,
+                {
+                    "hit": hit,
+                    "terms": [],
+                },
+            )
+            if term not in entry["terms"]:
+                entry["terms"].append(term)
+
+    return aggregated
+
+
 def resolve_one(conn, row):
-    canonical_name = norm(row["canonical_name"])
     target_ra = row["ra_deg"]
     target_dec = row["dec_deg"]
 
-    search_data = http_json(SEARCH_URL + urllib.parse.quote(canonical_name))
-    hits = search_data.get("search", [])
-    if not hits:
+    aggregated = collect_candidates(row)
+    if not aggregated:
         update_error(conn, row["id"])
         return
 
     checked = []
-    entity_map = {}
 
-    for hit in hits:
-        qid = hit.get("id", "")
-        if not qid:
-            continue
-
+    for qid, item in aggregated.items():
         entity_data = http_json(GET_URL + urllib.parse.quote(qid))
         entity = entity_data.get("entities", {}).get(qid, {})
         if not entity:
             continue
 
-        entity_map[qid] = entity
+        rejected, reject_reason = reject_entity_mismatch(row, entity)
+        if rejected:
+            continue
+
         cand_ra, cand_dec = claim_coord(entity)
         sep = None
-
         if target_ra is not None and target_dec is not None and cand_ra is not None and cand_dec is not None:
             sep = angular_sep_deg(target_ra, target_dec, cand_ra, cand_dec)
 
-        checked.append((hit, entity, sep, hit_name_score(canonical_name, hit, entity)))
+        name_score = max([hit_name_score(term, item["hit"], entity) for term in item["terms"]] or [0])
+        anchor_score = entity_anchor_score(row, entity)
+        total_score = anchor_score + name_score + coord_score(sep, MAX_SEP_DEG)
 
-    chosen_hit = None
-    chosen_entity = None
+        checked.append(
+            {
+                "qid": qid,
+                "entity": entity,
+                "sep": sep,
+                "name_score": name_score,
+                "anchor_score": anchor_score,
+                "total_score": total_score,
+                "reject_reason": reject_reason,
+            }
+        )
 
-    coord_matches = [
-        (hit, entity, sep, score)
-        for (hit, entity, sep, score) in checked
-        if sep is not None and sep <= MAX_SEP_DEG and score >= 50
-    ]
+    if not checked:
+        update_error(conn, row["id"])
+        return
 
-    if coord_matches:
-        coord_matches.sort(key=lambda item: (-item[3], item[2]))
-        chosen_hit, chosen_entity, _, _ = coord_matches[0]
-    else:
-        fallback_hit = pick_best_search_hit(canonical_name, hits, entity_map)
-        if not fallback_hit:
-            update_error(conn, row["id"])
-            return
+    checked.sort(
+        key=lambda item: (
+            -item["total_score"],
+            -item["anchor_score"],
+            -item["name_score"],
+            item["sep"] if item["sep"] is not None else 999999.0,
+        )
+    )
 
-        qid = fallback_hit.get("id", "")
-        chosen_entity = entity_map.get(qid, {})
-        chosen_hit = fallback_hit
+    chosen = checked[0]
 
-        if not chosen_entity:
-            update_error(conn, row["id"])
-            return
+    if (
+        chosen["anchor_score"] < 80
+        and chosen["name_score"] < 100
+        and (chosen["sep"] is None or chosen["sep"] > MAX_SEP_DEG)
+    ):
+        update_error(conn, row["id"])
+        return
 
-    qid = chosen_hit.get("id", "")
-    label_de, aliases_de = labels_aliases(chosen_entity, "de")
-    label_en, aliases_en = labels_aliases(chosen_entity, "en")
-    wiki_de_title = sitelink_title(chosen_entity, "dewiki")
-    wiki_en_title = sitelink_title(chosen_entity, "enwiki")
-    object_type = claim_entity_id(chosen_entity, "P31")
-    mag_value, _mag_unit = claim_quantity(chosen_entity, "P1215")
+    entity = chosen["entity"]
+    qid = chosen["qid"]
+
+    label_de, aliases_de = labels_aliases(entity, "de")
+    label_en, aliases_en = labels_aliases(entity, "en")
+    wiki_de_title = sitelink_title(entity, "dewiki")
+    wiki_en_title = sitelink_title(entity, "enwiki")
+    object_type = claim_entity_id(entity, "P31")
+    mag_value, _mag_unit = claim_quantity(entity, "P1215")
     mag_band = "P1215"
-    distance_value, distance_unit = claim_quantity(chosen_entity, "P2583")
+    distance_value, distance_unit = claim_quantity(entity, "P2583")
 
     distance_ly, _distance_norm_unit = normalize_distance_to_ly(
         distance_value,
@@ -376,6 +286,8 @@ def resolve_one(conn, row):
         "",
         "",
     )
+
+    catalog_fallback_name = best_catalog_fallback_name(entity)
 
     update_success(
         conn,
@@ -393,6 +305,7 @@ def resolve_one(conn, row):
         distance_value,
         distance_unit,
         distance_ly,
+        catalog_fallback_name,
     )
 
 

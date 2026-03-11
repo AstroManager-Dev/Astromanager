@@ -1,3 +1,4 @@
+0.2.034 | 2026-03-11 13:48:59 | Wikidata-Matching um harte Resolver-Konsistenzchecks sowie P528/P373-Kataloganker erweitert und Fallback-Display für label-lose Katalogobjekte ergänzt
 0.2.033 | 2026-03-11 12:44:03 | Zentrale Distanz-Harmonisierung nach Lichtjahren eingeführt und Wikidata-Resolver auf gemeinsame Distance-Normalisierung umgestellt
 0.2.032 | 2026-03-11 12:16:45 | Wikidata-Meta-Label-Resolver modularisiert und alte 0390-Heuristik durch saubere Label-Auflösung ersetzt
 0.2.031 | 2026-03-11 11:23:01 | NED-Resolver modularisiert und um zusätzliche NED-Felder erweitert; obsoleten NED-Sync-Step als Legacy markiert

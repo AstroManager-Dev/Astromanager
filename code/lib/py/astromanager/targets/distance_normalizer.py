@@ -17,15 +17,10 @@ def normalize_distance_to_ly(value, unit_qid="", unit_label_de="", unit_label_en
     label_de = _norm(unit_label_de)
     label_en = _norm(unit_label_en)
 
-    candidates = {
-        qid,
-        label_de,
-        label_en,
-    }
+    candidates = {qid, label_de, label_en}
 
-    # bekannte Wikidata-QIDs / Textformen
     if candidates & {
-        "q1811",  # astronomical unit
+        "q1811",
         "astronomical unit",
         "astronomische einheit",
         "au",
@@ -33,7 +28,7 @@ def normalize_distance_to_ly(value, unit_qid="", unit_label_de="", unit_label_en
         return numeric * 0.000015812507409, "Lichtjahr"
 
     if candidates & {
-        "q12129",  # parsec
+        "q12129",
         "parsec",
         "pc",
     }:
@@ -46,13 +41,14 @@ def normalize_distance_to_ly(value, unit_qid="", unit_label_de="", unit_label_en
         return numeric * 3261.56, "Lichtjahr"
 
     if candidates & {
-        "q3773454",  # megaparsec
+        "q3773454",
         "megaparsec",
         "mpc",
     }:
         return numeric * 3261560.0, "Lichtjahr"
 
     if candidates & {
+        "q531",
         "lichtjahr",
         "lichtjahre",
         "light-year",
