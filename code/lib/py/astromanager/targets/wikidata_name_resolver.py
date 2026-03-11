@@ -3,8 +3,6 @@ import json
 import os
 import sqlite3
 import time
-import urllib.parse
-import urllib.request
 
 from astromanager.targets.distance_normalizer import normalize_distance_to_ly
 from astromanager.targets.wikidata_match_utils import (
@@ -19,31 +17,19 @@ from astromanager.targets.wikidata_match_utils import (
     labels_aliases,
     norm,
     reject_entity_mismatch,
-    row_search_terms,
     sitelink_title,
 )
+from astromanager.targets.wikidata_search_utils import collect_candidates, get_entity
 
 DB_PATH = os.environ.get("DB_PATH", "/runtime/pipeline.db")
-TIMEOUT = float(os.environ.get("WIKIDATA_TIMEOUT", "20"))
-USER_AGENT = os.environ.get("WIKIDATA_UA", "AstroManager/1.0")
-SEARCH_URL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=item&limit=10&search="
-GET_URL = "https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&languages=de|en&sitefilter=dewiki|enwiki&props=labels|aliases|sitelinks|claims&ids="
 MAX_SEP_DEG = float(os.environ.get("WIKIDATA_MAX_SEP_DEG", "2.0"))
+DEBUG_WIKIDATA_RESOLVER = os.environ.get("DEBUG_WIKIDATA_RESOLVER", "0") == "1"
 
 
 def db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
-
-
-def http_json(url: str):
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
-    )
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-        return json.loads(resp.read().decode("utf-8", "replace"))
 
 
 def select_targets(conn, only_pending: bool, limit: int):
@@ -107,6 +93,7 @@ def update_success(
                aliases_en=?,
                wiki_de_title=?,
                wiki_en_title=?,
+               display_name=case when ?<>'' then ? else '' end,
                object_type=?,
                mag_value=?,
                mag_band=?,
@@ -114,7 +101,6 @@ def update_success(
                distance_unit=?,
                distance_ly=?,
                distance_source=case when ? is not null then 'wikidata' else distance_source end,
-               display_name=case when ?<>'' then ? else display_name end,
                name_status=?,
                name_source='wikidata',
                name_resolved_at=datetime('now'),
@@ -132,6 +118,8 @@ def update_success(
             json.dumps(aliases_en, ensure_ascii=False),
             wiki_de_title,
             wiki_en_title,
+            effective_display,
+            effective_display,
             object_type,
             mag_value,
             mag_band,
@@ -139,8 +127,6 @@ def update_success(
             distance_unit,
             distance_ly,
             distance_ly,
-            effective_display,
-            effective_display,
             name_status,
             target_id,
         ),
@@ -159,6 +145,7 @@ def update_error(conn, target_id: int):
                aliases_en='[]',
                wiki_de_title='',
                wiki_en_title='',
+               display_name='',
                object_type='',
                mag_value=null,
                mag_band='',
@@ -180,47 +167,36 @@ def update_error(conn, target_id: int):
     conn.commit()
 
 
-def collect_candidates(row):
-    aggregated = {}
-
-    for term in row_search_terms(row):
-        search_data = http_json(SEARCH_URL + urllib.parse.quote(term))
-        for hit in search_data.get("search", []):
-            qid = norm(hit.get("id", ""))
-            if not qid:
-                continue
-
-            entry = aggregated.setdefault(
-                qid,
-                {
-                    "hit": hit,
-                    "terms": [],
-                },
-            )
-            if term not in entry["terms"]:
-                entry["terms"].append(term)
-
-    return aggregated
-
-
 def resolve_one(conn, row):
     target_ra = row["ra_deg"]
     target_dec = row["dec_deg"]
 
     aggregated = collect_candidates(row)
+    if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
+        print(f"debug target_id={row['id']} stage=collected candidate_count={len(aggregated)} qids={','.join(sorted(aggregated.keys()))}")
     if not aggregated:
         update_error(conn, row["id"])
         return
 
+    if any("catalog_exact" in item.get("sources", []) for item in aggregated.values()):
+        aggregated = {
+            qid: item
+            for qid, item in aggregated.items()
+            if "catalog_exact" in item.get("sources", [])
+        }
+        if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
+            print(f"debug target_id={row['id']} stage=filtered_to_catalog_exact candidate_count={len(aggregated)} qids={','.join(sorted(aggregated.keys()))}")
+
     checked = []
 
     for qid, item in aggregated.items():
-        entity_data = http_json(GET_URL + urllib.parse.quote(qid))
-        entity = entity_data.get("entities", {}).get(qid, {})
+        entity = get_entity(qid)
         if not entity:
             continue
 
         rejected, reject_reason = reject_entity_mismatch(row, entity)
+        if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
+            print(f"debug target_id={row['id']} qid={qid} stage=reject_check rejected={rejected} reason={reject_reason} sources={','.join(item.get('sources', []))} terms={' || '.join(item['terms'])}")
         if rejected:
             continue
 
@@ -233,6 +209,18 @@ def resolve_one(conn, row):
         anchor_score = entity_anchor_score(row, entity)
         total_score = anchor_score + name_score + coord_score(sep, MAX_SEP_DEG)
 
+        if "catalog_exact" in item.get("sources", []):
+            total_score += 120
+
+        if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
+            print(
+                f"debug target_id={row['id']} qid={qid} stage=scored "
+                f"sources={','.join(item.get('sources', []))} "
+                f"anchor_score={anchor_score} name_score={name_score} "
+                f"sep={sep} total_score={total_score} "
+                f"terms={' || '.join(item['terms'])}"
+            )
+
         checked.append(
             {
                 "qid": qid,
@@ -241,6 +229,7 @@ def resolve_one(conn, row):
                 "name_score": name_score,
                 "anchor_score": anchor_score,
                 "total_score": total_score,
+                "sources": item.get("sources", []),
                 "reject_reason": reject_reason,
             }
         )
@@ -260,9 +249,19 @@ def resolve_one(conn, row):
 
     chosen = checked[0]
 
+    if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
+        print(
+            f"debug target_id={row['id']} chosen_qid={chosen['qid']} "
+            f"sources={','.join(chosen.get('sources', []))} "
+            f"anchor_score={chosen['anchor_score']} "
+            f"name_score={chosen['name_score']} "
+            f"sep={chosen['sep']} total_score={chosen['total_score']}"
+        )
+
     if (
         chosen["anchor_score"] < 80
         and chosen["name_score"] < 100
+        and "catalog_exact" not in chosen.get("sources", [])
         and (chosen["sep"] is None or chosen["sep"] > MAX_SEP_DEG)
     ):
         update_error(conn, row["id"])
@@ -289,6 +288,16 @@ def resolve_one(conn, row):
 
     catalog_fallback_name = best_catalog_fallback_name(entity)
 
+    if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
+        print(
+            f"debug target_id={row['id']} stage=before_update_success "
+            f"qid={qid} label_de={label_de!r} label_en={label_en!r} "
+            f"wiki_de_title={wiki_de_title!r} wiki_en_title={wiki_en_title!r} "
+            f"object_type={object_type!r} mag_value={mag_value!r} "
+            f"distance_value={distance_value!r} distance_unit={distance_unit!r} "
+            f"distance_ly={distance_ly!r} catalog_fallback_name={catalog_fallback_name!r}"
+        )
+
     update_success(
         conn,
         row["id"],
@@ -308,6 +317,9 @@ def resolve_one(conn, row):
         catalog_fallback_name,
     )
 
+    if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
+        print(f"debug target_id={row['id']} stage=after_update_success qid={qid}")
+
 
 def run(only_pending: bool = True, limit: int = 1000) -> int:
     conn = db()
@@ -318,7 +330,9 @@ def run(only_pending: bool = True, limit: int = 1000) -> int:
             print(f"resolving id={row['id']} canonical_name={row['canonical_name']}")
             try:
                 resolve_one(conn, row)
-            except Exception:
+            except Exception as e:
+                if DEBUG_WIKIDATA_RESOLVER and row["id"] in (16, 17):
+                    print(f"debug target_id={row['id']} stage=exception error={e!r}")
                 update_error(conn, row["id"])
             time.sleep(0.25)
     finally:

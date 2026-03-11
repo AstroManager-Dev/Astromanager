@@ -25,6 +25,31 @@ def canonicalize_catalog_name(s: str) -> str:
     return raw
 
 
+def catalog_search_variants(s: str) -> list[str]:
+    raw = compact_name(s)
+    out = []
+
+    m = re.match(r"^(ngc|ic|m|messier)0*([0-9]+)([a-z]?)$", raw)
+    if not m:
+        return out
+
+    prefix = m.group(1)
+    num = str(int(m.group(2)))
+    suffix = m.group(3).upper()
+
+    if prefix in ("m", "messier"):
+        out.append(f"M {num}{suffix}".strip())
+        out.append(f"Messier {num}{suffix}".strip())
+
+    if prefix == "ngc":
+        out.append(f"NGC {num}{suffix}".strip())
+
+    if prefix == "ic":
+        out.append(f"IC {num}{suffix}".strip())
+
+    return [x for x in out if x]
+
+
 def same_name(a: str, b: str) -> bool:
     if not a or not b:
         return False
@@ -195,8 +220,13 @@ def row_search_terms(row) -> list[str]:
     terms = []
     for key in ("simbad_main_id", "final_name", "ned_preferred_name", "canonical_name"):
         value = norm(row[key] or "")
-        if value and value not in terms:
+        if not value:
+            continue
+        if value not in terms:
             terms.append(value)
+        for variant in catalog_search_variants(value):
+            if variant not in terms:
+                terms.append(variant)
     return terms
 
 
@@ -236,7 +266,8 @@ def hit_name_score(search_name: str, hit: dict, entity: dict) -> int:
 
     astro_words = (
         "galaxy", "nebula", "cluster", "quasar", "astronomical", "astronomy",
-        "spiral", "barred", "emission", "planetary", "h ii", "region"
+        "spiral", "barred", "emission", "planetary", "h ii", "region",
+        "elliptical"
     )
     if any(word in desc for word in astro_words):
         score += 10
@@ -324,14 +355,9 @@ def entity_matches_anchor(entity: dict, anchor: str) -> bool:
     if p373 and same_name(p373, anchor):
         return True
 
-    wiki_titles = []
     for key in ("dewiki", "enwiki"):
         title = sitelink_title(entity, key)
-        if title:
-            wiki_titles.append(title)
-
-    for title in wiki_titles:
-        if same_name(title, anchor):
+        if title and same_name(title, anchor):
             return True
 
     if is_catalog_anchor:
