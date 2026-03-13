@@ -116,3 +116,5 @@ coverage/
 *.tmp
 *.tmp.*
 *.orig
+
+!env/.env
