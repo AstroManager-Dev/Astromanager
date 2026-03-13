@@ -1,3 +1,4 @@
+0.3.008 | 2026-03-13 13:27:39 | Architektur fuer getrennte Geraetetypen und reale Device-Instanzen festgelegt; device_sources bleibt fuer Typ-Defaults, konkrete Hosts/Credentials kommen kuenftig in eigene Device-Instanz-Tabelle
 0.3.007 | 2026-03-13 11:29:23 | RAW-Sync Fehlerpfad analysiert; Vorbereitung fuer harten Abbruch bei fehlender remote_inventory/sync_plan/fetch_result und korrekten Error-Status statt false ok
 0.3.006 | 2026-03-13 11:18:50 | RAW-Sync Live-Fortschritt vorbereitet; fetch_sync.py fuer laufende progress-Zeilen erweitert und progress_runtime.py fuer RAW-Progress-Auswertung angepasst
 0.3.005 | 2026-03-13 09:48:00 | RAW-Sync, Job-Tracking und Zeitzonen fuer job_runs bereinigt; Vorbereitung fuer Live-Fortschritt im RAW-Sync

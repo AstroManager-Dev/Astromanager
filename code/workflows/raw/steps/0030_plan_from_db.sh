@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# AstroManager
-# Author: M. Pastor Nause
 set -euo pipefail
 
-# shellcheck source=/dev/null
-source "$ROOT/lib/common.sh"
+step_run() {
+  local inventory_json="${RUN_DIR_PATH}/remote_inventory.json"
+  local plan_json="${RUN_DIR_PATH}/sync_plan.json"
 
-INVENTORY_JSON="$RUN_DIR_PATH/remote_inventory.json"
-PLAN_JSON="$RUN_DIR_PATH/sync_plan.json"
-PYTHONPATH="/app/lib/py${PYTHONPATH:+:$PYTHONPATH}" \
-python3 /app/bin/raw/sync_plan.py \
-  --db-path "$DB_PATH" \
-  --inventory-json "$INVENTORY_JSON" \
-  --raw-root "$RAW_ROOT" \
-  --source-key "$RAW_SYNC_SOURCE_KEY" \
-  --output-json "$PLAN_JSON" >> "$LOG" 2>&1
-log "sync plan saved: $PLAN_JSON"
+  [[ -f "$inventory_json" ]] || die "missing remote inventory: $inventory_json"
+
+  python3 -m astromanager.raw.plan_sync \
+    --db-path "$DB_PATH" \
+    --source-key "$RAW_SYNC_SOURCE_KEY" \
+    --inventory-json "$inventory_json" \
+    --output-json "$plan_json"
+
+  [[ -f "$plan_json" ]] || die "sync plan was not created: $plan_json"
+  log "sync plan saved: $plan_json"
+}
