@@ -1,3 +1,4 @@
+0.3.007 | 2026-03-13 11:29:23 | RAW-Sync Fehlerpfad analysiert; Vorbereitung fuer harten Abbruch bei fehlender remote_inventory/sync_plan/fetch_result und korrekten Error-Status statt false ok
 0.3.006 | 2026-03-13 11:18:50 | RAW-Sync Live-Fortschritt vorbereitet; fetch_sync.py fuer laufende progress-Zeilen erweitert und progress_runtime.py fuer RAW-Progress-Auswertung angepasst
 0.3.005 | 2026-03-13 09:48:00 | RAW-Sync, Job-Tracking und Zeitzonen fuer job_runs bereinigt; Vorbereitung fuer Live-Fortschritt im RAW-Sync
 0.3.004 | 2026-03-13 08:35:55 | RAW-Sync, Index-Trigger und Web-UI-Anbindung weiter angepasst; aktuelles Backup fuer naechste Analyse erzeugen

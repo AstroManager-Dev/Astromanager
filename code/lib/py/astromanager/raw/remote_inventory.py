@@ -9,12 +9,20 @@ import datetime as dt
 import fnmatch
 import json
 import posixpath
+import socket
 from dataclasses import asdict, dataclass
 from ftplib import FTP, error_perm
 from typing import Iterator
 
 from .constants import RAW_FITS_EXTENSIONS, RAW_REMOTE_BASE_DIR, RAW_SOURCE_KEY_DEFAULT
 from .device_source import DeviceSource, load_device_source
+
+
+class RawFtpError(RuntimeError):
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+        self.message = message
 
 
 @dataclass(frozen=True)
@@ -28,8 +36,40 @@ class RemoteFile:
 
 def _connect(host: str, user: str, password: str, timeout: int) -> FTP:
     ftp = FTP()
-    ftp.connect(host=host, port=21, timeout=timeout)
-    ftp.login(user=user, passwd=password)
+    try:
+        ftp.connect(host=host, port=21, timeout=timeout)
+    except socket.gaierror as exc:
+        raise RawFtpError("ftp_host_unreachable", f"ftp host unreachable host={host}: {exc}") from exc
+    except ConnectionRefusedError as exc:
+        raise RawFtpError("ftp_port_closed", f"ftp port 21 closed host={host}: {exc}") from exc
+    except TimeoutError as exc:
+        raise RawFtpError("ftp_timeout", f"ftp timeout host={host} timeout={timeout}: {exc}") from exc
+    except socket.timeout as exc:
+        raise RawFtpError("ftp_timeout", f"ftp timeout host={host} timeout={timeout}: {exc}") from exc
+    except OSError as exc:
+        msg = str(exc).lower()
+        if "no route to host" in msg or "network is unreachable" in msg or "name or service not known" in msg:
+            raise RawFtpError("ftp_host_unreachable", f"ftp host unreachable host={host}: {exc}") from exc
+        if "connection refused" in msg:
+            raise RawFtpError("ftp_port_closed", f"ftp port 21 closed host={host}: {exc}") from exc
+        if "timed out" in msg:
+            raise RawFtpError("ftp_timeout", f"ftp timeout host={host} timeout={timeout}: {exc}") from exc
+        raise RawFtpError("ftp_connect_failed", f"ftp connect failed host={host}: {exc}") from exc
+
+    try:
+        ftp.login(user=user, passwd=password)
+    except error_perm as exc:
+        raise RawFtpError("ftp_login_failed", f"ftp login failed host={host} user={user}: {exc}") from exc
+    except TimeoutError as exc:
+        raise RawFtpError("ftp_timeout", f"ftp timeout during login host={host} timeout={timeout}: {exc}") from exc
+    except socket.timeout as exc:
+        raise RawFtpError("ftp_timeout", f"ftp timeout during login host={host} timeout={timeout}: {exc}") from exc
+    except OSError as exc:
+        msg = str(exc).lower()
+        if "timed out" in msg:
+            raise RawFtpError("ftp_timeout", f"ftp timeout during login host={host} timeout={timeout}: {exc}") from exc
+        raise RawFtpError("ftp_login_failed", f"ftp login failed host={host} user={user}: {exc}") from exc
+
     ftp.set_pasv(True)
     return ftp
 
@@ -135,8 +175,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-json", required=True)
     args = parser.parse_args(argv)
 
-    source = load_device_source(args.db_path, args.source_key)
-    payload = build_inventory(source, args.host, args.user, args.password, args.timeout)
+    try:
+        source = load_device_source(args.db_path, args.source_key)
+        payload = build_inventory(source, args.host, args.user, args.password, args.timeout)
+    except RawFtpError as exc:
+        print(f"raw_sync_error_code={exc.code}")
+        print(f"raw_sync_error_message={exc.message}")
+        raise SystemExit(20) from exc
 
     with open(args.output_json, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, ensure_ascii=False, separators=(",", ":"))
