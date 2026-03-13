@@ -147,6 +147,43 @@ def _parse_index_metrics(text: str) -> dict[str, Any]:
     return result
 
 
+def _parse_raw_sync_progress(text: str) -> dict[str, Any]:
+    result = {
+        "raw_planned": 0,
+        "raw_processed": 0,
+        "raw_downloaded": 0,
+        "raw_skipped": 0,
+        "raw_errors": 0,
+        "raw_step": "",
+        "progress_line": "",
+    }
+
+    progress_lines = [line for line in text.splitlines() if "progress:" in line and "raw_planned=" in line]
+    if not progress_lines:
+        return result
+
+    line = progress_lines[-1]
+    patterns = {
+        "raw_planned": r"raw_planned=(\d+)",
+        "raw_processed": r"raw_processed=(\d+)",
+        "raw_downloaded": r"raw_downloaded=(\d+)",
+        "raw_skipped": r"raw_skipped=(\d+)",
+        "raw_errors": r"raw_errors=(\d+)",
+        "raw_step": r"raw_step=([^,\n]+)",
+    }
+    for key, pattern in patterns.items():
+        m = re.search(pattern, line)
+        if m:
+            value = m.group(1).strip()
+            if key == "raw_step":
+                result[key] = value
+            else:
+                result[key] = int(value)
+
+    result["progress_line"] = line
+    return result
+
+
 def _parse_raw_sync_summary(text: str) -> dict[str, Any]:
     result = {
         "plan_count": 0,
@@ -276,6 +313,7 @@ def get_live_progress() -> dict[str, Any]:
         "downloaded": 0,
         "skipped": 0,
         "errors": 0,
+        "processed_count": 0,
         "last_progress_line": "",
         "tail": tail,
         "running_processes": running,
@@ -289,7 +327,41 @@ def get_live_progress() -> dict[str, Any]:
         return payload
 
     if workflow == "raw_sync":
+        raw_progress = _parse_raw_sync_progress(tail)
         raw = _parse_raw_sync_summary(tail)
+
+        if raw_progress["raw_planned"] > 0:
+            plan_count = int(raw_progress["raw_planned"] or 0)
+            processed = int(raw_progress["raw_processed"] or 0)
+            downloaded = int(raw_progress["raw_downloaded"] or 0)
+            skipped = int(raw_progress["raw_skipped"] or 0)
+            errors = int(raw_progress["raw_errors"] or 0)
+
+            pct = 0.0
+            if plan_count > 0:
+                pct = round((processed / plan_count) * 100.0, 1)
+                if pct > 100:
+                    pct = 100.0
+
+            payload.update(
+                {
+                    "progress_pct": pct,
+                    "plan_count": plan_count,
+                    "processed_count": processed,
+                    "downloaded": downloaded,
+                    "skipped": skipped,
+                    "errors": errors,
+                    "last_progress_line": raw_progress.get("progress_line", ""),
+                    "current_step": str(raw_progress.get("raw_step") or current_step),
+                }
+            )
+
+            if running:
+                payload["status"] = f"RAW Sync aktiv: {payload['current_step'] or 'laufend'}"
+            else:
+                payload["status"] = f"Letzter RAW Sync: {processed} / {plan_count} Dateien ({pct}%)"
+            return payload
+
         plan_count = int(raw["plan_count"] or 0)
         downloaded = int(raw["downloaded"] or 0)
         skipped = int(raw["skipped"] or 0)
@@ -306,6 +378,7 @@ def get_live_progress() -> dict[str, Any]:
             {
                 "progress_pct": pct,
                 "plan_count": plan_count,
+                "processed_count": done,
                 "downloaded": downloaded,
                 "skipped": skipped,
                 "errors": errors,

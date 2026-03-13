@@ -48,6 +48,17 @@ log "STATE_DIR_ARG=$STATE_DIR_ARG"
 log "LOG_DIR_ARG=$LOG_DIR_ARG"
 log "STEPS_DIR=$STEPS_DIR"
 
+raw_progress_log() {
+  local planned="${1:-0}"
+  local processed="${2:-0}"
+  local downloaded="${3:-0}"
+  local skipped="${4:-0}"
+  local errors="${5:-0}"
+  local step_name="${6:-}"
+
+  log "progress: raw_planned=${planned}, raw_processed=${processed}, raw_downloaded=${downloaded}, raw_skipped=${skipped}, raw_errors=${errors}, raw_step=${step_name}"
+}
+
 db_init "$ROOT"
 [[ -d "$STEPS_DIR" ]] || die "missing steps dir: $STEPS_DIR"
 
