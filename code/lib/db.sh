@@ -36,7 +36,7 @@ db_seed_device_sources() {
       root_pattern=excluded.root_pattern,
       notes=excluded.notes,
       is_active=excluded.is_active,
-      updated_at=datetime('now');
+      updated_at=datetime('now','localtime');
   "
 }
 
@@ -329,7 +329,7 @@ db_get_or_create_target() {
     ON CONFLICT(canonical_name) DO UPDATE SET
       display_name=excluded.display_name,
       category=excluded.category,
-      updated_at=datetime('now');
+      updated_at=datetime('now','localtime');
     SELECT id FROM targets WHERE canonical_name='$(db_escape "$canonical_name")' LIMIT 1;
   " | tail -n 1
 }
@@ -363,7 +363,7 @@ db_get_or_create_capture_profile() {
       datetime('now')
     )
     ON CONFLICT(source_id, camera, exp_seconds, gain, binning, filter_set, is_dark_profile) DO UPDATE SET
-      updated_at=datetime('now');
+      updated_at=datetime('now','localtime');
     SELECT id
       FROM capture_profiles
      WHERE source_id=$(printf '%s' "$source_id")
@@ -467,8 +467,8 @@ db_job_start() {
   local job_name="$1" source="${2:-unknown}" note="${3:-}"
   db_require
   sqlite3 "$DB_PATH" \
-    "INSERT INTO job_runs (job_name,status,source,note)
-     VALUES ('$(db_escape "$job_name")','running','$(db_escape "$source")','$(db_escape "$note")');
+    "INSERT INTO job_runs (job_name,status,source,note,started_at)
+     VALUES ('$(db_escape "$job_name")','running','$(db_escape "$source")','$(db_escape "$note")',datetime('now','localtime'));
      SELECT last_insert_rowid();"
 }
 
@@ -478,7 +478,7 @@ db_job_finish() {
     "UPDATE job_runs
         SET status='$(db_escape "$2")',
             note='$(db_escape "${3:-}")',
-            finished_at=datetime('now')
+            finished_at=datetime('now','localtime')
       WHERE id=$(printf '%s' "$1");"
 }
 
@@ -486,10 +486,10 @@ db_set_state() {
   db_require
   sqlite3 "$DB_PATH" \
     "INSERT INTO app_state (key,value,updated_at)
-     VALUES ('$(db_escape "$1")','$(db_escape "$2")',datetime('now'))
+     VALUES ('$(db_escape "$1")','$(db_escape "$2")',datetime('now','localtime'))
      ON CONFLICT(key) DO UPDATE SET
        value=excluded.value,
-       updated_at=datetime('now');"
+       updated_at=datetime('now','localtime');"
 }
 
 db_print_recent_runs_json() {

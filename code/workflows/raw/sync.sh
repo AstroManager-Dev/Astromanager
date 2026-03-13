@@ -73,11 +73,15 @@ run_step_file() {
   local step_file="$1"
 
   log "run step=$(basename "$step_file")"
-  source "$step_file"
 
-  declare -F step_run >/dev/null || die "step file has no step_run(): $step_file"
-  step_run
-  unset -f step_run
+  if grep -qE '^[[:space:]]*step_run[[:space:]]*\(\)' "$step_file"; then
+    source "$step_file"
+    declare -F step_run >/dev/null || die "step file has no step_run(): $step_file"
+    step_run
+    unset -f step_run
+  else
+    bash "$step_file"
+  fi
 }
 
 run_all_steps() {

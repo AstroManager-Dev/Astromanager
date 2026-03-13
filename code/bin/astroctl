@@ -63,7 +63,7 @@ main() {
       echo "db: initialized at $DB_PATH"
       ;;
     raw:sync)
-      run_dummy "$ROOT/workflows/raw/sync.sh" "raw_sync"
+      exec "$ROOT/workflows/raw/sync.sh"
       ;;
     index:sessions)
       run_dummy "$ROOT/workflows/index/sessions.sh" "index_sessions"

@@ -1,3 +1,4 @@
+0.3.005 | 2026-03-13 09:48:00 | RAW-Sync, Job-Tracking und Zeitzonen fuer job_runs bereinigt; Vorbereitung fuer Live-Fortschritt im RAW-Sync
 0.3.004 | 2026-03-13 08:35:55 | RAW-Sync, Index-Trigger und Web-UI-Anbindung weiter angepasst; aktuelles Backup fuer naechste Analyse erzeugen
 0.3.003 | 2026-03-13 08:05:11 | RAW-Sync fuer DWARF3 produktiv integriert, Root-Pattern-Matching fuer DWARF_RAW_TELE*, DWARF_DARK und CALI_FRAME korrigiert, Dry-Run/Quoting/common.sh-Fehler behoben, neue RAW-Sessions und Darks werden korrekt erkannt und synchronisiert, Index-Workflow um 9999_trigger_targets.sh erweitert
 0.3.002 | 2026-03-13 07:53:09 | CHANGELOG.unreleased.md auf das Skriptformat bereinigt und RAW-Sync-Release-Stand konsistent abgeschlossen
