@@ -1,0 +1,119 @@
+# Git
+.git
+.gitignore
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Logs / runtime / temp / cache
+logs/
+runtime/
+tmp/
+cache/
+work/
+
+# SQLite / DB runtime
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Env / secrets
+.env
+.env.*
+*.secret
+*.key
+*.pem
+*.crt
+
+# Local config / machine specific
+config/local/
+config/secrets/
+config/*.local.*
+
+# Media / astro data / generated assets
+/raw/
+data/
+catalog/
+masters/
+masterdarks/
+calibration/
+lights/
+darks/
+flats/
+bias/
+sessions/
+preview/
+previews/
+thumbnails/
+exports/
+output/
+outputs/
+
+# Image / fits / raw like data
+*.fit
+*.fits
+*.fts
+*.xisf
+*.tif
+*.tiff
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.bmp
+*.gif
+*.mp4
+*.mov
+*.avi
+*.ser
+
+# Archives / backups
+_backups/
+backup/
+backups/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Docker overrides / local state
+docker-compose.override.yml
+
+# Node / web build artifacts
+node_modules/
+dist/
+build/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# Legacy / obsolete script backups
+*.legacy
+*.legacy.*
+*.old
+*.old.*
+*.bak
+*.bak.*
+*.tmp
+*.tmp.*
+*.orig
