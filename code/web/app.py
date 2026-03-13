@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, abort, jsonify, render_template, request, send_file
 
 from actions import ACTION_HANDLERS
 from progress_runtime import get_live_progress
@@ -16,6 +16,10 @@ LOG_ROOT = Path(os.environ.get("LOG_ROOT", "/logs"))
 LOG_FILE = LOG_ROOT / "master" / "webui.log"
 DB_PATH = Path(os.environ.get("DB_PATH", "/runtime/pipeline.db"))
 ASTROCTL = "/app/bin/astroctl"
+PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", "/app"))
+BACKUP_ROOT = Path(os.environ.get("BACKUP_ROOT", str(PROJECT_ROOT / "_backups" / "astromanager")))
+SQL_DUMP_ROOT = Path(os.environ.get("SQL_DUMP_ROOT", str(BACKUP_ROOT / "sql_dumps")))
+EXPORT_ROOT = Path(os.environ.get("EXPORT_ROOT", str(BACKUP_ROOT / "exports")))
 
 DB_TABLE_DEFAULTS = {
     "sessions": {
@@ -44,6 +48,99 @@ DB_TABLE_DEFAULTS = {
     },
 }
 
+
+
+
+def latest_web_log(limit: int = 40) -> str:
+    if not LOG_FILE.exists():
+        return ""
+    try:
+        return "".join(LOG_FILE.read_text(encoding="utf-8").splitlines(keepends=True)[-limit:])
+    except Exception:
+        return ""
+
+
+def running_jobs() -> list[dict[str, Any]]:
+    return [run for run in db_recent_runs() if str(run.get("status", "")).lower() in {"running", "started"}]
+
+
+def summarize_service_state() -> dict[str, Any]:
+    progress = get_live_progress()
+    active_runs = running_jobs()
+    current_job = active_runs[0] if active_runs else None
+    title = "Bereit"
+    subtitle = "Kein aktiver Job"
+    if progress.get("active"):
+        title = "Lauf aktiv"
+        subtitle = progress.get("status") or "AstroManager arbeitet"
+    elif current_job:
+        title = current_job.get("job_name") or "Letzter Job"
+        subtitle = current_job.get("status") or "running"
+    elif progress.get("status"):
+        subtitle = progress.get("status")
+
+    return {
+        "title": title,
+        "subtitle": subtitle,
+        "active": bool(progress.get("active")),
+        "workflow": progress.get("workflow") or "idle",
+        "current_step": progress.get("current_step") or "",
+        "progress_pct": progress.get("progress_pct") or 0,
+        "current_job": current_job,
+        "active_runs": active_runs,
+        "recent_runs": db_recent_runs(),
+        "latest_log": latest_web_log(),
+    }
+
+
+def file_cards_from_dir(path: Path, label: str, limit: int = 8) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    items: list[dict[str, Any]] = []
+    for fp in sorted([p for p in path.glob('*') if p.is_file()], key=lambda p: p.stat().st_mtime, reverse=True)[:limit]:
+        stat = fp.stat()
+        items.append({
+            "name": fp.name,
+            "label": label,
+            "size": stat.st_size,
+            "mtime": int(stat.st_mtime),
+        })
+    return items
+
+
+def fmt_size(num: int) -> str:
+    value = float(num)
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if value < 1024 or unit == "TB":
+            if unit == "B":
+                return f"{int(value)} {unit}"
+            return f"{value:.1f} {unit}"
+        value /= 1024.0
+    return f"{num} B"
+
+
+def dev_assets() -> dict[str, list[dict[str, Any]]]:
+    backups = file_cards_from_dir(BACKUP_ROOT, "Backup")
+    sql_dumps = file_cards_from_dir(SQL_DUMP_ROOT, "SQL")
+    exports = file_cards_from_dir(EXPORT_ROOT, "Export")
+    for bucket in (backups, sql_dumps, exports):
+        for item in bucket:
+            item["size_label"] = fmt_size(int(item["size"]))
+    return {"backups": backups, "sql_dumps": sql_dumps, "exports": exports}
+
+
+def resolve_download(bucket: str, filename: str) -> Path:
+    roots = {"backup": BACKUP_ROOT, "sql": SQL_DUMP_ROOT, "export": EXPORT_ROOT}
+    if bucket not in roots:
+        raise FileNotFoundError(bucket)
+    safe_name = Path(filename).name
+    target = (roots[bucket] / safe_name).resolve()
+    root = roots[bucket].resolve()
+    if root not in target.parents and target != root:
+        raise FileNotFoundError(filename)
+    if not target.exists() or not target.is_file():
+        raise FileNotFoundError(filename)
+    return target
 
 def append_web_log(message: str) -> None:
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -474,12 +571,7 @@ def db_list_table(
 
 @APP.get("/")
 def index():
-    latest = ""
-    if LOG_FILE.exists():
-        try:
-            latest = "".join(LOG_FILE.read_text(encoding="utf-8").splitlines(keepends=True)[-40:])
-        except Exception:
-            latest = ""
+    latest = latest_web_log()
 
     selected_table = ""
     q = ""
@@ -520,6 +612,8 @@ def index():
         db_selected_table=selected_table,
         db_view=db_view,
         db_query=q,
+        service_state=summarize_service_state(),
+        dev_assets=dev_assets(),
     )
 
 
@@ -600,6 +694,25 @@ def api_db_row(table: str, row_id: int):
         return jsonify({"ok": True, "table": table, "row": row_to_dict(row)})
     finally:
         conn.close()
+
+
+@APP.get("/api/live/summary")
+def api_live_summary():
+    return jsonify({"ok": True, **summarize_service_state(), "progress": get_live_progress()})
+
+
+@APP.get("/api/dev/files")
+def api_dev_files():
+    return jsonify({"ok": True, **dev_assets()})
+
+
+@APP.get("/download/<bucket>/<path:filename>")
+def download_file(bucket: str, filename: str):
+    try:
+        path = resolve_download(bucket, filename)
+    except FileNotFoundError:
+        abort(404)
+    return send_file(path, as_attachment=True, download_name=path.name)
 
 
 @APP.post("/api/run/<action>")

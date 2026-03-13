@@ -1,0 +1,28 @@
+<section class="tab-panel" data-panel="gallery">
+  <div class="section-title-row">
+    <div>
+      <div class="eyebrow">Ergebnisse</div>
+      <h2>Galerie</h2>
+    </div>
+  </div>
+
+  <div class="gallery-grid">
+    {% for item in gallery_items %}
+    <article class="gallery-card">
+      <div class="gallery-thumb-wrap">
+        <img class="gallery-thumb" src="{{ item.thumb_url }}" alt="{{ item.title }}">
+      </div>
+      <div class="gallery-card-body">
+        <strong>{{ item.title }}</strong>
+        <span>{{ item.subtitle }}</span>
+        <div class="gallery-meta">
+          <span>{{ item.badge }}</span>
+          <span>{{ item.meta }}</span>
+        </div>
+      </div>
+    </article>
+    {% else %}
+    <div class="card"><p class="muted">Noch keine Vorschaubilder vorhanden.</p></div>
+    {% endfor %}
+  </div>
+</section>

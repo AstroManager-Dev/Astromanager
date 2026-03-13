@@ -1,15 +1,23 @@
-<div class="menu-wrap">
-  <button class="burger-btn" id="burger-btn" aria-label="Menü öffnen" aria-expanded="false" aria-controls="menu-panel">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-      <path d="M4 7h16"></path>
-      <path d="M4 12h16"></path>
-      <path d="M4 17h16"></path>
-    </svg>
-  </button>
-
-  <div class="menu-panel" id="menu-panel">
-    <button class="menu-tab-btn active" data-tab="overview">Übersicht</button>
-    <button class="menu-tab-btn" data-tab="targets">Targets</button>
-    <button class="menu-tab-btn" data-tab="database">DB</button>
+<div class="sheet-backdrop" id="menu-backdrop" hidden></div>
+<aside class="menu-sheet" id="menu-sheet" aria-hidden="true">
+  <div class="menu-sheet-head">
+    <div>
+      <div class="menu-sheet-kicker">AstroManager</div>
+      <h2>Menü</h2>
+    </div>
+    <button class="sheet-close-btn" id="close-menu-btn" aria-label="Menü schließen">×</button>
   </div>
-</div>
+
+  <div class="menu-group">
+    <div class="menu-group-title">Arbeitsbereiche</div>
+    <button class="sheet-link" data-tab="overview">Start</button>
+    <button class="sheet-link" data-tab="gallery">Galerie</button>
+    <button class="sheet-link" data-tab="status">Status</button>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-group-title">System</div>
+    <button class="sheet-link" data-tab="dev">Dev</button>
+    <button class="sheet-link" data-tab="admin">Admin</button>
+  </div>
+</aside>

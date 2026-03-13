@@ -1,124 +1,64 @@
-<section class="tab-panel" data-panel="targets">
+<section class="tab-panel" data-panel="gallery">
   <div class="card">
-    <h2>Targets</h2>
-    <p class="muted">Logische Zielansicht aus dem Final-Stand mit Session-Anzahl je Target.</p>
+    <div class="section-title-row">
+      <h2>Galerie</h2>
+      <span class="muted">DeepSky, Sun und Moon mobil als Karten</span>
+    </div>
 
     <h3 class="section-headline">Deep-Sky-Targets</h3>
-    <div class="targets-grid">
+    <div class="targets-grid mobile-gallery-grid">
       {% for item in deepsky_targets_view %}
-      <div class="card target-card">
+      <div class="card target-card gallery-card">
         <div class="target-image-col">
           {% if item.nasa_thumb_url %}
           <a href="{{ item.nasa_page_url or '#' }}" target="_blank" rel="noopener noreferrer">
             <img class="target-thumb" src="{{ item.nasa_thumb_url }}" alt="{{ item.display_name or 'Target' }}">
           </a>
           {% else %}
-          <div class="target-thumb"></div>
+          <div class="target-thumb target-thumb-fallback"><span>{{ (item.display_name or 'DS')[:2] }}</span></div>
           {% endif %}
         </div>
-
         <div class="target-meta">
           <h3>{{ item.display_name or 'Unbenanntes Target' }}</h3>
-          {% if item.subtitle and item.subtitle != item.display_name %}
-          <div class="sub">{{ item.subtitle }}</div>
-          {% endif %}
-
-          <div class="kv">
-            <div>Typ</div><div>{{ item.objtype or '—' }}</div>
-            <div>Sternbild</div><div>{{ item.constellation_name or item.constellation_code or item.constellation or '—' }}</div>
+          <div class="sub">{{ item.objtype or 'Deep Sky' }} · {{ item.session_count }} Sessions</div>
+          <div class="kv compact-kv">
             <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
             <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
             <div>Distanz</div><div>{{ item.distance_label or '—' }}</div>
-            <div>Größe</div><div>{% if item.angular_size_arcmin_fmt %}{{ item.angular_size_arcmin_fmt }}′{% else %}—{% endif %}</div>
-            <div>Sessions</div><div>{{ item.session_count }}</div>
-            <div>NASA</div><div>{{ item.nasa_title or '—' }}</div>
           </div>
-
-          {% if item.nasa_page_url %}
-          <div class="target-line">
-            <span class="line-label">Link</span>
-            <a href="{{ item.nasa_page_url }}" target="_blank" rel="noopener noreferrer">NASA-Seite öffnen</a>
-          </div>
-          {% endif %}
-
-          {% if item.source_summary_readable %}
-          <div class="target-line">
-            <span class="line-label">Quellen</span>
-            <span>{{ item.source_summary_readable }}</span>
-          </div>
-          {% endif %}
-
-          {% if item.merge_notes %}
-          <div class="target-line">
-            <span class="line-label">Hinweis</span>
-            <span>{{ item.merge_notes }}</span>
-          </div>
-          {% endif %}
+          {% if item.source_summary_readable %}<div class="target-line"><span>{{ item.source_summary_readable }}</span></div>{% endif %}
         </div>
       </div>
       {% else %}
-      <div class="card">
-        <p class="muted">Keine Deep-Sky-Targets vorhanden.</p>
-      </div>
+      <div class="card"><p class="muted">Keine Deep-Sky-Targets vorhanden.</p></div>
       {% endfor %}
     </div>
 
-    <h3 class="section-headline">Systemziele</h3>
-    <div class="targets-grid">
+    <h3 class="section-headline">Sun & Moon</h3>
+    <div class="targets-grid mobile-gallery-grid">
       {% for item in system_targets_view %}
-      <div class="card target-card">
+      <div class="card target-card gallery-card">
         <div class="target-image-col">
           {% if item.nasa_thumb_url %}
           <a href="{{ item.nasa_page_url or '#' }}" target="_blank" rel="noopener noreferrer">
             <img class="target-thumb" src="{{ item.nasa_thumb_url }}" alt="{{ item.display_name or 'Ziel' }}">
           </a>
           {% else %}
-          <div class="target-thumb"></div>
+          <div class="target-thumb target-thumb-fallback"><span>{{ (item.display_name or 'SM')[:2] }}</span></div>
           {% endif %}
         </div>
-
         <div class="target-meta">
           <h3>{{ item.display_name or 'Unbenanntes Ziel' }}</h3>
-          {% if item.subtitle and item.subtitle != item.display_name %}
-          <div class="sub">{{ item.subtitle }}</div>
-          {% endif %}
-
-          <div class="kv">
-            <div>Typ</div><div>{{ item.objtype or '—' }}</div>
-            <div>Sternbild</div><div>{{ item.constellation_name or item.constellation_code or item.constellation or '—' }}</div>
+          <div class="sub">{{ item.objtype or 'Systemziel' }} · {{ item.session_count }} Sessions</div>
+          <div class="kv compact-kv">
             <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
             <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
-            <div>Distanz</div><div>{{ item.distance_label or '—' }}</div>
-            <div>Sessions</div><div>{{ item.session_count }}</div>
             <div>NASA</div><div>{{ item.nasa_title or '—' }}</div>
           </div>
-
-          {% if item.nasa_page_url %}
-          <div class="target-line">
-            <span class="line-label">Link</span>
-            <a href="{{ item.nasa_page_url }}" target="_blank" rel="noopener noreferrer">NASA-Seite öffnen</a>
-          </div>
-          {% endif %}
-
-          {% if item.source_summary_readable %}
-          <div class="target-line">
-            <span class="line-label">Quellen</span>
-            <span>{{ item.source_summary_readable }}</span>
-          </div>
-          {% endif %}
-
-          {% if item.merge_notes %}
-          <div class="target-line">
-            <span class="line-label">Hinweis</span>
-            <span>{{ item.merge_notes }}</span>
-          </div>
-          {% endif %}
         </div>
       </div>
       {% else %}
-      <div class="card">
-        <p class="muted">Keine Systemziele vorhanden.</p>
-      </div>
+      <div class="card"><p class="muted">Keine Systemziele vorhanden.</p></div>
       {% endfor %}
     </div>
   </div>

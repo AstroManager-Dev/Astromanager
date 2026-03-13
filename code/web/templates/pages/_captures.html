@@ -1,0 +1,53 @@
+<section class="tab-panel" data-panel="captures">
+  <div class="section-title-row">
+    <div>
+      <div class="eyebrow">Operativ</div>
+      <h2>Aufnahmen und Verarbeitung</h2>
+    </div>
+  </div>
+
+  <div class="capture-actions-grid">
+    <button class="action-tile" data-action="raw_sync">
+      <strong>RAW Sync</strong>
+      <span>Teleskopdaten laden und Remote-Inventar aktualisieren</span>
+    </button>
+    <button class="action-tile" data-action="index_sessions">
+      <strong>Index Sessions</strong>
+      <span>Neue Sessions im Datenmodell erfassen</span>
+    </button>
+    <button class="action-tile" data-action="masterdarks">
+      <strong>Master Darks</strong>
+      <span>Kalibrierung für passende Dark-Sets erzeugen</span>
+    </button>
+    <button class="action-tile" data-action="siril_session">
+      <strong>Siril Session</strong>
+      <span>Einzelne Session headless stacken</span>
+    </button>
+    <button class="action-tile" data-action="siril_group">
+      <strong>Siril Group</strong>
+      <span>Mehrere Sessions als Gesamt-Stack verarbeiten</span>
+    </button>
+  </div>
+
+  <div class="card compact-card">
+    <h2>Letzte Runs als Karten</h2>
+    <div class="run-cards">
+      {% for run in runs %}
+      <article class="run-card status-card-{{ run.status }}">
+        <div class="run-card-top">
+          <strong>{{ run.job_name }}</strong>
+          <span class="status-pill status-{{ run.status }}">{{ run.status }}</span>
+        </div>
+        <div class="run-meta-list">
+          <div><span>Start</span><strong>{{ run.started_at or '—' }}</strong></div>
+          <div><span>Ende</span><strong>{{ run.finished_at or '—' }}</strong></div>
+          <div><span>Quelle</span><strong>{{ run.source or '—' }}</strong></div>
+        </div>
+        <p class="muted run-note">{{ run.note or 'Keine Notiz.' }}</p>
+      </article>
+      {% else %}
+      <div class="card"><p class="muted">Keine Runs vorhanden.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

@@ -1,3 +1,4 @@
+0.3.009 | 2026-03-13 21:21:16 | Mobile-App-UI modernisiert: Deep-Sky-Design mit Glow-Effekten, Pop-up-/Bottom-Sheet-Menü, Dev-Bereich für Backups/SQL-Dumps/Organizer, jobbezogenes Live-Refresh per Button-Klick und Admin/Technik sauber aus dem Hauptfluss getrennt.
 0.3.008 | 2026-03-13 13:27:39 | Architektur fuer getrennte Geraetetypen und reale Device-Instanzen festgelegt; device_sources bleibt fuer Typ-Defaults, konkrete Hosts/Credentials kommen kuenftig in eigene Device-Instanz-Tabelle
 0.3.007 | 2026-03-13 11:29:23 | RAW-Sync Fehlerpfad analysiert; Vorbereitung fuer harten Abbruch bei fehlender remote_inventory/sync_plan/fetch_result und korrekten Error-Status statt false ok
 0.3.006 | 2026-03-13 11:18:50 | RAW-Sync Live-Fortschritt vorbereitet; fetch_sync.py fuer laufende progress-Zeilen erweitert und progress_runtime.py fuer RAW-Progress-Auswertung angepasst

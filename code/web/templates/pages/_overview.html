@@ -1,70 +1,68 @@
 <section class="tab-panel active" data-panel="overview">
-  <div class="actions-grid">
-    <button class="btn" data-action="raw_sync">RAW Sync</button>
-    <button class="btn" data-action="index_sessions">Index Sessions</button>
-    <button class="btn" data-action="masterdarks">Master Darks</button>
-    <button class="btn" data-action="siril_session">Siril Session</button>
-    <button class="btn" data-action="siril_group">Siril Group</button>
-    <button class="btn" id="status-btn">Status</button>
+  <div class="hero-card card astro-glow-soft">
+    <div class="hero-meta">
+      <span class="status-pill {{ 'status-running' if service_state.active else 'status-idle' }}">{{ 'Läuft' if service_state.active else 'Bereit' }}</span>
+      <span class="muted">{{ service_state.workflow or 'idle' }}</span>
+    </div>
+    <h2>{{ service_state.title }}</h2>
+    <p class="hero-subtitle">{{ service_state.subtitle }}</p>
+    <div class="hero-grid">
+      <div>
+        <div class="hero-label">Aktueller Step</div>
+        <div class="hero-value">{{ service_state.current_step or '—' }}</div>
+      </div>
+      <div>
+        <div class="hero-label">Fortschritt</div>
+        <div class="hero-value">{{ service_state.progress_pct or 0 }}%</div>
+      </div>
+      <div>
+        <div class="hero-label">Aktive Runs</div>
+        <div class="hero-value">{{ service_state.active_runs|length }}</div>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>Antwort</h2>
+  <div class="action-cluster card">
+    <div class="section-title-row">
+      <h2>Schnellaktionen</h2>
+      <span class="muted">Live nur nach Button-Klick</span>
+    </div>
+    <div class="actions-grid actions-grid-compact">
+      <button class="btn btn-primary" data-action="raw_sync">RAW Sync</button>
+      <button class="btn btn-primary" data-action="index_sessions">Index Sessions</button>
+      <button class="btn" data-action="masterdarks">Master Darks</button>
+      <button class="btn" data-action="siril_session">Siril Session</button>
+      <button class="btn" data-action="siril_group">Siril Group</button>
+      <button class="btn btn-secondary" data-tab="status">Status ansehen</button>
+    </div>
+  </div>
+
+  <div class="card response-card">
+    <div class="section-title-row">
+      <h2>Antwort</h2>
+      <button class="mini-btn" id="status-btn">Service prüfen</button>
+    </div>
     <pre id="response-box">Bereit.</pre>
   </div>
 
-  <div class="card" id="live-progress-card">
-    <h2>Live-Fortschritt</h2>
-    <div class="progress-block">
-      <div id="live-progress-status">Warte auf Fortschritt ...</div>
-      <div id="live-progress-meta" class="progress-meta"></div>
-      <div class="progress-bar-wrap">
-        <div id="live-progress-bar" class="progress-bar"></div>
-      </div>
-      <div id="live-progress-path" class="progress-path"></div>
+  <div class="card compact-runs-card">
+    <div class="section-title-row">
+      <h2>Letzte Runs</h2>
+      <button class="mini-btn" data-tab="status">Live-Ansicht</button>
     </div>
-    <pre id="live-progress-tail" class="progress-tail">Noch keine Live-Daten.</pre>
-  </div>
-
-  <div class="card">
-    <h2>Letztes Web-Log</h2>
-    <pre>{{ latest_log or 'Kein Log vorhanden.' }}</pre>
-  </div>
-
-  <div class="card">
-    <h2>Letzte Runs</h2>
-    <div class="mobile-note">Seitlich wischen, falls die Tabelle auf dem Handy abgeschnitten ist.</div>
-    <div class="scroll-x">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Job</th>
-            <th>Status</th>
-            <th>Start</th>
-            <th>Ende</th>
-            <th>Quelle</th>
-            <th>Notiz</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for run in runs %}
-          <tr>
-            <td>{{ run.id }}</td>
-            <td>{{ run.job_name }}</td>
-            <td class="status-{{ run.status }}">{{ run.status }}</td>
-            <td>{{ run.started_at or '' }}</td>
-            <td>{{ run.finished_at or '' }}</td>
-            <td>{{ run.source or '' }}</td>
-            <td>{{ run.note or '' }}</td>
-          </tr>
-          {% else %}
-          <tr>
-            <td colspan="7">Keine Runs vorhanden.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div id="runs-cards" class="run-cards">
+      {% for run in runs[:6] %}
+      <article class="run-card">
+        <div class="run-card-top">
+          <strong>{{ run.job_name }}</strong>
+          <span class="status-pill status-{{ run.status|lower }}">{{ run.status }}</span>
+        </div>
+        <div class="muted">{{ run.started_at or '—' }}</div>
+        <div class="run-note">{{ run.note or run.source or '—' }}</div>
+      </article>
+      {% else %}
+      <article class="run-card empty">Keine Runs vorhanden.</article>
+      {% endfor %}
     </div>
   </div>
 </section>

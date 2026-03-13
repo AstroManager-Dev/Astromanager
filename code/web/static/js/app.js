@@ -1,74 +1,94 @@
 (function () {
   const responseBox = document.getElementById("response-box");
-  const actionButtons = document.querySelectorAll("[data-action]");
   const statusBtn = document.getElementById("status-btn");
-  const tabButtons = document.querySelectorAll("[data-tab]");
   const tabPanels = document.querySelectorAll(".tab-panel");
-  const burgerBtn = document.getElementById("burger-btn");
-  const menuPanel = document.getElementById("menu-panel");
+  const tabButtons = document.querySelectorAll("[data-tab]");
+  const bottomButtons = document.querySelectorAll(".bottom-nav-btn[data-tab]");
+  const openMenuBtn = document.getElementById("open-menu-btn");
+  const closeMenuBtn = document.getElementById("close-menu-btn");
+  const openMoreBtn = document.getElementById("open-more-btn");
+  const menuSheet = document.getElementById("menu-sheet");
+  const menuBackdrop = document.getElementById("menu-backdrop");
 
   function showResponse(text) {
     if (!responseBox) return;
     responseBox.textContent = typeof text === "string" ? text : JSON.stringify(text, null, 2);
   }
 
+  function hashForTab(name) {
+    return `#${name}`;
+  }
+
+  function setActiveTabButton(name) {
+    bottomButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === name));
+  }
+
+  function closeMenu() {
+    if (!menuSheet || !menuBackdrop || !openMenuBtn) return;
+    menuSheet.classList.remove("open");
+    menuSheet.setAttribute("aria-hidden", "true");
+    menuBackdrop.hidden = true;
+    openMenuBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function openMenu() {
+    if (!menuSheet || !menuBackdrop || !openMenuBtn) return;
+    menuSheet.classList.add("open");
+    menuSheet.setAttribute("aria-hidden", "false");
+    menuBackdrop.hidden = false;
+    openMenuBtn.setAttribute("aria-expanded", "true");
+  }
+
+  function activateTab(name) {
+    tabPanels.forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === name));
+    setActiveTabButton(name);
+    history.replaceState(null, "", hashForTab(name));
+    closeMenu();
+  }
+
   async function runAction(action) {
     showResponse("Läuft …");
-    const res = await fetch(`/api/run/${action}`, { method: "POST" });
-    const data = await res.json();
-    showResponse(data);
+    try {
+      const res = await fetch(`/api/run/${action}`, { method: "POST" });
+      const data = await res.json();
+      showResponse(data);
+      document.dispatchEvent(new CustomEvent("astro:action-finished", { detail: { action, data } }));
+    } catch (err) {
+      showResponse(`Fehler: ${err}`);
+    }
   }
 
   async function loadStatus() {
     showResponse("Lade Status …");
-    const res = await fetch("/api/status");
-    const data = await res.json();
-    showResponse(data);
+    try {
+      const res = await fetch("/api/status", { cache: "no-store" });
+      const data = await res.json();
+      showResponse(data);
+    } catch (err) {
+      showResponse(`Fehler: ${err}`);
+    }
   }
 
-  function hashForTab(name) {
-    if (name === "database") return "#database";
-    if (name === "targets") return "#targets";
-    return "#overview";
-  }
-
-  function activateTab(name) {
-    tabButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === name));
-    tabPanels.forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === name));
-    history.replaceState(null, "", hashForTab(name));
-
-    if (menuPanel) menuPanel.classList.remove("open");
-    if (burgerBtn) burgerBtn.setAttribute("aria-expanded", "false");
-  }
-
-  actionButtons.forEach((btn) => {
+  document.querySelectorAll("[data-action]").forEach((btn) => {
     btn.addEventListener("click", () => runAction(btn.dataset.action));
   });
 
-  if (statusBtn) {
-    statusBtn.addEventListener("click", loadStatus);
-  }
-
-  tabButtons.forEach((btn) => {
-    btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+  document.querySelectorAll("[data-tab]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.id === "open-more-btn") return;
+      activateTab(btn.dataset.tab);
+    });
   });
 
-  if (burgerBtn && menuPanel) {
-    burgerBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const isOpen = menuPanel.classList.toggle("open");
-      burgerBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-    });
+  if (statusBtn) statusBtn.addEventListener("click", loadStatus);
+  if (openMenuBtn) openMenuBtn.addEventListener("click", openMenu);
+  if (closeMenuBtn) closeMenuBtn.addEventListener("click", closeMenu);
+  if (menuBackdrop) menuBackdrop.addEventListener("click", closeMenu);
+  if (openMoreBtn) openMoreBtn.addEventListener("click", openMenu);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeMenu();
+  });
 
-    document.addEventListener("click", (event) => {
-      if (!menuPanel.contains(event.target) && !burgerBtn.contains(event.target)) {
-        menuPanel.classList.remove("open");
-        burgerBtn.setAttribute("aria-expanded", "false");
-      }
-    });
-  }
-
-  if (window.location.hash === "#database") activateTab("database");
-  else if (window.location.hash === "#targets") activateTab("targets");
-  else activateTab("overview");
+  const hash = (window.location.hash || "#overview").replace(/^#/, "");
+  activateTab(["overview", "gallery", "status", "dev", "admin"].includes(hash) ? hash : "overview");
 })();

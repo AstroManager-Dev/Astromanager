@@ -1,0 +1,50 @@
+<section class="tab-panel" data-panel="dev">
+  <div class="card">
+    <div class="section-title-row">
+      <h2>Dev Tools</h2>
+      <span class="muted">Backups, SQL-Dumps und Organizer</span>
+    </div>
+    <div class="actions-grid actions-grid-compact">
+      <button class="btn btn-primary" data-action="backup_create">Backup erstellen</button>
+      <button class="btn" data-action="sql_dump">SQL-Dump erstellen</button>
+      <button class="btn btn-secondary" data-action="organizer_refresh">Organizer aktualisieren</button>
+      <button class="btn" data-tab="admin">Admin öffnen</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title-row">
+      <h2>Backups</h2>
+      <span class="muted">Download direkt aus der UI</span>
+    </div>
+    <div class="file-card-grid" id="backup-files-grid">
+      {% for item in dev_assets.backups %}
+      <article class="file-card">
+        <strong>{{ item.name }}</strong>
+        <div class="muted">{{ item.size_label }}</div>
+        <a class="mini-btn file-download" href="/download/backup/{{ item.name|urlencode }}">Download</a>
+      </article>
+      {% else %}
+      <article class="file-card empty">Keine Backups gefunden.</article>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title-row">
+      <h2>SQL-Dumps</h2>
+      <span class="muted">pipeline.db Exporte</span>
+    </div>
+    <div class="file-card-grid" id="sql-files-grid">
+      {% for item in dev_assets.sql_dumps %}
+      <article class="file-card">
+        <strong>{{ item.name }}</strong>
+        <div class="muted">{{ item.size_label }}</div>
+        <a class="mini-btn file-download" href="/download/sql/{{ item.name|urlencode }}">Download</a>
+      </article>
+      {% else %}
+      <article class="file-card empty">Keine SQL-Dumps gefunden.</article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,412 @@
+AstroManager – Planung device_instances und RAW-Sync
+====================================================
+
+Stand
+-----
+Die bisherige RAW-Sync-Logik arbeitet faktisch noch typbasiert und teils mit festen Geraetedaten im Code.
+Das reicht fuer genau ein Geraet, aber nicht fuer mehrere reale Geraete desselben Typs.
+
+Ziel
+----
+Der RAW-Sync soll kuenftig nicht mehr direkt ueber device_sources bzw. source_key laufen,
+sondern ueber konkrete Geraeteinstanzen.
+
+Grundprinzip
+------------
+1. device_sources bleibt read-only Systemtabelle fuer Geraetetypen
+2. neue Tabelle device_instances fuer reale konkrete Geraete
+3. RAW-Sync arbeitet ueber device_instances
+4. device_source wird nur noch indirekt ueber source_id der device_instance geladen
+
+Reihenfolge der Umsetzung
+-------------------------
+1. Datenbank
+2. Sync-Ablauf
+3. UI
+4. automatischer Verfuegbarkeitscheck
+5. spaetere Festplattenunterstuetzung
+
+device_sources
+--------------
+device_sources bleibt:
+- read-only
+- nicht in UI anlegbar
+- nicht in UI bearbeitbar
+- nicht loeschbar
+
+device_sources beschreibt nur Typen und deren Grundlogik:
+- vendor
+- model
+- family
+- protocol
+- root_pattern
+- allgemeine Transfer-Defaults
+
+Beispiele:
+- dwarflab_dwarf3
+- dwarflab_dwarf2
+- zwo_seestar_s50
+
+Neue Tabelle: device_instances
+------------------------------
+device_instances beschreibt reale konkrete Geraete.
+
+Pflichtidee:
+- ein DWARF 3 im Wohnzimmer = eigene device_instance
+- ein zweiter DWARF 3 auf dem Balkon = zweite device_instance
+- beide duerfen denselben device_source-Typ haben
+- trotzdem muessen RAW-Files und Sessions eindeutig dem richtigen realen Geraet zugeordnet sein
+
+Empfohlene Felder fuer device_instances
+---------------------------------------
+Identitaet:
+- id
+- device_uid
+- display_name
+- source_id
+- connection_kind
+- is_active
+- is_default
+- sort_order
+- notes
+
+FTP-Verbindung:
+- host
+- port
+- auth_mode
+- username
+- password_enc
+- timeout_seconds
+
+Status/Historie:
+- availability_status
+- availability_note
+- last_checked_at
+- last_seen_at
+- last_sync_at
+- last_sync_status
+- last_sync_note
+- last_successful_sync_at
+
+Vorbereitung fuer spaeter:
+- storage_device_id
+- storage_label
+- storage_mountpoint
+- selected_folder_path
+
+Zeitstempel:
+- created_at
+- updated_at
+
+Bedeutung der wichtigsten Felder
+--------------------------------
+device_uid:
+- stabiler interner eindeutiger Schluessel
+- zufaellig erzeugt
+- nicht aus display_name ableiten
+- nicht an sichtbaren Namen koppeln
+
+display_name:
+- sichtbarer frei aenderbarer Name
+- Vorschlag beim Anlegen aus device_source, z. B. DWARF 3
+- Nutzer darf eigenen Namen vergeben
+- dieser Name wird in UI und RAW-Sync-Menue verwendet
+
+source_id:
+- Verweis auf den Geraetetyp in device_sources
+
+connection_kind:
+- jetzt aktiv nur ftp
+- spaeter vorbereitet fuer local_disk
+
+is_active:
+- aktive Geraete erscheinen in der RAW-Sync-Auswahl
+- inaktive Geraete bleiben gespeichert, werden aber nicht angeboten
+
+is_default:
+- optional vorbereiten
+- spaeter fuer Vorauswahl nuetzlich
+
+password_enc:
+- reversibel verschluesseltes Passwort fuer FTP
+- nicht im Klartext speichern
+- nicht hashen, weil das Passwort fuer FTP spaeter wieder entschluesselt werden muss
+
+Auth-Logik
+----------
+Anonymous:
+- auth_mode = anonymous
+- username intern auf anonymous
+- password_enc leer
+
+Login:
+- auth_mode = login
+- username Pflicht
+- Passwort beim Neuanlegen Pflicht
+- Passwort verschluesselt speichern
+
+Wichtig beim Bearbeiten:
+- leeres Passwortfeld beim Bearbeiten bedeutet: altes Passwort unveraendert lassen
+- nur wenn neues Passwort eingegeben wird, neu verschluesseln
+
+Key-Datei fuer Verschluesselung
+-------------------------------
+Der Schluessel fuer reversible Secrets darf:
+- nicht im Code stehen
+- nicht im Image liegen
+- nicht im Git liegen
+
+Der Schluessel soll:
+- pro Installation individuell sein
+- beim ersten Start automatisch erzeugt werden
+- bei spaeteren Starts wiederverwendet werden
+- in einem persistenten Config-Mount liegen
+
+Wichtige Regel:
+- pro Installation ein eigener persistenter Key im Config-Volume
+- nicht im fluechtigen Container-Dateisystem
+
+Folgen:
+- Rebuild/Restart okay, solange Config-Volume erhalten bleibt
+- DB und Key-Datei gehoeren logisch zusammen
+- Key-Datei muss ins Backup, aber nicht in Git
+
+Warum device_instance_id zusaetzlich noetig ist
+-----------------------------------------------
+source_id allein reicht nicht, wenn zwei reale Geraete denselben Typ haben.
+
+Beispiel:
+- 2x DWARF 3
+- beide haben source_id = dwarflab_dwarf3
+- trotzdem duerfen RAW-Files und Sessions nicht vermischt werden
+
+Deshalb muessen Sessions und RAW-Files auf die konkrete device_instance bezogen werden.
+
+Datenmodell-Erweiterung
+-----------------------
+Folgende Tabellen brauchen zusaetzlich:
+- raw_files.device_instance_id
+- sessions.device_instance_id
+
+source_id kann weiterhin zusaetzlich bestehen bleiben fuer Typbezug und Defaults,
+aber die echte Geraetezuordnung muss ueber device_instance_id laufen.
+
+Migration Altbestand
+--------------------
+Der bisher feste DWARF-Stand soll als erstes konkretes Geraet in device_instances angelegt werden.
+
+Danach:
+- bestehende sessions auf dieses erste Geraet mappen
+- bestehende raw_files auf dieses erste Geraet mappen
+
+Ziel:
+- Bestand bleibt nutzbar
+- kein kompletter Neuaufbau noetig
+- kuenftig kann sauber pro realem Geraet getrennt werden
+
+RAW-Sync Zielarchitektur
+------------------------
+Der RAW-Sync soll kuenftig so arbeiten:
+
+Alt:
+- sync -> source_key -> alles daraus
+
+Neu:
+- sync -> device_instance
+- device_instance liefert:
+  - host
+  - port
+  - auth_mode
+  - username
+  - password_enc
+  - timeout
+  - is_active
+  - source_id
+- ueber source_id wird device_source geladen
+- device_source liefert:
+  - protocol
+  - root_pattern
+  - allgemeine Transferregeln
+
+Wichtige Folge:
+- feste Geraetedaten muessen aus dem Code raus
+- kein fix verdrahtetes Einzelgeraet mehr
+
+RAW-Sync Buttonlogik in der UI
+------------------------------
+Fall 1: kein aktives Geraet
+- RAW Sync Button ausgegraut
+- nicht klickbar
+
+Fall 2: genau ein aktives Geraet
+- RAW Sync Button direkt funktionsfaehig
+- startet direkt auf dieses eine Geraet
+
+Fall 3: mehrere aktive Geraete
+- Klick auf RAW Sync oeffnet Untermenue
+- Auswahl:
+  - jedes aktive Geraet einzeln
+  - Alle Geraete
+
+Anzeige im Menue:
+- display_name plus IP
+- Beispiel:
+  - Dwarf Wohnzimmer (192.168.2.163)
+  - Dwarf Balkon (192.168.2.164)
+  - Alle Geraete
+
+Regel fuer Alle Geraete
+-----------------------
+Wenn Alle Geraete gewaehlt wird:
+- Sync nacheinander ueber alle aktiven Geraete
+- nicht nach jedem Geraet einzeln indexieren
+- erst wenn alle Sync-Laeufe abgearbeitet sind:
+  - einmal Indexierung starten
+
+Fehlerregel:
+- auch wenn nur ein Teil erfolgreich war, danach trotzdem indexieren
+- sinnvoller Gesamtstatus spaeter:
+  - ok
+  - partial_error
+  - error
+
+Loeschregel fuer Geraete
+------------------------
+Ein Geraet darf nicht hart geloescht werden, wenn es noch referenziert wird.
+
+Wenn Sessions oder RAW-Files dieses Geraetes existieren:
+- kein echtes Delete
+- stattdessen is_active = 0
+
+Nur wenn keine Referenzen in sessions oder raw_files existieren:
+- echtes Loeschen erlauben
+
+UI-Regel:
+- Loeschen immer mit Bestaetigungsdialog
+
+Automatischer Verfuegbarkeitscheck
+----------------------------------
+Fuer FTP-Geraete soll spaeter ein automatischer Check kommen.
+
+Pruefstufen:
+- Host erreichbar
+- Port 21 erreichbar
+- optional FTP-Login-Test
+
+Wichtige Regel:
+- der UI-Check ist Komfort
+- der echte RAW-Sync prueft trotzdem immer nochmal selbst
+
+Warum doppelt?
+- Geraet kann zwischen Menueanzeige und echtem Lauf ausfallen
+- deshalb darf der Sync nie nur auf den UI-Status vertrauen
+
+Empfohlene Statuscodes:
+- unknown
+- ok
+- host_unreachable
+- port_closed
+- login_failed
+- timeout
+
+Diese Statuscodes sind besser als nur Freitext.
+
+Name und interne Identitaet
+---------------------------
+display_name:
+- frei aenderbar
+- nur fuer Anzeige
+
+device_uid:
+- intern stabil
+- nie aus Name bauen
+- Namen duerfen geaendert werden, ohne interne Referenzen zu brechen
+
+Vorschlagslogik fuer Namen:
+- Standardvorschlag aus device_source, z. B. DWARF 3
+- wenn Nutzer will, eigener Name
+- fuer UI und Sync-Menue immer display_name verwenden
+
+Warum nicht Name als Key?
+- Namen koennen geaendert werden
+- interner Key muss stabil bleiben
+- darum separater zufaelliger device_uid
+
+Festplatten / lokale Datentraeger
+---------------------------------
+Vorbereitung ja, produktive Umsetzung spaeter.
+
+Grund:
+- AstroManager ist Docker-Software
+- Host-/Disk-Handling ist spaeter ein eigener sauberer Block
+
+Daher fuer jetzt:
+- nur FTP voll umsetzen
+- DB schon fuer local_disk vorbereiten
+- aber noch keine aktive UI-/Sync-Logik fuer lokale Platten
+
+Wichtige Verbesserungen direkt mit einplanen
+--------------------------------------------
+1. raw_files.device_instance_id und sessions.device_instance_id einfuehren
+2. availability_status als klaren Code statt nur Freitext verwenden
+3. Passwort-/Key-Konzept robust und von Anfang an sauber trennen
+4. last_successful_sync_at zusaetzlich speichern
+5. last_seen_at getrennt von last_checked_at speichern
+6. sort_order mit vorsehen
+7. is_default vorbereiten
+8. Passwort beim Bearbeiten nur aendern, wenn wirklich neu eingegeben
+9. DB und Key-Datei gemeinsam sichern
+10. spaeter UI-Benutzerpasswoerter hashen, nicht verschluesseln
+
+Unterschied Passworttypen
+-------------------------
+FTP-/Geraete-Secrets:
+- reversibel verschluesseln
+
+Spaetere UI-Benutzer-Logins:
+- hashen
+- nicht verschluesseln
+
+Das muss von Anfang an sauber getrennt bleiben.
+
+Umsetzung in Phasen
+-------------------
+Phase 1:
+- DB-Migration device_instances
+- device_uid
+- device_instance_id in raw_files und sessions
+- erstes Geraet aus aktuellem fixen Stand anlegen
+- Altbestand mappen
+
+Phase 2:
+- RAW-Sync auf device_instance umbauen
+- device_source nur indirekt ueber source_id
+- FTP-Daten nur noch aus DB
+
+Phase 3:
+- UI fuer Geraeteverwaltung
+- aktiv/inaktiv
+- Anlegen/Bearbeiten/Loeschen mit Bestaetigungsdialog
+- RAW-Sync-Auswahl mit Einzelgeraet / Alle
+
+Phase 4:
+- automatischer FTP-Verfuegbarkeitscheck
+- Statuscodes in UI nutzen
+- ausgegraute nicht verfuegbare Geraete
+
+Phase 5:
+- spaetere lokale Festplattenlogik
+
+Fazit
+-----
+Die Architektur ist jetzt festgelegt:
+
+- device_sources = read-only Typkatalog
+- device_instances = reale konkrete Geraete
+- RAW-Sync laeuft ueber device_instances
+- Sessions und RAW-Files muessen kuenftig auf device_instance bezogen werden
+- UI zeigt nur aktive Geraete an
+- mehrere Geraete bekommen Auswahl plus Alle
+- nach Alle zuerst alle Syncs, dann einmal indexieren
+- FTP-Secrets verschluesseln
+- Schluessel pro Installation individuell im persistenten Config-Mount
