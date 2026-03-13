@@ -1,0 +1,2 @@
+0.3.002 | 2026-03-13 07:53:09 | CHANGELOG.unreleased.md auf das Skriptformat bereinigt und RAW-Sync-Release-Stand konsistent abgeschlossen
+0.3.001 | 2026-03-13 07:48:43 | Modularen RAW-Sync für DWARF3 aufgebaut, Root-Pattern-Matching für DWARF_RAW_TELE*, DWARF_DARK und CALI_FRAME korrigiert, Dry-Run/Quoting/common.sh-Fehler behoben, bekannte ok-Dateien mit unbekannter Remote-mtime werden nicht mehr fälschlich ersetzt, neue RAW-Sessions und Darks werden jetzt korrekt erkannt und synchronisiert, 0060_trigger_index.sh ergänzt
