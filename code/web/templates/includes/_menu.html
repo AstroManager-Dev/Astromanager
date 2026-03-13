@@ -1,23 +1,24 @@
 <div class="sheet-backdrop" id="menu-backdrop" hidden></div>
 <aside class="menu-sheet" id="menu-sheet" aria-hidden="true">
-  <div class="menu-sheet-head">
+  <div class="menu-brand-band">
+    <img src="/static/logo.jpg" alt="AstroManager" class="menu-brand-logo">
     <div>
       <div class="menu-sheet-kicker">AstroManager</div>
-      <h2>Menü</h2>
+      <h2>Deep-Sky Menü</h2>
     </div>
     <button class="sheet-close-btn" id="close-menu-btn" aria-label="Menü schließen">×</button>
   </div>
 
   <div class="menu-group">
-    <div class="menu-group-title">Arbeitsbereiche</div>
-    <button class="sheet-link" data-tab="overview">Start</button>
-    <button class="sheet-link" data-tab="gallery">Galerie</button>
-    <button class="sheet-link" data-tab="status">Status</button>
+    <div class="menu-group-title">Astro Flow</div>
+    <button class="sheet-link" data-tab="overview"><strong>Start</strong><span>Live-Status, Schnellaktionen, letzte Runs</span></button>
+    <button class="sheet-link" data-tab="gallery"><strong>Galerie</strong><span>Vorschaubilder, Targets und Sessions ansehen</span></button>
+    <button class="sheet-link" data-tab="status"><strong>Status</strong><span>Runner, Logs und aktive Jobs verfolgen</span></button>
   </div>
 
   <div class="menu-group">
     <div class="menu-group-title">System</div>
-    <button class="sheet-link" data-tab="dev">Dev</button>
-    <button class="sheet-link" data-tab="admin">Admin</button>
+    <button class="sheet-link" data-tab="dev"><strong>Dev</strong><span>Backups, SQL-Dumps, Organizer und Uploads</span></button>
+    <button class="sheet-link" data-tab="admin"><strong>Admin</strong><span>Technik, Diagnose, Datenbank und Debug</span></button>
   </div>
 </aside>
