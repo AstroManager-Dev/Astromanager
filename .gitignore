@@ -118,3 +118,5 @@ coverage/
 *.orig
 
 !env/.env
+
+!compose/.env.example
