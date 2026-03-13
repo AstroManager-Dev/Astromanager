@@ -13,6 +13,43 @@
     el.textContent = value == null ? "" : String(value);
   }
 
+  function buildMeta(data) {
+    const workflow = data.workflow || "generic";
+
+    if (workflow === "raw_sync") {
+      const parts = [
+        `Workflow: RAW Sync`,
+        `Geplant: ${data.plan_count ?? 0}`,
+        `Geladen: ${data.downloaded ?? 0}`,
+        `Skip: ${data.skipped ?? 0}`,
+        `Fehler: ${data.errors ?? 0}`,
+      ];
+      if (data.current_step) {
+        parts.push(`Step: ${data.current_step}`);
+      }
+      return parts.join(" • ");
+    }
+
+    const parts = [
+      `Workflow: ${workflow}`,
+      `Dateien verarbeitet: ${data.files_indexed ?? 0}`,
+      `Gesamt: ${data.files_total ?? 0}`,
+      `Gehasht: ${data.files_hashed ?? 0}`,
+      `Reuse: ${data.files_reused ?? 0}`,
+      `Kalibrierung: ${data.cal_assets_indexed ?? 0}`,
+      `Sessions: ${data.sessions_indexed ?? 0}`,
+    ];
+
+    if ((data.sessions_skipped_unchanged ?? 0) > 0) {
+      parts.push(`Session-Skip: ${data.sessions_skipped_unchanged}`);
+    }
+    if (data.current_step) {
+      parts.push(`Step: ${data.current_step}`);
+    }
+
+    return parts.join(" • ");
+  }
+
   async function refreshProgress() {
     try {
       const res = await fetch("/api/progress/current", { cache: "no-store" });
@@ -25,23 +62,7 @@
 
       setText(statusEl, data.status || "Bereit.");
       setText(pathEl, data.log_path || "");
-
-      const indexed = data.files_indexed ?? 0;
-      const total = data.files_total ?? 0;
-      const hashed = data.files_hashed ?? 0;
-      const reused = data.files_reused ?? 0;
-      const calAssets = data.cal_assets_indexed ?? 0;
-      const sessions = data.sessions_indexed ?? 0;
-
-      const metaParts = [
-        `Dateien verarbeitet: ${indexed}`,
-        `Gesamt: ${total}`,
-        `Gehasht: ${hashed}`,
-        `Reuse: ${reused}`,
-        `Kalibrierung: ${calAssets}`,
-        `Sessions: ${sessions}`,
-      ];
-      setText(metaEl, metaParts.join(" • "));
+      setText(metaEl, buildMeta(data));
 
       const pct = typeof data.progress_pct === "number" ? data.progress_pct : 0;
       barEl.style.width = `${pct}%`;
