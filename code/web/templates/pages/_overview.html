@@ -1,31 +1,42 @@
 <section class="tab-panel active" data-panel="overview">
-  <div class="hero-card card astro-glow-soft logo-hero-card">
-    <div class="hero-brand-row">
+  {% set featured_run = service_state.current_job or (runs[0] if runs else None) %}
+  {% set featured_status = (featured_run.status if featured_run else ('running' if service_state.active else 'idle')) %}
+  {% set featured_pct = service_state.progress_pct if service_state.active else (100 if featured_run and (featured_run.status|lower) == 'done' else 0) %}
+
+  <div class="hero-card card astro-glow-soft logo-hero-card hero-card--focused">
+    <div class="hero-brand-row hero-brand-row--status">
       <div>
-        <div class="hero-kicker">Built from the AstroManager logo</div>
-        <h2>{{ service_state.title }}</h2>
-        <p class="hero-subtitle">{{ service_state.subtitle }}</p>
+        <div class="hero-kicker">DeepSky Session Control</div>
+        <h2 id="featured-run-name">{{ featured_run.job_name if featured_run else service_state.title }}</h2>
+        <p class="hero-subtitle" id="featured-run-note">{{ featured_run.note if featured_run and featured_run.note else service_state.subtitle }}</p>
       </div>
-      <div class="hero-orbit-badge {{ 'hero-orbit-badge--running' if service_state.active else '' }}">
-        <span></span>
+      <div class="run-progress-ring-card {{ 'is-running' if service_state.active else '' }}">
+        <div class="run-progress-ring" id="featured-progress-ring" style="--progress: {{ featured_pct }};">
+          <div class="run-progress-ring__inner">
+            <span class="run-progress-ring__value" id="featured-progress-pct">{{ featured_pct }}%</span>
+            <span class="run-progress-ring__label">Fortschritt</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="hero-meta">
-      <span class="status-pill {{ 'status-running' if service_state.active else 'status-idle' }}">{{ 'Läuft' if service_state.active else 'Bereit' }}</span>
-      <span class="muted">{{ service_state.workflow or 'idle' }}</span>
+
+    <div class="hero-meta hero-meta--status">
+      <span class="status-pill status-{{ featured_status|lower }}" id="featured-run-status">{{ featured_run.status if featured_run else ('running' if service_state.active else 'idle') }}</span>
+      <span class="muted" id="featured-run-started">{{ featured_run.started_at if featured_run and featured_run.started_at else 'Kein aktiver Run' }}</span>
     </div>
-    <div class="hero-grid hero-grid--logo">
+
+    <div class="hero-grid hero-grid--logo hero-grid--status">
+      <div>
+        <div class="hero-label">Workflow</div>
+        <div class="hero-value" id="featured-run-workflow">{{ service_state.workflow or (featured_run.job_name if featured_run else 'idle') }}</div>
+      </div>
       <div>
         <div class="hero-label">Aktueller Step</div>
-        <div class="hero-value">{{ service_state.current_step or '—' }}</div>
-      </div>
-      <div>
-        <div class="hero-label">Fortschritt</div>
-        <div class="hero-value">{{ service_state.progress_pct or 0 }}%</div>
+        <div class="hero-value hero-value--step" id="featured-run-step">{{ service_state.current_step or '—' }}</div>
       </div>
       <div>
         <div class="hero-label">Aktive Runs</div>
-        <div class="hero-value">{{ service_state.active_runs|length }}</div>
+        <div class="hero-value" id="featured-run-active-count">{{ service_state.active_runs|length }}</div>
       </div>
     </div>
   </div>
@@ -53,19 +64,19 @@
     <pre id="response-box">Bereit.</pre>
   </div>
 
-  <div class="card compact-runs-card">
+  <div class="card compact-runs-card compact-runs-card--improved">
     <div class="section-title-row">
       <h2>Letzte Runs</h2>
       <button class="mini-btn" data-tab="status">Live-Ansicht</button>
     </div>
     <div id="runs-cards" class="run-cards">
       {% for run in runs[:6] %}
-      <article class="run-card">
+      <article class="run-card run-card--improved">
         <div class="run-card-top">
           <strong>{{ run.job_name }}</strong>
           <span class="status-pill status-{{ run.status|lower }}">{{ run.status }}</span>
         </div>
-        <div class="muted">{{ run.started_at or '—' }}</div>
+        <div class="muted">{{ run.started_at or '—' }}{% if run.finished_at %} → {{ run.finished_at }}{% endif %}</div>
         <div class="run-note">{{ run.note or run.source or '—' }}</div>
       </article>
       {% else %}

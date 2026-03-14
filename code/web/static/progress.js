@@ -10,8 +10,17 @@
   const backupGridEl = document.getElementById("backup-files-grid");
   const sqlGridEl = document.getElementById("sql-files-grid");
 
+  const featuredNameEl = document.getElementById("featured-run-name");
+  const featuredNoteEl = document.getElementById("featured-run-note");
+  const featuredStatusEl = document.getElementById("featured-run-status");
+  const featuredStartedEl = document.getElementById("featured-run-started");
+  const featuredWorkflowEl = document.getElementById("featured-run-workflow");
+  const featuredStepEl = document.getElementById("featured-run-step");
+  const featuredActiveCountEl = document.getElementById("featured-run-active-count");
+  const featuredRingEl = document.getElementById("featured-progress-ring");
+  const featuredPctEl = document.getElementById("featured-progress-pct");
+
   let timer = null;
-  let liveActive = false;
 
   if (!statusEl || !metaEl || !barEl || !tailEl || !pathEl) return;
 
@@ -47,7 +56,7 @@
       return;
     }
     target.innerHTML = runs.slice(0, 8).map((run) => `
-      <article class="run-card">
+      <article class="run-card run-card--improved">
         <div class="run-card-top">
           <strong>${run.job_name || "Job"}</strong>
           <span class="status-pill status-${String(run.status || "").toLowerCase()}">${run.status || "—"}</span>
@@ -69,6 +78,35 @@
         <div class="muted">${item.size_label || ""}</div>
         <a class="mini-btn file-download" href="/download/${bucket}/${encodeURIComponent(item.name)}">Download</a>
       </article>`).join("");
+  }
+
+  function applyFeaturedSummary(data) {
+    const progress = data.progress || {};
+    const active = Boolean(progress.active);
+    const currentJob = data.current_job || null;
+    const recentRuns = data.recent_runs || [];
+    const featuredRun = active ? currentJob : (recentRuns[0] || currentJob);
+    const pct = typeof progress.progress_pct === 'number'
+      ? Math.max(0, Math.min(100, progress.progress_pct))
+      : (featuredRun && String(featuredRun.status || '').toLowerCase() === 'done' ? 100 : 0);
+
+    setText(featuredNameEl, featuredRun?.job_name || data.title || 'Bereit');
+    setText(featuredNoteEl, featuredRun?.note || data.subtitle || 'Kein aktiver Job');
+    setText(featuredStartedEl, featuredRun?.started_at || 'Kein aktiver Run');
+    setText(featuredWorkflowEl, progress.workflow || featuredRun?.job_name || 'idle');
+    setText(featuredStepEl, progress.current_step || '—');
+    setText(featuredActiveCountEl, (data.active_runs || []).length || 0);
+    setText(featuredPctEl, `${pct}%`);
+
+    if (featuredStatusEl) {
+      const status = (featuredRun?.status || (active ? 'running' : 'idle')).toString();
+      featuredStatusEl.textContent = status;
+      featuredStatusEl.className = `status-pill status-${status.toLowerCase()}`;
+    }
+    if (featuredRingEl) {
+      featuredRingEl.style.setProperty('--progress', String(pct));
+      featuredRingEl.classList.toggle('is-running', active);
+    }
   }
 
   async function fetchDevFiles() {
@@ -98,6 +136,7 @@
       barEl.textContent = pct > 10 ? `${pct}%` : '';
       renderRuns(runsCardsEl, data.recent_runs || []);
       renderRuns(statusRunsCardsEl, data.recent_runs || []);
+      applyFeaturedSummary(data);
       return Boolean(progress.active);
     } catch (_) {
       return false;
@@ -111,13 +150,11 @@
 
   function startLive() {
     if (timer) clearInterval(timer);
-    liveActive = true;
     tick();
     timer = setInterval(tick, 1800);
   }
 
   function stopLive(fetchOnce) {
-    liveActive = false;
     if (timer) {
       clearInterval(timer);
       timer = null;

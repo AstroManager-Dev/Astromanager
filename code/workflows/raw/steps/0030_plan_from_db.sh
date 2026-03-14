@@ -11,6 +11,7 @@ step_run() {
     --db-path "$DB_PATH" \
     --source-key "$RAW_SYNC_SOURCE_KEY" \
     --inventory-json "$inventory_json" \
+    --raw-root "$RAW_ROOT" \
     --output-json "$plan_json"
 
   [[ -f "$plan_json" ]] || die "sync plan was not created: $plan_json"
