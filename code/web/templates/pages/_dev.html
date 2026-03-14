@@ -1,50 +1,45 @@
 <section class="tab-panel" data-panel="dev">
   <div class="card">
     <div class="section-title-row">
-      <h2>Dev Tools</h2>
-      <span class="muted">Backups, SQL-Dumps und Organizer</span>
+      <h2>Dev · Core Backup</h2>
+      <span class="muted">Projektkern nur über konfiguriertes PROJECT_CORE_ROOT</span>
     </div>
     <div class="actions-grid actions-grid-compact">
       <button class="btn btn-primary" data-action="backup_create">Backup erstellen</button>
+      <button class="btn" data-action="backup_restore_latest">Letztes Backup zurückspielen</button>
       <button class="btn" data-action="sql_dump">SQL-Dump erstellen</button>
-      <button class="btn btn-secondary" data-action="organizer_refresh">Organizer aktualisieren</button>
-      <button class="btn" data-tab="admin">Admin öffnen</button>
+      <a class="btn btn-secondary" href="/dev/archive">Archiv öffnen</a>
     </div>
+    <p class="muted" style="margin-top:12px">Scope: <code>code/</code>, <code>scripts/</code>, <code>VERSION</code>, <code>SCHEMA_VERSION</code>, <code>CHANGELOG.md</code>, <code>CHANGELOG.unreleased.md</code>.</p>
   </div>
 
   <div class="card">
     <div class="section-title-row">
-      <h2>Backups</h2>
-      <span class="muted">Download direkt aus der UI</span>
+      <h2>Letztes Backup</h2>
+      <span class="muted">Direkt downloadbar</span>
     </div>
-    <div class="file-card-grid" id="backup-files-grid">
-      {% for item in dev_assets.backups %}
-      <article class="file-card">
-        <strong>{{ item.name }}</strong>
-        <div class="muted">{{ item.size_label }}</div>
-        <a class="mini-btn file-download" href="/download/backup/{{ item.name|urlencode }}">Download</a>
-      </article>
-      {% else %}
-      <article class="file-card empty">Keine Backups gefunden.</article>
-      {% endfor %}
-    </div>
+    {% if dev_assets.latest_backup %}
+    <article class="file-card">
+      <strong>{{ dev_assets.latest_backup.name }}</strong>
+      <div class="muted">{{ dev_assets.latest_backup.size_label }}</div>
+      <div class="actions-grid actions-grid-compact" style="margin-top:10px">
+        <a class="mini-btn file-download" href="/download/backup/{{ dev_assets.latest_backup.name|urlencode }}">Download</a>
+        <button class="mini-btn" data-restore="{{ dev_assets.latest_backup.name }}">Wiederherstellen</button>
+      </div>
+    </article>
+    {% else %}
+    <article class="file-card empty">Noch kein Core-Backup gefunden.</article>
+    {% endif %}
   </div>
 
   <div class="card">
     <div class="section-title-row">
-      <h2>SQL-Dumps</h2>
-      <span class="muted">pipeline.db Exporte</span>
+      <h2>ZIP einspielen</h2>
+      <span class="muted">ZIP hochladen und in den Projektkern entpacken/überschreiben</span>
     </div>
-    <div class="file-card-grid" id="sql-files-grid">
-      {% for item in dev_assets.sql_dumps %}
-      <article class="file-card">
-        <strong>{{ item.name }}</strong>
-        <div class="muted">{{ item.size_label }}</div>
-        <a class="mini-btn file-download" href="/download/sql/{{ item.name|urlencode }}">Download</a>
-      </article>
-      {% else %}
-      <article class="file-card empty">Keine SQL-Dumps gefunden.</article>
-      {% endfor %}
-    </div>
+    <form class="upload-form" action="/api/dev/upload-core-zip" method="post" enctype="multipart/form-data">
+      <input type="file" name="zip_file" accept=".zip,application/zip" required>
+      <button class="btn btn-primary" type="submit">ZIP hochladen und einspielen</button>
+    </form>
   </div>
 </section>

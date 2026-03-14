@@ -8,6 +8,6 @@ ACTION_HANDLERS = {
     "siril_group": siril_group.handle,
     "status": status.handle,
     "backup_create": dev_tools.backup_handle,
+    "backup_restore_latest": dev_tools.restore_latest_backup_handle,
     "sql_dump": dev_tools.sql_dump_handle,
-    "organizer_refresh": dev_tools.organizer_refresh_handle,
 }

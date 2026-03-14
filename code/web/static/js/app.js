@@ -92,3 +92,30 @@
   const hash = (window.location.hash || "#overview").replace(/^#/, "");
   activateTab(["overview", "gallery", "status", "dev", "admin"].includes(hash) ? hash : "overview");
 })();
+
+
+(function(){
+  async function restoreArchive(name){
+    const res = await fetch(`/api/dev/restore/${encodeURIComponent(name)}`, {method:'POST'});
+    const data = await res.json();
+    alert(data.ok ? `Restore fertig: ${name}` : `Restore fehlgeschlagen: ${data.error || data.stderr || 'Unbekannter Fehler'}`);
+  }
+  document.querySelectorAll('[data-restore]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.restore;
+      if (name && confirm(`Backup wirklich zurückspielen?
+${name}`)) {
+        restoreArchive(name);
+      }
+    });
+  });
+  document.querySelectorAll('.upload-form').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const body = new FormData(form);
+      const res = await fetch(form.action, {method:'POST', body});
+      const data = await res.json();
+      alert(data.ok ? 'ZIP erfolgreich eingespielt.' : `ZIP-Import fehlgeschlagen: ${data.error || data.stderr || 'Unbekannter Fehler'}`);
+    });
+  });
+})();

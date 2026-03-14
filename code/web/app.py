@@ -17,9 +17,10 @@ LOG_FILE = LOG_ROOT / "master" / "webui.log"
 DB_PATH = Path(os.environ.get("DB_PATH", "/runtime/pipeline.db"))
 ASTROCTL = "/app/bin/astroctl"
 PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", "/app"))
-BACKUP_ROOT = Path(os.environ.get("BACKUP_ROOT", str(PROJECT_ROOT / "_backups" / "astromanager")))
-SQL_DUMP_ROOT = Path(os.environ.get("SQL_DUMP_ROOT", str(BACKUP_ROOT / "sql_dumps")))
-EXPORT_ROOT = Path(os.environ.get("EXPORT_ROOT", str(BACKUP_ROOT / "exports")))
+CORE_BACKUP_ROOT = Path(os.environ.get("CORE_BACKUP_ROOT", "/runtime/backups/core"))
+SQL_DUMP_ROOT = Path(os.environ.get("SQL_DUMP_ROOT", "/runtime/backups/sql"))
+UPLOAD_ROOT = Path(os.environ.get("UPLOAD_ROOT", "/runtime/uploads"))
+PROJECT_CORE_ROOT = Path(os.environ.get("PROJECT_CORE_ROOT", "/project-core"))
 
 DB_TABLE_DEFAULTS = {
     "sessions": {
@@ -120,17 +121,17 @@ def fmt_size(num: int) -> str:
 
 
 def dev_assets() -> dict[str, list[dict[str, Any]]]:
-    backups = file_cards_from_dir(BACKUP_ROOT, "Backup")
-    sql_dumps = file_cards_from_dir(SQL_DUMP_ROOT, "SQL")
-    exports = file_cards_from_dir(EXPORT_ROOT, "Export")
-    for bucket in (backups, sql_dumps, exports):
+    backups = file_cards_from_dir(CORE_BACKUP_ROOT, "Core Backup", limit=50)
+    sql_dumps = file_cards_from_dir(SQL_DUMP_ROOT, "SQL", limit=50)
+    for bucket in (backups, sql_dumps):
         for item in bucket:
             item["size_label"] = fmt_size(int(item["size"]))
-    return {"backups": backups, "sql_dumps": sql_dumps, "exports": exports}
+    latest_backup = backups[0] if backups else None
+    return {"backups": backups, "sql_dumps": sql_dumps, "latest_backup": latest_backup}
 
 
 def resolve_download(bucket: str, filename: str) -> Path:
-    roots = {"backup": BACKUP_ROOT, "sql": SQL_DUMP_ROOT, "export": EXPORT_ROOT}
+    roots = {"backup": CORE_BACKUP_ROOT, "sql": SQL_DUMP_ROOT}
     if bucket not in roots:
         raise FileNotFoundError(bucket)
     safe_name = Path(filename).name
@@ -704,6 +705,38 @@ def api_live_summary():
 @APP.get("/api/dev/files")
 def api_dev_files():
     return jsonify({"ok": True, **dev_assets()})
+
+
+@APP.get("/dev/archive")
+def dev_archive_page():
+    return render_template("dev_archive.html", dev_assets=dev_assets())
+
+
+@APP.post("/api/dev/upload-core-zip")
+def api_dev_upload_core_zip():
+    upload = request.files.get("zip_file")
+    if upload is None or not upload.filename:
+        return jsonify({"ok": False, "error": "Keine ZIP-Datei empfangen."}), 400
+    name = Path(upload.filename).name
+    if not name.lower().endswith(".zip"):
+        return jsonify({"ok": False, "error": "Nur ZIP-Dateien sind erlaubt."}), 400
+    UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
+    target = UPLOAD_ROOT / name
+    upload.save(target)
+    res = subprocess.run(["/app/bin/core_apply_zip.sh", str(target)], capture_output=True, text=True)
+    ok = res.returncode == 0
+    return jsonify({"ok": ok, "action": "upload_core_zip", "stdout": res.stdout, "stderr": res.stderr, "returncode": res.returncode, "details": {"upload_path": str(target), "project_core_root": str(PROJECT_CORE_ROOT)}}), (200 if ok else 500)
+
+
+@APP.post("/api/dev/restore/<path:filename>")
+def api_dev_restore_archive(filename: str):
+    try:
+        path = resolve_download("backup", filename)
+    except FileNotFoundError:
+        return jsonify({"ok": False, "error": "Backup nicht gefunden."}), 404
+    res = subprocess.run(["/app/bin/core_restore_zip.sh", str(path)], capture_output=True, text=True)
+    ok = res.returncode == 0
+    return jsonify({"ok": ok, "action": "restore_core_zip", "stdout": res.stdout, "stderr": res.stderr, "returncode": res.returncode, "details": {"zip_path": str(path)}}), (200 if ok else 500)
 
 
 @APP.get("/download/<bucket>/<path:filename>")
