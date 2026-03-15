@@ -1,15 +1,6 @@
 <section class="tab-panel" data-panel="targets">
   <div class="card">
-    <div class="section-title-row">
-      <div>
-        <div class="eyebrow">Targets</div>
-        <h2>Target-Liste mit Sessions und Gruppen</h2>
-      </div>
-      <span class="muted">Objektbezogene Sicht</span>
-    </div>
-    <p class="muted">Jedes Target öffnet eine Unterseite mit allen zugehörigen Sessions, gruppiert nach Datum.</p>
-
-    <h3 class="section-headline">Deep-Sky-Targets</h3>
+    <h2 class="section-headline section-headline--targets-start">Deep-Sky-Targets</h2>
     <div class="targets-grid mobile-gallery-grid">
       {% for item in deepsky_targets_view %}
       <article class="card target-card gallery-card">
@@ -39,7 +30,7 @@
       {% endfor %}
     </div>
 
-    <h3 class="section-headline">Sun & Moon</h3>
+    <h3 class="section-headline">Solarsystem-Targets</h3>
     <div class="targets-grid mobile-gallery-grid">
       {% for item in system_targets_view %}
       <article class="card target-card gallery-card">
