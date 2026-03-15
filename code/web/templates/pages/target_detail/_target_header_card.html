@@ -1,0 +1,8 @@
+{% set item = target %}
+{% set fallback_short = 'TG' %}
+{% set empty_name_label = 'Unbenanntes Target' %}
+{% set fallback_objtype = 'Target' %}
+{% set third_label = 'Distanz' %}
+{% set third_value = target.distance_label %}
+{% set show_action = false %}
+{% include "pages/targets/_target_card.html" %}

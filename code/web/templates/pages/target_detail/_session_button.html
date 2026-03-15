@@ -1,0 +1,13 @@
+<article class="card target-session-entry">
+  {% if item.dwarf_preview_url %}
+  <div class="target-session-entry-preview">
+    <img class="target-thumb" src="{{ item.dwarf_preview_url }}" alt="{{ item.session_button_label }}">
+  </div>
+  {% endif %}
+  <div class="target-session-entry-main">
+    <a class="btn btn-secondary target-session-btn" href="{{ item.session_href }}">
+      <span class="target-session-btn-title">{{ item.session_button_label }}</span>
+    </a>
+    <div class="target-session-btn-meta">EXP {{ item.exp_label }} · Gain {{ item.gain_label }} · Gesamt {{ item.total_exposure_label }}</div>
+  </div>
+</article>

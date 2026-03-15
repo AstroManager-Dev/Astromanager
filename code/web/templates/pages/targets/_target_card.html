@@ -13,6 +13,6 @@
       <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
       <div>{{ third_label }}</div><div>{{ third_value or '—' }}</div>
     </div>
-    <div class="target-card-actions"><a class="btn btn-secondary target-open-btn" href="/targets/{{ item.id }}">Target öffnen</a></div>
+    {% if show_action is not defined or show_action %}<div class="target-card-actions"><a class="btn btn-secondary target-open-btn" href="/targets/{{ item.id }}">{{ action_label|default("Sessions ansehen") }}</a></div>{% endif %}
   </div>
 </article>

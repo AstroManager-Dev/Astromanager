@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import math
 import os
+import re
 import sqlite3
 import subprocess
 from pathlib import Path
@@ -252,6 +253,41 @@ def _apply_target_thumb(conn: sqlite3.Connection, target: dict[str, Any]) -> Non
     target["thumb_href"] = str(target.get("nasa_page_url") or "") if target.get("nasa_thumb_url") else ""
     target["thumb_source"] = "nasa" if target.get("nasa_thumb_url") else ""
 
+
+
+def _format_session_datetime_label(value: Any) -> str:
+    raw = str(value or '').strip()
+    if not raw:
+        return '—'
+    match = re.match(r'^(\d{4})-(\d{2})-(\d{2})[- T](\d{2})-(\d{2})(?:-(\d{2}))?', raw)
+    if match:
+        year, month, day, hour, minute, _second = match.groups()
+        return f'{day}.{month}.{year} · {hour}:{minute}'
+    return raw
+
+
+def _format_session_group_label(value: str) -> str:
+    raw = str(value or '').strip()
+    match = re.match(r'^(\d{4})-(\d{2})-(\d{2})$', raw)
+    if match:
+        year, month, day = match.groups()
+        return f'{day}.{month}.{year}'
+    return raw or 'Unbekannt'
+
+
+def _format_exposure_duration_label(total_seconds: Any) -> str:
+    try:
+        seconds = int(round(float(total_seconds or 0)))
+    except Exception:
+        return '—'
+    if seconds <= 0:
+        return '—'
+    total_minutes = max(1, int(round(seconds / 60.0)))
+    hours = total_minutes // 60
+    minutes = total_minutes % 60
+    if hours:
+        return f'{hours}h {minutes:02d}m'
+    return f'{total_minutes}m'
 
 def latest_web_log(limit: int = 40) -> str:
     if not LOG_FILE.exists():
@@ -825,6 +861,8 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
 
         session_columns = set(db_table_columns(conn, "sessions"))
         has_session_targets = db_table_exists(conn, "session_targets")
+        has_raw_files = db_table_exists(conn, "raw_files")
+        raw_columns = set(db_table_columns(conn, "raw_files")) if has_raw_files else set()
 
         select_parts = [
             "s.id",
@@ -840,6 +878,8 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
             "s.platesolve_status" if "platesolve_status" in session_columns else "NULL AS platesolve_status",
             "s.target_final" if "target_final" in session_columns else "NULL AS target_final",
             "s.target_id" if "target_id" in session_columns else "NULL AS target_id",
+            "s.exp" if "exp" in session_columns else "NULL AS exp",
+            "s.gain" if "gain" in session_columns else "NULL AS gain",
             "CASE WHEN s.target_id = ? THEN 1 ELSE 0 END AS is_direct_target" if "target_id" in session_columns else "0 AS is_direct_target",
         ]
 
@@ -847,7 +887,7 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
         if "target_id" in session_columns:
             params.append(target_id)
 
-        joins = ""
+        joins: list[str] = []
         where_parts: list[str] = []
 
         if "target_id" in session_columns:
@@ -855,14 +895,54 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
             params.append(target_id)
 
         if has_session_targets:
-            joins = """
+            joins.append(
+                """
             LEFT JOIN session_targets st
               ON st.session_id = s.id
              AND st.target_id = ?
             """
+            )
             params.append(target_id)
             where_parts.append("st.target_id = ?")
             params.append(target_id)
+
+        if has_raw_files and "session_key" in raw_columns:
+            light_checks: list[str] = []
+            if "source_subtype" in raw_columns:
+                light_checks.append("rf.source_subtype = 'light_raw_frame'")
+            if "derivative_kind" in raw_columns:
+                light_checks.append("rf.derivative_kind = 'light_raw_frame'")
+            if not light_checks:
+                light_checks.append("0")
+
+            preview_checks: list[str] = []
+            if "source_subtype" in raw_columns:
+                preview_checks.append("rf.source_subtype = 'dwarf_preview'")
+            if "derivative_kind" in raw_columns:
+                preview_checks.append("rf.derivative_kind = 'dwarf_preview'")
+            if "file_name" in raw_columns:
+                preview_checks.append("lower(rf.file_name) IN ('stacked.jpg', 'stacked_thumbnail.jpg')")
+            if not preview_checks:
+                preview_checks.append("0")
+
+            joins.append(
+                f"""
+            LEFT JOIN (
+                SELECT
+                    rf.session_key,
+                    SUM(CASE WHEN {' OR '.join(light_checks)} THEN 1 ELSE 0 END) AS light_frame_count,
+                    MAX(CASE WHEN {' OR '.join(preview_checks)} THEN rf.id ELSE NULL END) AS dwarf_preview_raw_file_id
+                FROM raw_files rf
+                GROUP BY rf.session_key
+            ) rfc
+              ON rfc.session_key = s.session_key
+            """
+            )
+            select_parts.append("COALESCE(rfc.light_frame_count, 0) AS light_frame_count")
+            select_parts.append("rfc.dwarf_preview_raw_file_id AS dwarf_preview_raw_file_id")
+        else:
+            select_parts.append("0 AS light_frame_count")
+            select_parts.append("NULL AS dwarf_preview_raw_file_id")
 
         if not where_parts:
             target["sessions"] = []
@@ -875,7 +955,7 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
                 SELECT DISTINCT
                     {', '.join(select_parts)}
                 FROM sessions s
-                {joins}
+                {' '.join(joins)}
                 WHERE {' OR '.join(where_parts)}
                 ORDER BY COALESCE(s.session_datetime, '') DESC, s.id DESC
                 """,
@@ -892,10 +972,36 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
         for row in rows:
             item = row_to_dict(row)
             dt_value = str(item.get("session_datetime") or "")
-            date_label = dt_value[:10] if len(dt_value) >= 10 else "unbekannt"
-            item["session_date"] = date_label
-            item["session_datetime_label"] = dt_value or "—"
+            date_raw = dt_value[:10] if len(dt_value) >= 10 else ""
+            item["session_date"] = _format_session_group_label(date_raw)
+            item["session_datetime_label"] = _format_session_datetime_label(dt_value)
+            item["session_button_label"] = item["session_datetime_label"]
             item["is_direct_target"] = bool(item.get("is_direct_target"))
+
+            light_frame_count = int(item.get("light_frame_count") or 0)
+            frame_count = int(item.get("frame_count") or 0)
+            effective_light_count = light_frame_count if light_frame_count > 0 else frame_count
+            item["light_frame_count"] = effective_light_count
+
+            exp_value = item.get("exp")
+            try:
+                exp_float = float(exp_value) if exp_value not in (None, "") else None
+            except Exception:
+                exp_float = None
+            gain_value = item.get("gain")
+            try:
+                gain_label = str(int(float(gain_value))) if gain_value not in (None, "") else "—"
+            except Exception:
+                gain_label = str(gain_value or "—")
+
+            item["exp_label"] = f"{exp_float:.0f}s" if exp_float is not None else "—"
+            item["gain_label"] = gain_label
+            total_seconds = effective_light_count * exp_float if (effective_light_count > 0 and exp_float is not None) else 0
+            item["total_exposure_label"] = _format_exposure_duration_label(total_seconds)
+            item["session_href"] = f"/?table=sessions&filter_id={int(item.get('id') or 0)}"
+
+            preview_id = item.get("dwarf_preview_raw_file_id")
+            item["dwarf_preview_url"] = f"/media/raw-file/{int(preview_id)}" if preview_id else ""
             sessions.append(item)
 
         grouped: list[dict[str, Any]] = []
