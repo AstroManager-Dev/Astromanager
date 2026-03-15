@@ -1128,7 +1128,9 @@ def _load_gallery_sessions() -> list[dict[str, Any]]:
                 {', '.join(select_parts)}
             FROM sessions s
             {' '.join(joins)}
-            GROUP BY s.id
+            WHERE COALESCE(s.session_type, '') = 'light_session'
+                  AND COALESCE(s.category, '') IN ('deepsky', 'moon', 'sun')
+                GROUP BY s.id
             ORDER BY COALESCE(s.session_datetime, '') DESC, s.id DESC
             """
         ).fetchall()
