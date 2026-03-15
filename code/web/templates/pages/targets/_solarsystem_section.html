@@ -1,0 +1,13 @@
+<h3 class="section-headline">Solarsystem-Targets</h3>
+<div class="targets-grid mobile-gallery-grid">
+  {% for item in system_targets_view %}
+    {% set fallback_short = 'SM' %}
+    {% set empty_name_label = 'Unbenanntes Ziel' %}
+    {% set fallback_objtype = 'Systemziel' %}
+    {% set third_label = 'NASA' %}
+    {% set third_value = item.nasa_title %}
+    {% include "pages/targets/_target_card.html" %}
+  {% else %}
+  <div class="card"><p class="muted">Keine Systemziele vorhanden.</p></div>
+  {% endfor %}
+</div>

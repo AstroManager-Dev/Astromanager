@@ -1,0 +1,7 @@
+{% if item.thumb_url %}
+  {% if item.thumb_href %}<a href="{{ item.thumb_href }}" target="_blank" rel="noopener noreferrer">{% endif %}
+    <img class="target-thumb" src="{{ item.thumb_url }}" alt="{{ item.display_name or 'Target' }}">
+  {% if item.thumb_href %}</a>{% endif %}
+{% else %}
+  <div class="target-thumb target-thumb-fallback"><span>{{ (item.display_name or fallback_short or 'TG')[:2] }}</span></div>
+{% endif %}

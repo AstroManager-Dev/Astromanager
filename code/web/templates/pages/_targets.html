@@ -1,63 +1,6 @@
 <section class="tab-panel" data-panel="targets">
   <div class="card">
-    <h2 class="section-headline section-headline--targets-start">Deep-Sky-Targets</h2>
-    <div class="targets-grid mobile-gallery-grid">
-      {% for item in deepsky_targets_view %}
-      <article class="card target-card gallery-card">
-        <div class="target-image-col">
-          {% if item.thumb_url %}
-          <img class="target-thumb" src="{{ item.thumb_url }}" alt="{{ item.display_name or 'Target' }}">
-          {% else %}
-          <div class="target-thumb target-thumb-fallback"><span>{{ (item.display_name or 'DS')[:2] }}</span></div>
-          {% endif %}
-        </div>
-        <div class="target-meta">
-          <h3>{{ item.display_name or 'Unbenanntes Target' }}</h3>
-          {% if item.catalog_name and item.catalog_name != item.display_name %}
-          <div class="muted">Katalogname: {{ item.catalog_name }}</div>
-          {% endif %}
-          <div class="sub">{{ item.objtype or 'Deep Sky' }} · {{ item.session_count }} Sessions</div>
-          <div class="kv compact-kv">
-            <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
-            <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
-            <div>Distanz</div><div>{{ item.distance_label or '—' }}</div>
-          </div>
-          <div class="target-card-actions"><a class="btn btn-secondary target-open-btn" href="/targets/{{ item.id }}">Target öffnen</a></div>
-        </div>
-      </article>
-      {% else %}
-      <div class="card"><p class="muted">Keine Deep-Sky-Targets vorhanden.</p></div>
-      {% endfor %}
-    </div>
-
-    <h3 class="section-headline">Solarsystem-Targets</h3>
-    <div class="targets-grid mobile-gallery-grid">
-      {% for item in system_targets_view %}
-      <article class="card target-card gallery-card">
-        <div class="target-image-col">
-          {% if item.thumb_url %}
-          <img class="target-thumb" src="{{ item.thumb_url }}" alt="{{ item.display_name or 'Ziel' }}">
-          {% else %}
-          <div class="target-thumb target-thumb-fallback"><span>{{ (item.display_name or 'SM')[:2] }}</span></div>
-          {% endif %}
-        </div>
-        <div class="target-meta">
-          <h3>{{ item.display_name or 'Unbenanntes Ziel' }}</h3>
-          {% if item.catalog_name and item.catalog_name != item.display_name %}
-          <div class="muted">Katalogname: {{ item.catalog_name }}</div>
-          {% endif %}
-          <div class="sub">{{ item.objtype or 'Systemziel' }} · {{ item.session_count }} Sessions</div>
-          <div class="kv compact-kv">
-            <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
-            <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
-            <div>NASA</div><div>{{ item.nasa_title or '—' }}</div>
-          </div>
-          <div class="target-card-actions"><a class="btn btn-secondary target-open-btn" href="/targets/{{ item.id }}">Target öffnen</a></div>
-        </div>
-      </article>
-      {% else %}
-      <div class="card"><p class="muted">Keine Systemziele vorhanden.</p></div>
-      {% endfor %}
-    </div>
+    {% include "pages/targets/_deepsky_section.html" %}
+    {% include "pages/targets/_solarsystem_section.html" %}
   </div>
 </section>

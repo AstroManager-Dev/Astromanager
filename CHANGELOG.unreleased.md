@@ -1,3 +1,4 @@
+0.4.005 | 2026-03-15 16:29:46 | Targets-Templates modularisiert: Deep-Sky- und Solarsystem-Blöcke ausgelagert, gemeinsame Target-Karte eingeführt und Bildblock als eigenes Include im pages/targets-Unterordner getrennt
 0.4.004 | 2026-03-15 15:57:29 | Targets-Ansicht bereinigt, Introbereich entfernt und Sun & Moon in Solarsystem-Targets umbenannt
 0.4.003 | 2026-03-15 15:47:09 | Legacy-Survey-Resolver ergänzt, SkyView-No-Data-Prüfung eingebaut, Bild-Fachlogik zentralisiert und Target-Bildfallback auf Session → Legacy → SkyView → NASA umgestellt
 0.4.002 | 2026-03-15 15:12:36 | SkyView-Fallback verifizieren, Resolver-Struktur erweitern, Target-Bildlogik härten

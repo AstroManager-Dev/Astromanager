@@ -1,0 +1,13 @@
+<h2 class="section-headline section-headline--targets-start">Deep-Sky-Targets</h2>
+<div class="targets-grid mobile-gallery-grid">
+  {% for item in deepsky_targets_view %}
+    {% set fallback_short = 'DS' %}
+    {% set empty_name_label = 'Unbenanntes Target' %}
+    {% set fallback_objtype = 'Deep Sky' %}
+    {% set third_label = 'Distanz' %}
+    {% set third_value = item.distance_label %}
+    {% include "pages/targets/_target_card.html" %}
+  {% else %}
+  <div class="card"><p class="muted">Keine Deep-Sky-Targets vorhanden.</p></div>
+  {% endfor %}
+</div>

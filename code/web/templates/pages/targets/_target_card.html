@@ -1,0 +1,18 @@
+<article class="card target-card gallery-card">
+  <div class="target-image-col">
+    {% include "pages/targets/_target_card_image.html" %}
+  </div>
+  <div class="target-meta">
+    <h3>{{ item.display_name or empty_name_label }}</h3>
+    {% if item.catalog_name and item.catalog_name != item.display_name %}
+    <div class="muted">Katalogname: {{ item.catalog_name }}</div>
+    {% endif %}
+    <div class="sub">{{ item.objtype or fallback_objtype }} · {{ item.session_count }} Sessions</div>
+    <div class="kv compact-kv">
+      <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
+      <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
+      <div>{{ third_label }}</div><div>{{ third_value or '—' }}</div>
+    </div>
+    <div class="target-card-actions"><a class="btn btn-secondary target-open-btn" href="/targets/{{ item.id }}">Target öffnen</a></div>
+  </div>
+</article>
