@@ -1,25 +1,20 @@
 <section class="card target-detail-page">
-  <div class="section-title-row section-title-row--stack">
+  <div class="section-title-row">
     <div>
       <div class="eyebrow">Target</div>
-      <h2>Sessions ansehen</h2>
-      <div class="muted">{{ target.session_count }} Sessions</div>
     </div>
     <a class="btn" href="/#targets">Zurück zu Targets</a>
   </div>
 
   {% include "pages/target_detail/_target_header_card.html" %}
 
-  {% if target.detail_error %}
-  <div class="card"><p class="muted">Session-Liste konnte nicht vollständig geladen werden: {{ target.detail_error }}</p></div>
-  {% endif %}
+  <div class="muted">{{ target.session_count }} Sessions</div>
 
-  <div class="section-title-row">
-    <div>
-      <div class="eyebrow">Sessions</div>
-      <h3>Sessions des Objekts</h3>
-    </div>
+  {% if target.detail_error %}
+  <div class="card">
+    <p class="muted">Session-Liste konnte nicht vollständig geladen werden: {{ target.detail_error }}</p>
   </div>
+  {% endif %}
 
   {% include "pages/target_detail/_session_buttons.html" %}
 </section>

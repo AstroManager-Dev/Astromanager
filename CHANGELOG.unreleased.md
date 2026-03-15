@@ -1,3 +1,4 @@
+0.4.009 | 2026-03-15 18:02:46 | Target-Detailseite bereinigt: Titelblock vereinfacht, Session-Anzahl unter die Header-Card verschoben und Session-Preview-Fallback ergänzt
 0.4.008 | 2026-03-15 17:43:33 | Target-Detailseite repariert: Session-Gruppierung auf session_items umgestellt und Session-Preview mit nopic-Fallback ergänzt
 0.4.007 | 2026-03-15 17:26:53 | Target-Detailseite repariert: Session-Gruppierung in Jinja auf session_items umgestellt und 500-Fehler auf /targets/<id> behoben
 0.4.006 | 2026-03-15 17:14:33 | Target-Detailseite repariert, Header-Card und Session-Buttons modularisiert sowie Dwarf-Preview, EXP, Gain und Gesamtbelichtungsdauer je Session ergänzt
