@@ -4,6 +4,7 @@
   const tabPanels = document.querySelectorAll(".tab-panel");
   const bottomButtons = document.querySelectorAll(".bottom-nav-btn[data-tab]");
   const menuButtons = document.querySelectorAll(".sheet-link[data-tab]");
+  const pathname = window.location.pathname || "/";
   const openMenuBtn = document.getElementById("open-menu-btn");
   const closeMenuBtn = document.getElementById("close-menu-btn");
   const menuSheet = document.getElementById("menu-sheet");
@@ -38,8 +39,16 @@
   }
 
   function setActiveTabButton(name) {
-    bottomButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === name));
-    menuButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === name));
+    bottomButtons.forEach((btn) => {
+      const isActive = btn.dataset.tab === name;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+    menuButtons.forEach((btn) => {
+      const isActive = btn.dataset.tab === name;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
   }
 
   function closeMenu() {
@@ -105,6 +114,10 @@
       const tab = btn.dataset.tab;
       if (!tab || btn.id === 'open-menu-btn') return;
       event.preventDefault();
+      if (!tabPanels.length) {
+        window.location.href = `/#${tab}`;
+        return;
+      }
       activateTab(tab);
     });
   });
@@ -162,5 +175,15 @@ ${name}`)) {
   });
 
   const hash = (window.location.hash || '#gallery').replace(/^#/, '');
-  activateTab(validTabs.includes(hash) ? hash : 'gallery');
+  if (tabPanels.length) {
+    activateTab(validTabs.includes(hash) ? hash : 'gallery');
+    return;
+  }
+
+  let fallbackTab = 'gallery';
+  if (pathname.startsWith('/targets/')) {
+    fallbackTab = 'targets';
+  }
+
+  setActiveTabButton(fallbackTab);
 })();
