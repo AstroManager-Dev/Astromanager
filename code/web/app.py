@@ -1008,8 +1008,8 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
         for item in sessions:
             session_date = item["session_date"]
             if not grouped or grouped[-1]["date"] != session_date:
-                grouped.append({"date": session_date, "items": []})
-            grouped[-1]["items"].append(item)
+                grouped.append({"date": session_date, "session_items": []})
+            grouped[-1]["session_items"].append(item)
 
         target["sessions"] = sessions
         target["session_groups"] = grouped

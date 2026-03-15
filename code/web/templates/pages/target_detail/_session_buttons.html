@@ -1,8 +1,8 @@
 {% for group in target.session_groups %}
 <section class="session-date-group">
-  <h3 class="section-headline">{{ group.date }}</h3>
+ <!-- <h3 class="section-headline">{{ group.date }}</h3> -->
   <div class="target-session-button-list">
-    {% for item in group.items %}
+    {% for item in group.session_items %}
       {% include "pages/target_detail/_session_button.html" %}
     {% endfor %}
   </div>
