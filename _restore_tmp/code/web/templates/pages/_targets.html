@@ -1,0 +1,69 @@
+<section class="tab-panel" data-panel="targets">
+  <div class="card">
+    <div class="section-title-row">
+      <div>
+        <div class="eyebrow">Targets</div>
+        <h2>Target-Liste mit Sessions und Gruppen</h2>
+      </div>
+      <span class="muted">Objektbezogene Sicht</span>
+    </div>
+    <p class="muted">Hier bleiben die Targets die fachliche Hauptliste. Pro Target folgen später Unterseiten mit zugehörigen Sessions, Gruppen-Sessions und den passenden Ergebnissen.</p>
+
+    <h3 class="section-headline">Deep-Sky-Targets</h3>
+    <div class="targets-grid mobile-gallery-grid">
+      {% for item in deepsky_targets_view %}
+      <div class="card target-card gallery-card">
+        <div class="target-image-col">
+          {% if item.nasa_thumb_url %}
+          <a href="{{ item.nasa_page_url or '#' }}" target="_blank" rel="noopener noreferrer">
+            <img class="target-thumb" src="{{ item.nasa_thumb_url }}" alt="{{ item.display_name or 'Target' }}">
+          </a>
+          {% else %}
+          <div class="target-thumb target-thumb-fallback"><span>{{ (item.display_name or 'DS')[:2] }}</span></div>
+          {% endif %}
+        </div>
+        <div class="target-meta">
+          <h3>{{ item.display_name or 'Unbenanntes Target' }}</h3>
+          <div class="sub">{{ item.objtype or 'Deep Sky' }} · {{ item.session_count }} Sessions</div>
+          <div class="kv compact-kv">
+            <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
+            <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
+            <div>Distanz</div><div>{{ item.distance_label or '—' }}</div>
+          </div>
+          {% if item.source_summary_readable %}<div class="target-line"><span>{{ item.source_summary_readable }}</span></div>{% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="card"><p class="muted">Keine Deep-Sky-Targets vorhanden.</p></div>
+      {% endfor %}
+    </div>
+
+    <h3 class="section-headline">Sun & Moon</h3>
+    <div class="targets-grid mobile-gallery-grid">
+      {% for item in system_targets_view %}
+      <div class="card target-card gallery-card">
+        <div class="target-image-col">
+          {% if item.nasa_thumb_url %}
+          <a href="{{ item.nasa_page_url or '#' }}" target="_blank" rel="noopener noreferrer">
+            <img class="target-thumb" src="{{ item.nasa_thumb_url }}" alt="{{ item.display_name or 'Ziel' }}">
+          </a>
+          {% else %}
+          <div class="target-thumb target-thumb-fallback"><span>{{ (item.display_name or 'SM')[:2] }}</span></div>
+          {% endif %}
+        </div>
+        <div class="target-meta">
+          <h3>{{ item.display_name or 'Unbenanntes Ziel' }}</h3>
+          <div class="sub">{{ item.objtype or 'Systemziel' }} · {{ item.session_count }} Sessions</div>
+          <div class="kv compact-kv">
+            <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
+            <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
+            <div>NASA</div><div>{{ item.nasa_title or '—' }}</div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="card"><p class="muted">Keine Systemziele vorhanden.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

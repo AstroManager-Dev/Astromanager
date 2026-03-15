@@ -9,6 +9,7 @@ from .common import build_response, run_shell, start_background
 CORE_BACKUP_ROOT = Path(os.environ.get("CORE_BACKUP_ROOT", "/runtime/backups/core"))
 CORE_BACKUP_SCRIPT = Path("/app/bin/core_backup_zip.sh")
 CORE_RESTORE_SCRIPT = Path("/app/bin/core_restore_zip.sh")
+SQL_DUMP_SCRIPT = Path("/app/bin/core_sql_dump_zip.sh")
 SQL_DUMP_ROOT = Path(os.environ.get("SQL_DUMP_ROOT", "/runtime/backups/sql"))
 
 

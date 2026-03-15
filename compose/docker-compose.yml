@@ -7,6 +7,9 @@ services:
     env_file:
       - ./.env
     environment:
+      - PROJECT_CORE_ROOT=/project-core
+      - CORE_BACKUP_ROOT=/project-core/_dev_backups/core
+      - SQL_DUMP_ROOT=/project-core/_dev_backups/sql
       - TZ=${TZ}
       - PUID=${PUID}
       - PGID=${PGID}
@@ -28,6 +31,7 @@ services:
       - PREVIEW_ROOT=${CONTAINER_DATA_ROOT}/previews
       - EXPORT_ROOT=${CONTAINER_DATA_ROOT}/export
     volumes:
+      - /home/pi/docker/astromanager:/project-core
       - ${RAW_ROOT}:${CONTAINER_RAW_ROOT}
       - ${DATA_ROOT}:${CONTAINER_DATA_ROOT}
       - ${RUNTIME_ROOT}:${CONTAINER_RUNTIME_ROOT}
@@ -49,6 +53,9 @@ services:
     env_file:
       - ./.env
     environment:
+      - PROJECT_CORE_ROOT=/project-core
+      - CORE_BACKUP_ROOT=/project-core/_dev_backups/core
+      - SQL_DUMP_ROOT=/project-core/_dev_backups/sql
       - TZ=${TZ}
       - RAW_ROOT=${CONTAINER_RAW_ROOT}
       - DATA_ROOT=${CONTAINER_DATA_ROOT}
@@ -69,6 +76,7 @@ services:
       - EXPORT_ROOT=${CONTAINER_DATA_ROOT}/export
       - WEB_PORT=${WEB_PORT}
     volumes:
+      - /home/pi/docker/astromanager:/project-core
       - ${RAW_ROOT}:${CONTAINER_RAW_ROOT}
       - ${DATA_ROOT}:${CONTAINER_DATA_ROOT}
       - ${RUNTIME_ROOT}:${CONTAINER_RUNTIME_ROOT}
@@ -119,6 +127,7 @@ services:
       - VLM_TIMEOUT=${VLM_TIMEOUT:-120}
       - VLM_TRAIN_ROOT=${CONTAINER_RUNTIME_ROOT}/vlm
     volumes:
+      - /home/pi/docker/astromanager:/project-core
       - ${RAW_ROOT}:${CONTAINER_RAW_ROOT}
       - ${DATA_ROOT}:${CONTAINER_DATA_ROOT}
       - ${RUNTIME_ROOT}:${CONTAINER_RUNTIME_ROOT}

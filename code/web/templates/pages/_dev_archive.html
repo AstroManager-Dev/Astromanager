@@ -1,22 +1,62 @@
-<section class="tab-panel active" data-panel="dev-archive">
-  <div class="card">
-    <div class="section-title-row">
-      <h2>Backup-Archiv</h2>
-      <span class="muted">Alle Core-Backups mit Download und Restore</span>
+<section class="card dev-archive-standalone dev-card-accent dev-archive-shell">
+  <div class="section-head section-head--spaced">
+    <div>
+      <div class="eyebrow">Dev Archiv</div>
+      <h2>Backups & SQL-Dumps</h2>
     </div>
-    <div class="file-card-grid" id="backup-archive-grid">
-      {% for item in dev_assets.backups %}
-      <article class="file-card">
-        <strong>{{ item.name }}</strong>
-        <div class="muted">{{ item.size_label }}</div>
-        <div class="actions-grid actions-grid-compact" style="margin-top:10px">
-          <a class="mini-btn file-download" href="/download/backup/{{ item.name|urlencode }}">Download</a>
-          <button class="mini-btn" data-restore="{{ item.name }}">Wiederherstellen</button>
+    <a class="btn btn-secondary btn-back-inline" href="/#dev">Zurück zu Dev</a>
+  </div>
+
+  <div class="archive-split-grid">
+    <section class="archive-panel">
+      <div class="section-title-row">
+        <h3>Core-Backups</h3>
+        <span class="muted">Mit Download, Restore und Löschen</span>
+      </div>
+      {% if dev_assets.backups %}
+        <div class="file-card-grid file-card-grid--archive-full">
+          {% for item in dev_assets.backups %}
+            <article class="file-card file-card--archive file-card--archive-strong">
+              <div class="file-card-head">
+                <strong>{{ item.name }}</strong>
+                <span class="pill pill-blue">{{ item.size_label }}</span>
+              </div>
+              <div class="actions-grid actions-grid-compact dev-inline-actions dev-inline-actions--triple" style="margin-top:12px">
+                <a class="btn btn-secondary" href="/download/backup/{{ item.name|urlencode }}">Download</a>
+                <button class="btn" data-restore="{{ item.name }}">Restore</button>
+                <button class="btn btn-danger" data-delete="backup" data-filename="{{ item.name }}">Löschen</button>
+              </div>
+            </article>
+          {% endfor %}
         </div>
-      </article>
       {% else %}
-      <article class="file-card empty">Keine Core-Backups gefunden.</article>
-      {% endfor %}
-    </div>
+        <div class="terminal-box">Keine Core-Backups gefunden.</div>
+      {% endif %}
+    </section>
+
+    <section class="archive-panel">
+      <div class="section-title-row">
+        <h3>SQL-Dump-ZIPs</h3>
+        <span class="muted">Gezippte Exporte der pipeline.db</span>
+      </div>
+      {% if dev_assets.sql_dumps %}
+        <div class="file-card-grid file-card-grid--archive-full">
+          {% for item in dev_assets.sql_dumps %}
+            <article class="file-card file-card--archive file-card--archive-strong">
+              <div class="file-card-head">
+                <strong>{{ item.name }}</strong>
+                <span class="pill pill-violet">{{ item.size_label }}</span>
+              </div>
+              <div class="actions-grid actions-grid-compact dev-inline-actions dev-inline-actions--double" style="margin-top:12px">
+                <a class="btn btn-secondary file-download" href="/download/sql/{{ item.name|urlencode }}">Download</a>
+                <button class="btn btn-danger" data-delete="sql" data-filename="{{ item.name }}">Löschen</button>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="terminal-box">Keine SQL-Dump-ZIPs gefunden.</div>
+      {% endif %}
+    </section>
   </div>
 </section>

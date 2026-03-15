@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>{% block title %}AstroManager{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <div class="app-shell app-shell--new-layout">
+    <header class="topbar astro-glow topbar--brand-only">
+      <div class="brand-block" data-tab="overview">
+        <div class="brand-logo-shell brand-logo-shell--full astro-glow-soft">
+          <img class="brand-logo brand-logo--full" src="/static/logo.jpg" alt="AstroManager Logo">
+        </div>
+        <div class="brand-copy brand-copy--stacked">
+          <div class="brand-kicker">DeepSky Sessions</div>
+          <p class="brand-subtitle brand-subtitle--headline">Telescope to Preview</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content app-content--spacious">
+      {% block content %}{% endblock %}
+    </main>
+
+    {% include "includes/_menu.html" %}
+
+    <nav class="bottom-nav bottom-nav--edge astro-glow-soft" aria-label="Hauptnavigation">
+      <button class="bottom-nav-btn active" data-tab="gallery"><span>Galerie</span></button>
+      <button class="bottom-nav-btn" data-tab="atlas"><span>Atlas</span></button>
+      <button class="bottom-nav-btn" data-tab="targets"><span>Targets</span></button>
+      <button class="bottom-nav-btn" data-tab="overview"><span>Zentrale</span></button>
+      <button class="bottom-nav-btn bottom-nav-btn--menu" id="open-menu-btn" aria-label="Menü öffnen" aria-controls="menu-sheet" aria-expanded="false"><span>Menü</span></button>
+    </nav>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+  <script src="/static/progress.js"></script>
+</body>
+</html>

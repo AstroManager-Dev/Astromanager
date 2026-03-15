@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+step_run() {
+  log "targets step105: merge final target data"
+
+  sqlite3 "$DB_PATH" "
+    CREATE TABLE IF NOT EXISTS target_final (
+      id INTEGER PRIMARY KEY,
+      target_id INTEGER NOT NULL UNIQUE,
+      canonical_name TEXT,
+      slug TEXT,
+      display_name TEXT,
+      resolved_name TEXT,
+      object_type TEXT,
+      ra_deg REAL,
+      dec_deg REAL,
+      constellation TEXT,
+      distance_label TEXT,
+      nasa_title TEXT,
+      nasa_url TEXT,
+      image_url TEXT,
+      image_thumb_url TEXT,
+      image_source TEXT,
+      image_page_url TEXT,
+      image_fits_url TEXT,
+      status_name TEXT,
+      status_meta TEXT,
+      status_simbad TEXT,
+      status_ned TEXT,
+      status_nasa TEXT,
+      source_name TEXT,
+      source_coords TEXT,
+      source_objtype TEXT,
+      source_distance TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  "
+
+  sqlite3 "$DB_PATH" "
+    ALTER TABLE target_final ADD COLUMN image_source TEXT;
+  " 2>/dev/null || true
+
+  sqlite3 "$DB_PATH" "
+    ALTER TABLE target_final ADD COLUMN image_page_url TEXT;
+  " 2>/dev/null || true
+
+  sqlite3 "$DB_PATH" "
+    ALTER TABLE target_final ADD COLUMN image_fits_url TEXT;
+  " 2>/dev/null || true
+
+  local cols
+  cols="$(sqlite3 "$DB_PATH" "PRAGMA table_info(targets);" | cut -d'|' -f2)"
+
+  has_col() {
+    printf '%s\n' "$cols" | grep -Fxq "$1"
+  }
+
+  local expr_resolved_name="COALESCE(NULLIF(t.final_name,''), NULLIF(t.display_name,''), NULLIF(t.canonical_name,''), NULLIF(t.slug,''), '')"
+  local expr_object_type="COALESCE(NULLIF(t.final_objtype,''), NULLIF(t.category,''), '')"
+  local expr_ra="COALESCE(t.final_ra_deg, t.ra_deg)"
+  local expr_dec="COALESCE(t.final_dec_deg, t.dec_deg)"
+  local expr_constellation="COALESCE(NULLIF(t.constellation,''), '')"
+  local expr_distance="''"
+  local expr_nasa_title="''"
+  local expr_nasa_url="''"
+  local expr_status_name="'pending'"
+  local expr_status_meta="'pending'"
+  local expr_status_simbad="'pending'"
+  local expr_status_ned="'pending'"
+  local expr_status_nasa="'pending'"
+  local expr_source_name="'pending'"
+  local expr_source_coords="'pending'"
+  local expr_source_objtype="'pending'"
+  local expr_source_distance="'pending'"
+
+  has_col final_distance_value && expr_distance="COALESCE(CAST(t.final_distance_value AS TEXT), $expr_distance)"
+  has_col distance_ref && expr_distance="COALESCE(NULLIF(t.distance_ref,''), $expr_distance)"
+  has_col distance_unit_label && expr_distance="COALESCE(NULLIF(t.distance_unit_label,''), $expr_distance)"
+
+  has_col nasa_title && expr_nasa_title="COALESCE(NULLIF(t.nasa_title,''), '')"
+  has_col nasa_page_url && expr_nasa_url="COALESCE(NULLIF(t.nasa_page_url,''), '')"
+
+  has_col name_status && expr_status_name="COALESCE(NULLIF(t.name_status,''), 'pending')"
+  has_col meta_status && expr_status_meta="COALESCE(NULLIF(t.meta_status,''), 'pending')"
+  has_col simbad_status && expr_status_simbad="COALESCE(NULLIF(t.simbad_status,''), 'pending')"
+  has_col ned_status && expr_status_ned="COALESCE(NULLIF(t.ned_status,''), 'pending')"
+  has_col nasa_status && expr_status_nasa="COALESCE(NULLIF(t.nasa_status,''), 'pending')"
+
+  has_col name_source && expr_source_name="COALESCE(NULLIF(t.name_source,''), 'pending')"
+  has_col coord_source && expr_source_coords="COALESCE(NULLIF(t.coord_source,''), 'pending')"
+  has_col meta_source && expr_source_objtype="COALESCE(NULLIF(t.meta_source,''), 'pending')"
+  has_col meta_source && expr_source_distance="COALESCE(NULLIF(t.meta_source,''), 'pending')"
+
+  sqlite3 "$DB_PATH" "DELETE FROM target_final;"
+
+  sqlite3 "$DB_PATH" "
+    INSERT INTO target_final (
+      target_id,
+      canonical_name,
+      slug,
+      display_name,
+      resolved_name,
+      object_type,
+      ra_deg,
+      dec_deg,
+      constellation,
+      distance_label,
+      nasa_title,
+      nasa_url,
+      image_url,
+      image_thumb_url,
+      image_source,
+      image_page_url,
+      image_fits_url,
+      status_name,
+      status_meta,
+      status_simbad,
+      status_ned,
+      status_nasa,
+      source_name,
+      source_coords,
+      source_objtype,
+      source_distance,
+      created_at,
+      updated_at
+    )
+    SELECT
+      t.id,
+      COALESCE(t.canonical_name, ''),
+      COALESCE(t.slug, ''),
+      COALESCE(t.display_name, ''),
+      $expr_resolved_name,
+      $expr_object_type,
+      $expr_ra,
+      $expr_dec,
+      $expr_constellation,
+      $expr_distance,
+      $expr_nasa_title,
+      $expr_nasa_url,
+
+      COALESCE(
+        NULLIF(tsv.image_url, ''),
+        NULLIF(tir.viewer_url, ''),
+        NULLIF(t.nasa_image_url, ''),
+        ''
+      ) AS image_url,
+
+      COALESCE(
+        NULLIF(tsv.image_url, ''),
+        NULLIF(t.nasa_thumb_url, ''),
+        ''
+      ) AS image_thumb_url,
+
+      CASE
+        WHEN NULLIF(tsv.image_url, '') IS NOT NULL THEN 'skyview'
+        WHEN NULLIF(tir.viewer_url, '') IS NOT NULL THEN 'irsa'
+        WHEN NULLIF(t.nasa_image_url, '') IS NOT NULL THEN 'nasa'
+        ELSE ''
+      END AS image_source,
+
+      COALESCE(
+        NULLIF(tir.viewer_url, ''),
+        NULLIF(t.nasa_page_url, ''),
+        ''
+      ) AS image_page_url,
+
+      COALESCE(
+        NULLIF(tsv.fits_url, ''),
+        ''
+      ) AS image_fits_url,
+
+      $expr_status_name,
+      $expr_status_meta,
+      $expr_status_simbad,
+      $expr_status_ned,
+      $expr_status_nasa,
+      $expr_source_name,
+      $expr_source_coords,
+      $expr_source_objtype,
+      $expr_source_distance,
+      datetime('now'),
+      datetime('now')
+    FROM targets t
+    LEFT JOIN target_skyview_resolve tsv
+      ON tsv.target_id = t.id
+    LEFT JOIN target_irsa_resolve tir
+      ON tir.target_id = t.id
+    ORDER BY t.id;
+  "
+
+  log "targets step105: merged final target data"
+}

@@ -41,6 +41,85 @@ def select_targets(conn, limit: int):
     return conn.execute(sql, (limit,)).fetchall()
 
 
+def _normalize_text(value):
+    return norm(str(value or '')).lower()
+
+
+def _numeric(value):
+    try:
+        if value is None or value == '':
+            return None
+        return float(value)
+    except Exception:
+        return None
+
+
+def _choose_survey(row):
+    text = ' '.join(
+        [
+            _normalize_text(row['final_objtype']) if 'final_objtype' in row.keys() else '',
+            _normalize_text(row['object_type_label_de']) if 'object_type_label_de' in row.keys() else '',
+            _normalize_text(row['object_type_label_en']) if 'object_type_label_en' in row.keys() else '',
+            _normalize_text(row['label_de']) if 'label_de' in row.keys() else '',
+            _normalize_text(row['label_en']) if 'label_en' in row.keys() else '',
+            _normalize_text(row['canonical_name']) if 'canonical_name' in row.keys() else '',
+        ]
+    )
+
+    if any(
+        token in text
+        for token in (
+            'emissionsnebel',
+            'emission nebula',
+            'diffuser nebel',
+            'diffuse nebula',
+            'planetarischer nebel',
+            'planetary nebula',
+            'h-ii',
+            'h ii',
+            'hii',
+            'barnard',
+            'california',
+            'rosettennebel',
+            'rosette',
+            'sh2',
+            'sharpless',
+            'ic 434',
+        )
+    ):
+        return 'H-Alpha'
+
+    return 'DSS2 Color'
+
+
+def _choose_size_deg(row):
+    size_arcmin = _numeric(row['angular_size_arcmin']) if 'angular_size_arcmin' in row.keys() else None
+    objtype = ' '.join(
+        [
+            _normalize_text(row['final_objtype']) if 'final_objtype' in row.keys() else '',
+            _normalize_text(row['object_type_label_de']) if 'object_type_label_de' in row.keys() else '',
+            _normalize_text(row['object_type_label_en']) if 'object_type_label_en' in row.keys() else '',
+        ]
+    )
+
+    if size_arcmin is None or size_arcmin <= 0:
+        if 'galax' in objtype:
+            return 0.30
+        if 'cluster' in objtype or 'sternhaufen' in objtype:
+            return 0.35
+        if 'nebel' in objtype or 'nebula' in objtype:
+            return 0.80
+        return 0.35
+
+    size_deg = size_arcmin / 60.0
+    frame_deg = max(size_deg * 2.2, 0.12)
+
+    if 'nebel' in objtype or 'nebula' in objtype:
+        frame_deg = max(size_deg * 1.8, 0.35)
+
+    return round(min(max(frame_deg, 0.12), 3.0), 4)
+
+
 def upsert(conn, row, query_name, survey, image_url, fits_url):
     conn.execute(
         """
@@ -94,7 +173,8 @@ def main():
             ra = row["final_ra_deg"]
             dec = row["final_dec_deg"]
             pos = f"{ra},{dec}"
-            survey = "DSS2 Color"
+            survey = _choose_survey(row)
+            size_deg = _choose_size_deg(row)
 
             params_img = urllib.parse.urlencode({
                 "Position": pos,
@@ -102,7 +182,7 @@ def main():
                 "Return": "PNG",
                 "Sampler": "Clip",
                 "Pixels": "600",
-                "Size": "0.35",
+                "Size": f"{size_deg:.4f}",
             })
             params_fits = urllib.parse.urlencode({
                 "Position": pos,
@@ -110,14 +190,14 @@ def main():
                 "Return": "FITS",
                 "Sampler": "Clip",
                 "Pixels": "600",
-                "Size": "0.35",
+                "Size": f"{size_deg:.4f}",
             })
 
             image_url = f"https://skyview.gsfc.nasa.gov/current/cgi/runquery.pl?{params_img}"
             fits_url = f"https://skyview.gsfc.nasa.gov/current/cgi/runquery.pl?{params_fits}"
 
             upsert(conn, row, name, survey, image_url, fits_url)
-            print(f"resolved id={row['id']} canonical_name={row['canonical_name']}")
+            print(f"resolved id={row['id']} canonical_name={row['canonical_name']} survey={survey} size_deg={size_deg:.4f}")
             time.sleep(0.05)
     finally:
         conn.close()

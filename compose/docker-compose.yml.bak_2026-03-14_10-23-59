@@ -1,0 +1,136 @@
+services:
+  astromanager-runner:
+    container_name: astromanager-runner
+    build:
+      context: ..
+      dockerfile: image/Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - RAW_ROOT=${CONTAINER_RAW_ROOT}
+      - DATA_ROOT=${CONTAINER_DATA_ROOT}
+      - RUNTIME_ROOT=${CONTAINER_RUNTIME_ROOT}
+      - LOG_ROOT=${CONTAINER_LOG_ROOT}
+      - WORK_ROOT=${CONTAINER_WORK_ROOT}
+      - TMP_ROOT=${CONTAINER_TMP_ROOT}
+      - CACHE_ROOT=${CONTAINER_CACHE_ROOT}
+      - CONFIG_ROOT=${CONTAINER_CONFIG_ROOT}
+      - DB_PATH=${CONTAINER_RUNTIME_ROOT}/pipeline.db
+      - LOCK_DIR=${CONTAINER_RUNTIME_ROOT}/locks
+      - OK_DIR=${CONTAINER_RUNTIME_ROOT}/ok
+      - QUEUE_DIR=${CONTAINER_RUNTIME_ROOT}/queue
+      - RUN_DIR=${CONTAINER_RUNTIME_ROOT}/run
+      - CATALOG_ROOT=${CONTAINER_DATA_ROOT}/catalog
+      - MASTERDARK_ROOT=${CONTAINER_DATA_ROOT}/masterdarks
+      - PREVIEW_ROOT=${CONTAINER_DATA_ROOT}/previews
+      - EXPORT_ROOT=${CONTAINER_DATA_ROOT}/export
+    volumes:
+      - ${RAW_ROOT}:${CONTAINER_RAW_ROOT}
+      - ${DATA_ROOT}:${CONTAINER_DATA_ROOT}
+      - ${RUNTIME_ROOT}:${CONTAINER_RUNTIME_ROOT}
+      - ${LOG_ROOT}:${CONTAINER_LOG_ROOT}
+      - ${WORK_ROOT}:${CONTAINER_WORK_ROOT}
+      - ${TMP_ROOT}:${CONTAINER_TMP_ROOT}
+      - ${CACHE_ROOT}:${CONTAINER_CACHE_ROOT}
+      - ${CONFIG_ROOT}:${CONTAINER_CONFIG_ROOT}:ro
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+  astromanager-web:
+    container_name: astromanager-web
+    build:
+      context: ..
+      dockerfile: image/Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      - TZ=${TZ}
+      - RAW_ROOT=${CONTAINER_RAW_ROOT}
+      - DATA_ROOT=${CONTAINER_DATA_ROOT}
+      - RUNTIME_ROOT=${CONTAINER_RUNTIME_ROOT}
+      - LOG_ROOT=${CONTAINER_LOG_ROOT}
+      - WORK_ROOT=${CONTAINER_WORK_ROOT}
+      - TMP_ROOT=${CONTAINER_TMP_ROOT}
+      - CACHE_ROOT=${CONTAINER_CACHE_ROOT}
+      - CONFIG_ROOT=${CONTAINER_CONFIG_ROOT}
+      - DB_PATH=${CONTAINER_RUNTIME_ROOT}/pipeline.db
+      - LOCK_DIR=${CONTAINER_RUNTIME_ROOT}/locks
+      - OK_DIR=${CONTAINER_RUNTIME_ROOT}/ok
+      - QUEUE_DIR=${CONTAINER_RUNTIME_ROOT}/queue
+      - RUN_DIR=${CONTAINER_RUNTIME_ROOT}/run
+      - CATALOG_ROOT=${CONTAINER_DATA_ROOT}/catalog
+      - MASTERDARK_ROOT=${CONTAINER_DATA_ROOT}/masterdarks
+      - PREVIEW_ROOT=${CONTAINER_DATA_ROOT}/previews
+      - EXPORT_ROOT=${CONTAINER_DATA_ROOT}/export
+      - WEB_PORT=${WEB_PORT}
+    volumes:
+      - ${RAW_ROOT}:${CONTAINER_RAW_ROOT}
+      - ${DATA_ROOT}:${CONTAINER_DATA_ROOT}
+      - ${RUNTIME_ROOT}:${CONTAINER_RUNTIME_ROOT}
+      - ${LOG_ROOT}:${CONTAINER_LOG_ROOT}
+      - ${WORK_ROOT}:${CONTAINER_WORK_ROOT}
+      - ${TMP_ROOT}:${CONTAINER_TMP_ROOT}
+      - ${CACHE_ROOT}:${CONTAINER_CACHE_ROOT}
+      - ${CONFIG_ROOT}:${CONTAINER_CONFIG_ROOT}:ro
+    working_dir: /app
+    command: ["python3", "/app/web/app.py"]
+    ports:
+      - "${WEB_PORT}:${WEB_PORT}"
+    restart: unless-stopped
+
+  astromanager-ollama:
+    container_name: astromanager-ollama
+    image: ollama/ollama:latest
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${CACHE_ROOT}/ollama:/root/.ollama
+    restart: unless-stopped
+
+  astromanager-vlm:
+    container_name: astromanager-vlm
+    build:
+      context: ..
+      dockerfile: image/Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      - TZ=${TZ}
+      - RAW_ROOT=${CONTAINER_RAW_ROOT}
+      - DATA_ROOT=${CONTAINER_DATA_ROOT}
+      - RUNTIME_ROOT=${CONTAINER_RUNTIME_ROOT}
+      - LOG_ROOT=${CONTAINER_LOG_ROOT}
+      - WORK_ROOT=${CONTAINER_WORK_ROOT}
+      - TMP_ROOT=${CONTAINER_TMP_ROOT}
+      - CACHE_ROOT=${CONTAINER_CACHE_ROOT}
+      - CONFIG_ROOT=${CONTAINER_CONFIG_ROOT}
+      - DB_PATH=${CONTAINER_RUNTIME_ROOT}/pipeline.db
+      - VLM_HOST=0.0.0.0
+      - VLM_PORT=${VLM_PORT:-8091}
+      - VLM_BACKEND=${VLM_BACKEND:-ollama}
+      - OLLAMA_BASE_URL=http://astromanager-ollama:11434
+      - VLM_MODEL=${VLM_MODEL:-qwen2.5-coder:7b}
+      - VLM_VISION_MODEL=${VLM_VISION_MODEL:-llava:7b}
+      - VLM_TIMEOUT=${VLM_TIMEOUT:-120}
+      - VLM_TRAIN_ROOT=${CONTAINER_RUNTIME_ROOT}/vlm
+    volumes:
+      - ${RAW_ROOT}:${CONTAINER_RAW_ROOT}
+      - ${DATA_ROOT}:${CONTAINER_DATA_ROOT}
+      - ${RUNTIME_ROOT}:${CONTAINER_RUNTIME_ROOT}
+      - ${LOG_ROOT}:${CONTAINER_LOG_ROOT}
+      - ${WORK_ROOT}:${CONTAINER_WORK_ROOT}
+      - ${TMP_ROOT}:${CONTAINER_TMP_ROOT}
+      - ${CACHE_ROOT}:${CONTAINER_CACHE_ROOT}
+      - ${CONFIG_ROOT}:${CONTAINER_CONFIG_ROOT}:ro
+    working_dir: /app
+    command: ["python3", "/app/vlm/app.py"]
+    depends_on:
+      - astromanager-ollama
+    ports:
+      - "${VLM_PORT:-8091}:8091"
+    restart: unless-stopped

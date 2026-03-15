@@ -1,0 +1,33 @@
+<section class="tab-panel active" data-panel="gallery">
+  <div class="card section-hero-card">
+    <div class="section-title-row">
+      <div>
+        <div class="eyebrow">Galerie</div>
+        <h2>Sessions nach Datum und Ergebnis</h2>
+      </div>
+      <span class="status-pill status-idle">Vorbereitet</span>
+    </div>
+    <p class="muted">Die Galerie wird auf Session-Unterseiten vorbereitet. Dort werden pro Session später der Geräte-Stack aus dem Dwarf, der Siril-Stack und weitere Ergebnisstufen sauber getrennt angezeigt. Die Bildpfade liegen bereits in der Datenbank und können im nächsten Schritt direkt angebunden werden.</p>
+  </div>
+
+  <div class="card compact-card">
+    <div class="section-title-row">
+      <h2>Aktuell verfügbare Zielbasis</h2>
+      <span class="muted">Übergang bis zur Session-Galerie</span>
+    </div>
+    <div class="stats-grid stats-grid--compact">
+      <div class="card stat-card">
+        <div class="stat-label">Deep-Sky-Targets</div>
+        <div class="stat-value">{{ deepsky_targets_view|length }}</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Sun / Moon</div>
+        <div class="stat-value">{{ system_targets_view|length }}</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Letzte Runs</div>
+        <div class="stat-value">{{ runs|length }}</div>
+      </div>
+    </div>
+  </div>
+</section>

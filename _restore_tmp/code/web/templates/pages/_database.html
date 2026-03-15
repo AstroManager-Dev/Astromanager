@@ -1,0 +1,48 @@
+<section class="tab-panel" data-panel="database">
+  <div class="card">
+    <div class="section-title-row">
+      <h2>Admin · Datenbank</h2>
+      <span class="muted">Debug und technische Sicht</span>
+    </div>
+
+    {% if db_view %}
+    <form class="db-tools" method="get" action="/#admin">
+      <input type="hidden" name="offset" value="0">
+      <select name="table">
+        {% for item in db_tables %}
+        <option value="{{ item.name }}" {% if item.name == db_selected_table %}selected{% endif %}>{{ item.name }}{% if item.row_count is not none %} ({{ item.row_count }}){% endif %}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="q" placeholder="Suche" value="{{ db_query or '' }}">
+      <select name="sort">
+        {% for col in db_view.columns %}<option value="{{ col }}" {% if db_view.sort == col %}selected{% endif %}>{{ col }}</option>{% endfor %}
+      </select>
+      <select name="order">
+        <option value="DESC" {% if db_view.order == 'DESC' %}selected{% endif %}>DESC</option>
+        <option value="ASC" {% if db_view.order == 'ASC' %}selected{% endif %}>ASC</option>
+      </select>
+      <select name="limit">
+        {% for v in [25, 50, 100, 200] %}<option value="{{ v }}" {% if db_view.limit == v %}selected{% endif %}>{{ v }} Zeilen</option>{% endfor %}
+      </select>
+      <button type="submit" class="mini-btn">Anzeigen</button>
+    </form>
+
+    <p class="muted db-summary">Tabelle <span class="pill">{{ db_view.table }}</span> · {{ db_view.total }} Treffer · Seite {{ db_view.page_current }} / {{ db_view.page_total }}</p>
+
+    <div class="scroll-x admin-table-wrap">
+      <table>
+        <thead><tr>{% for col in db_view.columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for row in db_view.rows %}
+          <tr>{% for col in db_view.columns %}<td>{{ row[col] }}</td>{% endfor %}</tr>
+          {% else %}
+          <tr><td colspan="{{ db_view.columns|length }}">Keine Daten.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="muted">Für diese Tabelle konnten aktuell keine Daten geladen werden.</p>
+    {% endif %}
+  </div>
+</section>

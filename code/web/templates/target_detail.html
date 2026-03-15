@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ target.detail_display_name or target.display_name or 'Target' }} · AstroManager{% endblock %}
+{% block content %}
+<section class="card target-detail-page">
+  <div class="section-title-row section-title-row--stack">
+    <div>
+      <div class="eyebrow">Target-Details</div>
+      <h2>{{ target.detail_display_name or target.display_name or 'Unbenanntes Target' }}</h2>
+      <div class="muted">{{ target.objtype or target.category or 'Target' }} · {{ target.session_count }} Sessions</div>
+      {% if target.catalog_name and target.catalog_name != target.detail_display_name %}
+      <div class="muted">Katalogname: {{ target.catalog_name }}</div>
+      {% endif %}
+    </div>
+    <a class="btn" href="/#targets">Zurück zu Targets</a>
+  </div>
+
+  <div class="target-detail-hero card gallery-card">
+    <div class="target-image-col">
+      {% if target.thumb_url %}
+      {% if target.thumb_href %}<a href="{{ target.thumb_href }}" target="_blank" rel="noopener noreferrer">{% endif %}
+        <img class="target-thumb" src="{{ target.thumb_url }}" alt="{{ target.detail_display_name or target.display_name or 'Target' }}">
+      {% if target.thumb_href %}</a>{% endif %}
+      {% else %}
+      <div class="target-thumb target-thumb-fallback"><span>{{ (target.display_name or 'TG')[:2] }}</span></div>
+      {% endif %}
+    </div>
+    <div class="target-meta">
+      <div class="kv compact-kv">
+        <div>RA</div><div>{{ target.final_ra_deg_fmt or '—' }}</div>
+        <div>DEC</div><div>{{ target.final_dec_deg_fmt or '—' }}</div>
+        <div>Distanz</div><div>{{ target.distance_label or '—' }}</div>
+        <div>Konstellation</div><div>{{ target.constellation_name or target.constellation_code or '—' }}</div>
+      </div>
+          </div>
+  </div>
+
+  {% if target.detail_error %}
+  <div class="card"><p class="muted">Session-Liste konnte nicht vollständig geladen werden: {{ target.detail_error }}</p></div>
+  {% endif %}
+
+  <div class="section-title-row">
+    <div>
+      <div class="eyebrow">Sessions</div>
+      <h3>Alle zugeordneten Sessions nach Datum</h3>
+    </div>
+  </div>
+
+  {% for group in target.session_groups %}
+  <section class="session-date-group">
+    <h3 class="section-headline">{{ group.date }}</h3>
+    <div class="target-session-list">
+      {% for item in group.items %}
+      <article class="card target-session-card">
+        <div class="target-session-topline">
+          <strong>{{ item.target_final or item.target or target.display_name }}</strong>
+          <span class="badge">{{ item.filter_set or '—' }}</span>
+        </div>
+        <div class="kv compact-kv">
+          <div>Session</div><div>{{ item.session_datetime }}</div>
+          <div>Kategorie</div><div>{{ item.category or '—' }}</div>
+          <div>Frames</div><div>{{ item.frame_count or 0 }}</div>
+          <div>Status</div><div>{{ item.status or '—' }}</div>
+          <div>Solve</div><div>{{ item.solve_status or item.platesolve_status or '—' }}</div>
+          <div>Zuordnung</div><div>{{ 'Direktes Session-Target' if item.is_direct_target else 'Feld-/Resolver-Treffer' }}</div>
+        </div>
+        <div class="target-line"><span>{{ item.raw_session_path }}</span></div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <div class="card"><p class="muted">Keine Sessions für dieses Target gefunden.</p></div>
+  {% endfor %}
+</section>
+{% endblock %}

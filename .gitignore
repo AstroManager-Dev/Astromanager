@@ -120,3 +120,6 @@ coverage/
 !env/.env
 
 !compose/.env.example
+
+# Local internal planning / backup artifacts
+local/

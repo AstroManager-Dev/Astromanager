@@ -1,55 +1,86 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PROJECT_CORE_ROOT="${PROJECT_CORE_ROOT:-/project-core}"
+CORE_BACKUP_ROOT="${CORE_BACKUP_ROOT:-/project-core/_dev_backups/core}"
 ZIP_PATH="${1:-}"
-CORE_ROOT="${PROJECT_CORE_ROOT:-/project-core}"
 
-if [[ -z "$ZIP_PATH" ]]; then
-  echo "Usage: core_restore_zip.sh /path/to/backup.zip" >&2
+HOST_UID="${HOST_UID:-1000}"
+HOST_GID="${HOST_GID:-1000}"
+
+normalize_core_ownership() {
+  chown -R "${HOST_UID}:${HOST_GID}" "${PROJECT_CORE_ROOT}/code" "${PROJECT_CORE_ROOT}/scripts" 2>/dev/null || true
+  chown "${HOST_UID}:${HOST_GID}" \
+    "${PROJECT_CORE_ROOT}/VERSION" \
+    "${PROJECT_CORE_ROOT}/SCHEMA_VERSION" \
+    "${PROJECT_CORE_ROOT}/CHANGELOG.md" \
+    "${PROJECT_CORE_ROOT}/CHANGELOG.unreleased.md" 2>/dev/null || true
+}
+
+if [ -z "${ZIP_PATH}" ]; then
+  ZIP_PATH="$(ls -1t "${CORE_BACKUP_ROOT}"/core_backup_*.zip 2>/dev/null | head -n 1 || true)"
+fi
+
+if [ -z "${ZIP_PATH}" ]; then
+  echo "Kein Core-Backup gefunden."
   exit 1
 fi
 
-if [[ ! -f "$ZIP_PATH" ]]; then
-  echo "ERROR: ZIP not found: $ZIP_PATH" >&2
+if [ ! -f "${ZIP_PATH}" ]; then
+  echo "Backup-ZIP nicht gefunden: ${ZIP_PATH}"
   exit 1
 fi
 
-if [[ ! -d "$CORE_ROOT" ]]; then
-  echo "ERROR: PROJECT_CORE_ROOT not found: $CORE_ROOT" >&2
-  exit 1
-fi
+STAGE_DIR="/tmp/core_restore_$(date +%s)"
+mkdir -p "${STAGE_DIR}"
 
-python3 - <<'PY' "$ZIP_PATH" "$CORE_ROOT"
-from pathlib import Path
-import shutil, sys, zipfile
-zip_path = Path(sys.argv[1])
-core_root = Path(sys.argv[2])
-allowed_top = {"code", "scripts", "VERSION", "SCHEMA_VERSION", "CHANGELOG.md", "CHANGELOG.unreleased.md", "manifest.json"}
-stage = Path('/tmp/am_core_restore_stage')
-if stage.exists():
-    shutil.rmtree(stage)
-stage.mkdir(parents=True, exist_ok=True)
-with zipfile.ZipFile(zip_path) as zf:
-    names = [n for n in zf.namelist() if n and not n.endswith('/')]
-    bad = []
-    for name in names:
-        top = Path(name).parts[0]
-        if top not in allowed_top:
-            bad.append(name)
-    if bad:
-        raise SystemExit(f"ERROR: ZIP contains disallowed paths: {bad[:10]}")
-    zf.extractall(stage)
-for item in ["code", "scripts", "VERSION", "SCHEMA_VERSION", "CHANGELOG.md", "CHANGELOG.unreleased.md"]:
-    src = stage / item
-    dst = core_root / item
-    if not src.exists():
-        continue
-    if src.is_dir():
-        if dst.exists():
-            shutil.rmtree(dst)
-        shutil.copytree(src, dst)
-    else:
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dst)
-print(f"CORE restore completed from {zip_path} to {core_root}")
+python3 - <<'PY' "${ZIP_PATH}" "${STAGE_DIR}"
+import sys
+import zipfile
+
+zip_path = sys.argv[1]
+stage_dir = sys.argv[2]
+
+with zipfile.ZipFile(zip_path, "r") as zf:
+    zf.extractall(stage_dir)
 PY
+
+PAYLOAD_ROOT="${STAGE_DIR}"
+if [ -d "${STAGE_DIR}/core" ]; then
+  PAYLOAD_ROOT="${STAGE_DIR}/core"
+fi
+
+restore_dir() {
+  local src="$1"
+  local dst="$2"
+  if [ -d "${src}" ]; then
+    rm -rf "${dst}"
+    mkdir -p "$(dirname "${dst}")"
+    cp -a "${src}" "${dst}"
+  fi
+}
+
+restore_file() {
+  local src="$1"
+  local dst="$2"
+  if [ -f "${src}" ]; then
+    mkdir -p "$(dirname "${dst}")"
+    cp -f "${src}" "${dst}"
+  fi
+}
+
+restore_dir  "${PAYLOAD_ROOT}/code"                    "${PROJECT_CORE_ROOT}/code"
+restore_dir  "${PAYLOAD_ROOT}/scripts"                 "${PROJECT_CORE_ROOT}/scripts"
+restore_file "${PAYLOAD_ROOT}/VERSION"                 "${PROJECT_CORE_ROOT}/VERSION"
+restore_file "${PAYLOAD_ROOT}/SCHEMA_VERSION"          "${PROJECT_CORE_ROOT}/SCHEMA_VERSION"
+restore_file "${PAYLOAD_ROOT}/CHANGELOG.md"            "${PROJECT_CORE_ROOT}/CHANGELOG.md"
+restore_file "${PAYLOAD_ROOT}/CHANGELOG.unreleased.md" "${PROJECT_CORE_ROOT}/CHANGELOG.unreleased.md"
+
+normalize_core_ownership
+
+chown -R 1000:1000 "${PROJECT_CORE_ROOT}/code" "${PROJECT_CORE_ROOT}/scripts" 2>/dev/null || true
+chown 1000:1000 "${PROJECT_CORE_ROOT}/VERSION" "${PROJECT_CORE_ROOT}/SCHEMA_VERSION" "${PROJECT_CORE_ROOT}/CHANGELOG.md" "${PROJECT_CORE_ROOT}/CHANGELOG.unreleased.md" 2>/dev/null || true
+
+rm -rf "${STAGE_DIR}"
+echo "CORE backup restored: ${ZIP_PATH}"
+echo "Ownership normalized to ${HOST_UID}:${HOST_GID}"

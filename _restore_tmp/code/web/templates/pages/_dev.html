@@ -1,0 +1,110 @@
+<section class="tab-panel" data-panel="dev">
+  <div class="card dev-hero-card dev-hero-card--compact">
+    <div class="section-title-row section-title-row--stack-mobile">
+      <div>
+        <div class="eyebrow">Dev</div>
+        <h2>Backups, ZIP-Import und SQL-Dumps</h2>
+      </div>
+      <span class="status-pill status-idle">Nur Dev-Version</span>
+    </div>
+    <p class="muted">Hier liegen Wartungs- und Umbauwerkzeuge getrennt von der späteren Final-Version. Backups, Restore, SQL-Dumps und ZIP-Import bleiben an einem Ort.</p>
+  </div>
+
+  <div class="card dev-card-accent">
+    <div class="section-title-row">
+      <h2>Aktionen</h2>
+      <span class="muted">Schnellstart</span>
+    </div>
+    <div class="actions-grid actions-grid-compact actions-grid-dev">
+      <button class="btn btn-primary" data-action="backup_create">Backup erstellen</button>
+      <button class="btn" data-action="backup_restore_latest">Letztes Backup zurückspielen</button>
+      <button class="btn btn-secondary" data-action="sql_dump">SQL-Dump als ZIP</button>
+      <a class="btn btn-orbit" href="/dev/archive">Archiv öffnen</a>
+    </div>
+    <p class="muted dev-scope-note">Scope: <code>code/</code>, <code>scripts/</code>, <code>VERSION</code>, <code>SCHEMA_VERSION</code>, <code>CHANGELOG.md</code>, <code>CHANGELOG.unreleased.md</code>.</p>
+  </div>
+
+  <div class="dev-grid dev-grid--balanced">
+    <div class="card dev-card-accent">
+      <div class="section-title-row">
+        <h2>Letztes Backup</h2>
+        <span class="muted">Direkt verfügbar</span>
+      </div>
+      {% if dev_assets.latest_backup %}
+      <article class="file-card file-card--featured">
+        <div class="file-card-head">
+          <strong>{{ dev_assets.latest_backup.name }}</strong>
+          <span class="pill pill-blue">{{ dev_assets.latest_backup.size_label }}</span>
+        </div>
+        <div class="muted">Neuester Core-Stand für schnellen Restore oder Download.</div>
+        <div class="actions-grid actions-grid-compact dev-inline-actions dev-inline-actions--triple" style="margin-top:12px">
+          <a class="btn btn-secondary" href="/download/backup/{{ dev_assets.latest_backup.name|urlencode }}">Download</a>
+          <button class="btn" data-restore="{{ dev_assets.latest_backup.name }}">Restore</button>
+          <button class="btn btn-danger" data-delete="backup" data-filename="{{ dev_assets.latest_backup.name }}">Löschen</button>
+        </div>
+      </article>
+      {% else %}
+      <article class="file-card empty">Noch kein Core-Backup gefunden.</article>
+      {% endif %}
+    </div>
+
+    <div class="card dev-card-accent">
+      <div class="section-title-row">
+        <h2>ZIP einspielen</h2>
+        <span class="muted">Overlay statt Komplett-Ersatz</span>
+      </div>
+      <form class="upload-form upload-form--compact" action="/api/dev/upload-core-zip" method="post" enctype="multipart/form-data">
+        <input type="file" name="zip_file" accept=".zip,application/zip" required>
+        <button class="btn btn-primary" type="submit">ZIP hochladen und einspielen</button>
+      </form>
+      <p class="muted">Teil-ZIPs werden nur überlagert. Bestehende Ordner bleiben erhalten.</p>
+    </div>
+  </div>
+
+  <div class="card dev-card-accent">
+    <div class="section-title-row">
+      <h2>Backup-Archiv</h2>
+      <span class="muted">Neueste Core-Backups</span>
+    </div>
+    <div class="file-card-grid file-card-grid--archive">
+      {% for item in dev_assets.backups[:6] %}
+      <article class="file-card file-card--archive">
+        <div class="file-card-head">
+          <strong>{{ item.name }}</strong>
+          <span class="pill pill-blue">{{ item.size_label }}</span>
+        </div>
+        <div class="actions-grid actions-grid-compact dev-inline-actions dev-inline-actions--triple" style="margin-top:12px">
+          <a class="btn btn-secondary" href="/download/backup/{{ item.name|urlencode }}">Download</a>
+          <button class="btn" data-restore="{{ item.name }}">Restore</button>
+          <button class="btn btn-danger" data-delete="backup" data-filename="{{ item.name }}">Löschen</button>
+        </div>
+      </article>
+      {% else %}
+      <article class="file-card empty">Keine Core-Backups vorhanden.</article>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card dev-card-accent">
+    <div class="section-title-row">
+      <h2>SQL-Dumps</h2>
+      <span class="muted">Gezippt und direkt downloadbar</span>
+    </div>
+    <div class="file-card-grid file-card-grid--archive">
+      {% for item in dev_assets.sql_dumps[:6] %}
+      <article class="file-card file-card--archive">
+        <div class="file-card-head">
+          <strong>{{ item.name }}</strong>
+          <span class="pill pill-violet">{{ item.size_label }}</span>
+        </div>
+        <div class="actions-grid actions-grid-compact dev-inline-actions dev-inline-actions--double" style="margin-top:12px">
+          <a class="btn btn-secondary file-download" href="/download/sql/{{ item.name|urlencode }}">Download</a>
+          <button class="btn btn-danger" data-delete="sql" data-filename="{{ item.name }}">Löschen</button>
+        </div>
+      </article>
+      {% else %}
+      <article class="file-card empty">Noch keine SQL-Dump-ZIPs vorhanden.</article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

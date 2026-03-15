@@ -1,24 +1,25 @@
 <div class="sheet-backdrop" id="menu-backdrop" hidden></div>
 <aside class="menu-sheet" id="menu-sheet" aria-hidden="true">
   <div class="menu-brand-band">
-    <img src="/static/logo.jpg" alt="AstroManager" class="menu-brand-logo">
-    <div>
-      <div class="menu-sheet-kicker">AstroManager</div>
-      <h2>Deep-Sky Menü</h2>
+    <div class="menu-brand-copy menu-brand-copy--only">
+      <div class="menu-sheet-kicker">ASTROMANAGER</div>
+      <h2>Systemmenü</h2>
     </div>
+
     <button class="sheet-close-btn" id="close-menu-btn" aria-label="Menü schließen">×</button>
   </div>
 
   <div class="menu-group">
-    <div class="menu-group-title">Astro Flow</div>
-    <button class="sheet-link" data-tab="overview"><strong>Start</strong><span>Live-Status, Schnellaktionen, letzte Runs</span></button>
-    <button class="sheet-link" data-tab="gallery"><strong>Galerie</strong><span>Vorschaubilder, Targets und Sessions ansehen</span></button>
-    <button class="sheet-link" data-tab="status"><strong>Status</strong><span>Runner, Logs und aktive Jobs verfolgen</span></button>
+    <div class="menu-group-title">System</div>
+    <button class="sheet-link" data-tab="settings"><strong>Einstellungen</strong><span>Teleskope, Quellen, Anzeige und Verhalten</span></button>
+    <button class="sheet-link" data-tab="admin"><strong>Admin</strong><span>Technik, Diagnose, Datenbank und Wartung</span></button>
+    <button class="sheet-link" data-tab="logs"><strong>Logs</strong><span>Live-Status, Web-Log und letzte Runs</span></button>
+    <button class="sheet-link" data-tab="info"><strong>Programm-Infos</strong><span>Version, Changelog und Layout-Stand</span></button>
   </div>
 
   <div class="menu-group">
-    <div class="menu-group-title">System</div>
-    <button class="sheet-link" data-tab="dev"><strong>Dev</strong><span>Backups, SQL-Dumps, Organizer und Uploads</span></button>
-    <button class="sheet-link" data-tab="admin"><strong>Admin</strong><span>Technik, Diagnose, Datenbank und Debug</span></button>
+    <div class="menu-group-title">Dev</div>
+    <button class="sheet-link" data-tab="dev"><strong>Dev-Bereich</strong><span>Core-Backups, Restore, SQL-Dumps und ZIP-Import</span></button>
+    <button class="sheet-link" data-tab="database"><strong>Datenbank</strong><span>Technische Tabellenansicht für Prüfung und Debug</span></button>
   </div>
 </aside>
