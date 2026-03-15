@@ -232,8 +232,17 @@ def _apply_target_thumb(conn: sqlite3.Connection, target: dict[str, Any]) -> Non
         target["thumb_center_radius_deg"] = thumb.get("thumb_center_radius_deg")
         return
 
+    legacy_url = str(target.get("legacy_image_url") or "")
+    legacy_status = str(target.get("legacy_status") or "").lower()
+    if legacy_url and legacy_status == "resolved":
+        target["thumb_url"] = legacy_url
+        target["thumb_href"] = str(target.get("legacy_viewer_url") or target.get("legacy_fits_url") or "")
+        target["thumb_source"] = "legacy"
+        return
+
     skyview_url = str(target.get("skyview_image_url") or "")
-    if skyview_url:
+    skyview_status = str(target.get("skyview_status") or "").lower()
+    if skyview_url and skyview_status == "resolved":
         target["thumb_url"] = skyview_url
         target["thumb_href"] = str(target.get("skyview_fits_url") or "")
         target["thumb_source"] = "skyview"
@@ -570,6 +579,22 @@ def _load_target_cards(where_sql: str = "", params: tuple[Any, ...] = (), limit:
             ) sc
               ON sc.target_id = t.id
             """
+        has_target_legacy = db_table_exists(conn, "target_legacy_survey_resolve")
+        legacy_join = ""
+        legacy_select = ""
+        if has_target_legacy:
+            legacy_join = """
+                LEFT JOIN target_legacy_survey_resolve tls
+                  ON tls.target_id = t.id
+            """
+            legacy_select = """
+                    tls.image_url AS legacy_image_url,
+                    tls.fits_url AS legacy_fits_url,
+                    tls.viewer_url AS legacy_viewer_url,
+                    tls.layer AS legacy_layer,
+                    tls.status AS legacy_status,
+            """
+
         has_target_skyview = db_table_exists(conn, "target_skyview_resolve")
         skyview_join = ""
         skyview_select = ""
@@ -605,6 +630,7 @@ def _load_target_cards(where_sql: str = "", params: tuple[Any, ...] = (), limit:
                     t.nasa_title,
                     t.nasa_page_url,
                     t.nasa_thumb_url,
+                    {legacy_select}
                     {skyview_select}
                     tf.final_name,
                     tf.final_name_source,
@@ -635,6 +661,7 @@ def _load_target_cards(where_sql: str = "", params: tuple[Any, ...] = (), limit:
                 FROM targets t
                 LEFT JOIN target_final tf
                   ON tf.target_id = t.id
+                {legacy_join}
                 {skyview_join}
                 {sessions_join}
                 {where_clause}
@@ -662,6 +689,11 @@ def _load_target_cards(where_sql: str = "", params: tuple[Any, ...] = (), limit:
                 "nasa_title",
                 "nasa_page_url",
                 "nasa_thumb_url",
+                "legacy_image_url",
+                "legacy_fits_url",
+                "legacy_viewer_url",
+                "legacy_layer",
+                "legacy_status",
                 "skyview_image_url",
                 "skyview_fits_url",
                 "skyview_survey",
@@ -681,12 +713,16 @@ def _load_target_cards(where_sql: str = "", params: tuple[Any, ...] = (), limit:
             sort_col = "final_name" if "final_name" in columns else ("canonical_name" if "canonical_name" in columns else "id")
             where_clause = f"WHERE {where_sql}" if where_sql.strip() else ""
 
+            has_target_legacy = db_table_exists(conn, "target_legacy_survey_resolve")
             has_target_skyview = db_table_exists(conn, "target_skyview_resolve")
             extra_select = ""
             extra_join = ""
+            if has_target_legacy:
+                extra_select += ", tls.image_url AS legacy_image_url, tls.fits_url AS legacy_fits_url, tls.viewer_url AS legacy_viewer_url, tls.layer AS legacy_layer, tls.status AS legacy_status"
+                extra_join += " LEFT JOIN target_legacy_survey_resolve tls ON tls.target_id = t.id"
             if has_target_skyview:
-                extra_select = ", tsv.image_url AS skyview_image_url, tsv.fits_url AS skyview_fits_url, tsv.survey AS skyview_survey, tsv.status AS skyview_status"
-                extra_join = " LEFT JOIN target_skyview_resolve tsv ON tsv.target_id = t.id"
+                extra_select += ", tsv.image_url AS skyview_image_url, tsv.fits_url AS skyview_fits_url, tsv.survey AS skyview_survey, tsv.status AS skyview_status"
+                extra_join += " LEFT JOIN target_skyview_resolve tsv ON tsv.target_id = t.id"
 
             rows = conn.execute(
                 f"""

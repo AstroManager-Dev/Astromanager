@@ -5,6 +5,14 @@ import sys
 import time
 import urllib.parse
 
+APP_ROOT = os.environ.get("APP_ROOT", "/app")
+LIB_PY_ROOT = os.path.join(APP_ROOT, "lib", "py")
+if LIB_PY_ROOT not in sys.path:
+    sys.path.insert(0, LIB_PY_ROOT)
+
+from astromanager.targets.image_resolver_rules import choose_frame_deg, choose_query_name, choose_skyview_survey
+from astromanager.targets.image_validation import fetch_image_validation
+
 DB_PATH = os.environ.get("DB_PATH", "/runtime/pipeline.db")
 
 
@@ -12,19 +20,6 @@ def db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
-
-
-def norm(v):
-    return " ".join((v or "").strip().split())
-
-
-def choose_name(row):
-    for key in ("final_name", "display_name", "label_de", "label_en", "canonical_name"):
-        if key in row.keys():
-            v = norm(row[key])
-            if v:
-                return v
-    return ""
 
 
 def select_targets(conn, limit: int):
@@ -41,92 +36,15 @@ def select_targets(conn, limit: int):
     return conn.execute(sql, (limit,)).fetchall()
 
 
-def _normalize_text(value):
-    return norm(str(value or '')).lower()
-
-
-def _numeric(value):
-    try:
-        if value is None or value == '':
-            return None
-        return float(value)
-    except Exception:
-        return None
-
-
-def _choose_survey(row):
-    text = ' '.join(
-        [
-            _normalize_text(row['final_objtype']) if 'final_objtype' in row.keys() else '',
-            _normalize_text(row['object_type_label_de']) if 'object_type_label_de' in row.keys() else '',
-            _normalize_text(row['object_type_label_en']) if 'object_type_label_en' in row.keys() else '',
-            _normalize_text(row['label_de']) if 'label_de' in row.keys() else '',
-            _normalize_text(row['label_en']) if 'label_en' in row.keys() else '',
-            _normalize_text(row['canonical_name']) if 'canonical_name' in row.keys() else '',
-        ]
-    )
-
-    if any(
-        token in text
-        for token in (
-            'emissionsnebel',
-            'emission nebula',
-            'diffuser nebel',
-            'diffuse nebula',
-            'planetarischer nebel',
-            'planetary nebula',
-            'h-ii',
-            'h ii',
-            'hii',
-            'barnard',
-            'california',
-            'rosettennebel',
-            'rosette',
-            'sh2',
-            'sharpless',
-            'ic 434',
-        )
-    ):
-        return 'H-Alpha'
-
-    return 'DSS2 Color'
-
-
-def _choose_size_deg(row):
-    size_arcmin = _numeric(row['angular_size_arcmin']) if 'angular_size_arcmin' in row.keys() else None
-    objtype = ' '.join(
-        [
-            _normalize_text(row['final_objtype']) if 'final_objtype' in row.keys() else '',
-            _normalize_text(row['object_type_label_de']) if 'object_type_label_de' in row.keys() else '',
-            _normalize_text(row['object_type_label_en']) if 'object_type_label_en' in row.keys() else '',
-        ]
-    )
-
-    if size_arcmin is None or size_arcmin <= 0:
-        if 'galax' in objtype:
-            return 0.30
-        if 'cluster' in objtype or 'sternhaufen' in objtype:
-            return 0.35
-        if 'nebel' in objtype or 'nebula' in objtype:
-            return 0.80
-        return 0.35
-
-    size_deg = size_arcmin / 60.0
-    frame_deg = max(size_deg * 2.2, 0.12)
-
-    if 'nebel' in objtype or 'nebula' in objtype:
-        frame_deg = max(size_deg * 1.8, 0.35)
-
-    return round(min(max(frame_deg, 0.12), 3.0), 4)
-
-
-def upsert(conn, row, query_name, survey, image_url, fits_url):
+def upsert_result(conn, row, query_name, survey, image_url, fits_url, status, error_message):
+    store_image_url = image_url if status == 'resolved' else ''
+    store_fits_url = fits_url if status == 'resolved' else ''
     conn.execute(
         """
         INSERT INTO target_skyview_resolve (
             target_id, canonical_name, slug, query_name, survey, position_source,
             ra_deg, dec_deg, image_url, fits_url, status, error_message, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'resolved', NULL, datetime('now'), datetime('now'))
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
         ON CONFLICT(target_id) DO UPDATE SET
             canonical_name=excluded.canonical_name,
             slug=excluded.slug,
@@ -137,8 +55,8 @@ def upsert(conn, row, query_name, survey, image_url, fits_url):
             dec_deg=excluded.dec_deg,
             image_url=excluded.image_url,
             fits_url=excluded.fits_url,
-            status='resolved',
-            error_message=NULL,
+            status=excluded.status,
+            error_message=excluded.error_message,
             updated_at=datetime('now')
         """,
         (
@@ -150,8 +68,10 @@ def upsert(conn, row, query_name, survey, image_url, fits_url):
             "final_coords",
             row["final_ra_deg"],
             row["final_dec_deg"],
-            image_url,
-            fits_url,
+            store_image_url,
+            store_fits_url,
+            status,
+            error_message,
         ),
     )
     conn.commit()
@@ -169,12 +89,12 @@ def main():
         rows = select_targets(conn, limit)
         print(f"targets_to_skyview_resolve={len(rows)}")
         for row in rows:
-            name = choose_name(row)
+            query_name = choose_query_name(row)
             ra = row["final_ra_deg"]
             dec = row["final_dec_deg"]
             pos = f"{ra},{dec}"
-            survey = _choose_survey(row)
-            size_deg = _choose_size_deg(row)
+            survey = choose_skyview_survey(row)
+            size_deg = choose_frame_deg(row, 'skyview')
 
             params_img = urllib.parse.urlencode({
                 "Position": pos,
@@ -196,8 +116,19 @@ def main():
             image_url = f"https://skyview.gsfc.nasa.gov/current/cgi/runquery.pl?{params_img}"
             fits_url = f"https://skyview.gsfc.nasa.gov/current/cgi/runquery.pl?{params_fits}"
 
-            upsert(conn, row, name, survey, image_url, fits_url)
-            print(f"resolved id={row['id']} canonical_name={row['canonical_name']} survey={survey} size_deg={size_deg:.4f}")
+            try:
+                validation = fetch_image_validation(image_url)
+                status = 'resolved' if validation.get('ok') else 'no_data'
+                error_message = validation.get('error') or None
+            except Exception as exc:
+                status = 'error'
+                error_message = str(exc)
+
+            upsert_result(conn, row, query_name, survey, image_url, fits_url, status, error_message)
+            print(
+                f"{status} id={row['id']} canonical_name={row['canonical_name']} survey={survey} size_deg={size_deg:.4f}"
+                + (f" error={error_message}" if error_message else "")
+            )
             time.sleep(0.05)
     finally:
         conn.close()

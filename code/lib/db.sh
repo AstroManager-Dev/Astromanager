@@ -20,6 +20,31 @@ db_exec() {
   sqlite3 "$DB_PATH" "$1"
 }
 
+
+db_apply_migrations() {
+  local root="${1:-/app}"
+  local mig_dir="$root/db/migrations"
+
+  db_exec "CREATE TABLE IF NOT EXISTS schema_migrations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    migration_name TEXT NOT NULL UNIQUE,
+    applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );"
+
+  [[ -d "$mig_dir" ]] || return 0
+
+  local migration_file migration_name
+  while IFS= read -r migration_file; do
+    [[ -n "$migration_file" ]] || continue
+    migration_name="$(basename "$migration_file")"
+    if db_exec "SELECT 1 FROM schema_migrations WHERE migration_name='$(db_escape "$migration_name")' LIMIT 1;" | grep -q 1; then
+      continue
+    fi
+    sqlite3 "$DB_PATH" < "$migration_file"
+    db_exec "INSERT INTO schema_migrations (migration_name) VALUES ('$(db_escape "$migration_name")');"
+  done < <(find "$mig_dir" -maxdepth 1 -type f -name '[0-9][0-9][0-9][0-9]_*.sql' | sort)
+}
+
 db_seed_device_sources() {
   db_exec "
     INSERT INTO device_sources (id, source_key, vendor, model, family, protocol, root_pattern, notes, is_active, created_at, updated_at)
@@ -169,6 +194,8 @@ db_exec "CREATE TABLE IF NOT EXISTS capture_profiles (
 
   db_exec "CREATE INDEX IF NOT EXISTS idx_targets_coord_status ON targets(coord_status);"
   db_exec "CREATE INDEX IF NOT EXISTS idx_targets_name_status ON targets(name_status);"
+
+  db_apply_migrations "$root"
 
   for c in wikidata_id label_de label_en aliases_de aliases_en wiki_de_title wiki_en_title object_type mag_value mag_band distance_value distance_unit meta_status meta_source meta_resolved_at; do
     if ! db_column_exists targets "$c"; then

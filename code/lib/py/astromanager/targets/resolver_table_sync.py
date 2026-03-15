@@ -9,6 +9,7 @@ MODES = {
     "ned": "target_ned_resolve",
     "constellation": "target_constellation_resolve",
     "nasa": "target_nasa_resolve",
+    "legacy": "target_legacy_survey_resolve",
     "skyview": "target_skyview_resolve",
     "irsa": "target_irsa_resolve",
     "sesame": "target_sesame_resolve",
@@ -279,6 +280,18 @@ def build_mode_payload(mode: str, row):
             "resolved_at": val(row, "nasa_resolved_at"),
         }
 
+
+    if mode == "legacy":
+        return {
+            **common,
+            "query_name": val(row, "final_name") or val(row, "display_name") or val(row, "canonical_name"),
+            "position_source": "targets.final_coords" if val(row, "final_ra_deg") is not None and val(row, "final_dec_deg") is not None else "",
+            "ra_deg": val(row, "final_ra_deg"),
+            "dec_deg": val(row, "final_dec_deg"),
+            "status": "pending",
+            "error_message": None,
+        }
+
     if mode == "skyview":
         return {
             **common,
@@ -296,7 +309,7 @@ def sync_mode(db_path: str, mode: str):
     if mode not in MODES:
         raise SystemExit(
             "usage: sync_target_resolver_tables.py /runtime/pipeline.db "
-            "<base|wikidata_name|wikidata_meta|simbad|ned|constellation|nasa|skyview|irsa|sesame|vizier|ssodnet>"
+            "<base|wikidata_name|wikidata_meta|simbad|ned|constellation|nasa|legacy|skyview|irsa|sesame|vizier|ssodnet>"
         )
 
     table = MODES[mode]

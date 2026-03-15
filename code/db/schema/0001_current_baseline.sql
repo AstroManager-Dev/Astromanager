@@ -487,6 +487,30 @@ CREATE INDEX idx_target_constellation_resolve_target_id
   ON target_constellation_resolve(target_id);
 CREATE INDEX idx_target_nasa_resolve_target_id
   ON target_nasa_resolve(target_id);
+CREATE TABLE target_legacy_survey_resolve (
+  id INTEGER PRIMARY KEY,
+  target_id INTEGER NOT NULL UNIQUE,
+  canonical_name TEXT,
+  slug TEXT,
+  query_name TEXT,
+  layer TEXT NOT NULL DEFAULT 'ls-dr10',
+  bands TEXT NOT NULL DEFAULT 'grz',
+  pixscale_arcsec REAL NOT NULL DEFAULT 0.262,
+  size_px INTEGER NOT NULL DEFAULT 512,
+  frame_deg REAL,
+  position_source TEXT NOT NULL DEFAULT '',
+  ra_deg REAL,
+  dec_deg REAL,
+  image_url TEXT NOT NULL DEFAULT '',
+  fits_url TEXT NOT NULL DEFAULT '',
+  viewer_url TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending',
+  error_message TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+, query_ra_deg REAL, query_dec_deg REAL, match_name TEXT NOT NULL DEFAULT '', match_ra_deg REAL, match_dec_deg REAL, match_distance_deg REAL, match_method TEXT NOT NULL DEFAULT '', match_confidence REAL);
+CREATE INDEX idx_target_legacy_survey_resolve_status
+  ON target_legacy_survey_resolve(status);
 CREATE TABLE target_skyview_resolve (
   id INTEGER PRIMARY KEY,
   target_id INTEGER NOT NULL UNIQUE,
