@@ -1,3 +1,4 @@
+0.4.008 | 2026-03-15 17:43:33 | Target-Detailseite repariert: Session-Gruppierung auf session_items umgestellt und Session-Preview mit nopic-Fallback ergänzt
 0.4.007 | 2026-03-15 17:26:53 | Target-Detailseite repariert: Session-Gruppierung in Jinja auf session_items umgestellt und 500-Fehler auf /targets/<id> behoben
 0.4.006 | 2026-03-15 17:14:33 | Target-Detailseite repariert, Header-Card und Session-Buttons modularisiert sowie Dwarf-Preview, EXP, Gain und Gesamtbelichtungsdauer je Session ergänzt
 0.4.005 | 2026-03-15 16:29:46 | Targets-Templates modularisiert: Deep-Sky- und Solarsystem-Blöcke ausgelagert, gemeinsame Target-Karte eingeführt und Bildblock als eigenes Include im pages/targets-Unterordner getrennt
