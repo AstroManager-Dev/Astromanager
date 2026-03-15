@@ -306,3 +306,11 @@ body{padding-bottom:78px}
 .target-card-actions{margin-top:10px;display:flex}.target-open-btn{width:100%;text-decoration:none}
 
 .target-session-button-list{display:grid;gap:12px}.target-session-entry{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;align-items:start}.target-session-entry-preview .target-thumb{width:90px;height:90px;object-fit:cover}.target-session-entry-main{display:grid;gap:8px}.target-session-btn{display:grid;gap:6px;justify-items:start;text-align:left;text-decoration:none;width:100%}.target-session-btn-title{font-weight:700}.target-session-btn-meta{font-size:13px;color:#dcefff;opacity:.9}
+
+.gallery-session-list{display:grid;gap:14px}
+.gallery-month-card{display:grid;gap:14px}
+.gallery-session-card{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:center}
+.gallery-session-preview .target-thumb{width:120px;height:120px;object-fit:cover}
+.gallery-session-main{display:grid;gap:10px;min-width:0}
+.gallery-session-button{text-decoration:none;width:100%;text-align:center}
+.gallery-session-targets{font-size:16px;line-height:1.4;color:#dcefff}
