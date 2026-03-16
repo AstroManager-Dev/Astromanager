@@ -470,8 +470,12 @@ def _collect_session_raw_assets(conn, session_key: str | None) -> list[dict[str,
             or file_name.lower() in {"stacked.jpg", "stacked_thumbnail.jpg", "img_reference.png", "img_stacked_counter.png"}
             or (ext == ".png" and "stack" in file_name.lower())
         )
-        is_light = source_subtype in {"light_raw_frame", "light", "raw_light"} or file_role == "light"
-        if not is_light and is_fits and derivative_kind in {"", "none"} and source_subtype not in {"dwarf_preview"}:
+        is_light = (
+            source_subtype in {"light_raw_frame", "light", "raw_light"}
+            or derivative_kind in {"light_raw_frame", "light", "raw_light"}
+            or file_role == "light"
+        )
+        if not is_light and is_fits and derivative_kind in {"", "none"} and source_subtype not in {"dwarf_preview", "dwarf_stacked_fits"}:
             is_light = True
         if quality_flag:
             qf = quality_flag.lower()
@@ -617,6 +621,7 @@ def _load_raw_file_detail(raw_file_id: int) -> dict[str, Any] | None:
             "media_url": f"/media/raw-file/{raw_file_id}",
             "download_url": f"/download/raw-file/{raw_file_id}",
             "meta_line": " · ".join(meta_bits) if meta_bits else "Keine Aufnahme-Metadaten verfügbar",
+            "path_label": str(item.get("rel_path") or item.get("abs_path") or ""),
             "size_label": _format_file_size_label(item.get("size_bytes")),
         })
         session = None

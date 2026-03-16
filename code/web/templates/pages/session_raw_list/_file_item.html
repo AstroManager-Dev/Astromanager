@@ -1,17 +1,17 @@
 <a class="raw-file-item" href="{{ raw_file.detail_href }}">
   <div class="raw-file-item__thumb">
-    {% if raw_file.preview_url and raw_file.preview_url != '/static/img/nopic_session.svg' %}
-      <img src="{{ raw_file.preview_url }}" alt="{{ raw_file.display_name }}">
-    {% elif raw_file.is_fits and raw_file.fits_thumb_url %}
-      <img src="{{ raw_file.fits_thumb_url }}" alt="{{ raw_file.display_name }} FITS Preview">
+    {% if raw_file.is_fits and raw_file.fits_thumb_url %}
+      <img src="{{ raw_file.fits_thumb_url }}" alt="{{ raw_file.display_name }} FITS Preview" loading="lazy">
+    {% elif raw_file.preview_url and raw_file.preview_url != '/static/img/nopic_session.svg' %}
+      <img src="{{ raw_file.preview_url }}" alt="{{ raw_file.display_name }}" loading="lazy">
     {% else %}
       <div class="raw-file-item__thumb-fallback">{{ raw_file.file_ext }}</div>
     {% endif %}
   </div>
   <div class="raw-file-item__body">
     <div class="raw-file-item__title">{{ raw_file.display_name }}</div>
-    <div class="raw-file-item__meta">{{ raw_file.meta_line }}</div>
-    <div class="raw-file-item__path">{{ raw_file.rel_path or raw_file.abs_path }}</div>
+    {% if raw_file.meta_label %}<div class="raw-file-item__meta">{{ raw_file.meta_label }}</div>{% endif %}
+    {% if raw_file.path_label %}<div class="raw-file-item__path">{{ raw_file.path_label }}</div>{% endif %}
   </div>
-  <div class="raw-file-item__cta">Seite</div>
+  <div class="raw-file-item__cta">Details</div>
 </a>
