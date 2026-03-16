@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 from typing import Any
 
 from progress_runtime import get_live_progress
@@ -20,6 +21,31 @@ def running_jobs() -> list[dict[str, Any]]:
     return [run for run in db_recent_runs() if str(run.get("status", "")).lower() in {"running", "started"}]
 
 
+def _note_metric(text: str, key: str) -> int | None:
+    match = re.search(rf"(?:^|[,\s]){re.escape(key)}=([^,\s]+)", text or "")
+    if not match:
+        return None
+    try:
+        return int(str(match.group(1)).strip())
+    except ValueError:
+        return None
+
+
+def featured_metrics(progress: dict[str, Any], run: dict[str, Any] | None) -> dict[str, int | None]:
+    note = str((run or {}).get("note") or "")
+
+    def progress_int(key: str) -> int | None:
+        value = progress.get(key)
+        return value if isinstance(value, int) else None
+
+    return {
+        "skipped": progress_int("skipped") if progress.get("active") else _note_metric(note, "sessions_skipped_unchanged"),
+        "indexed": progress_int("files_indexed") if progress.get("active") else _note_metric(note, "files_indexed"),
+        "hashes": progress_int("files_hashed") if progress.get("active") else _note_metric(note, "files_hashed"),
+        "reused": progress_int("files_reused") if progress.get("active") else _note_metric(note, "files_reused"),
+    }
+
+
 def summarize_service_state() -> dict[str, Any]:
     progress = get_live_progress()
     active_runs = running_jobs()
@@ -35,6 +61,9 @@ def summarize_service_state() -> dict[str, Any]:
     elif progress.get("status"):
         subtitle = progress.get("status")
 
+    recent_runs = db_recent_runs()
+    featured_run = current_job or (recent_runs[0] if recent_runs else None)
+
     return {
         "title": title,
         "subtitle": subtitle,
@@ -43,8 +72,10 @@ def summarize_service_state() -> dict[str, Any]:
         "current_step": progress.get("current_step") or "",
         "progress_pct": progress.get("progress_pct") or 0,
         "current_job": current_job,
+        "featured_run": featured_run,
+        "featured_metrics": featured_metrics(progress, featured_run),
         "active_runs": active_runs,
-        "recent_runs": db_recent_runs(),
+        "recent_runs": recent_runs,
         "latest_log": latest_web_log(),
     }
 

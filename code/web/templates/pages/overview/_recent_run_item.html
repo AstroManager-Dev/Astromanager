@@ -1,0 +1,8 @@
+<article class="hud-run-entry">
+  <div class="hud-run-entry__head">
+    <strong>{{ run.job_name }}</strong>
+    <span class="status-pill status-{{ run.status|lower }}">{{ run.status }}</span>
+  </div>
+  <div class="hud-run-entry__meta">{{ run.started_at or '—' }}{% if run.finished_at %} → {{ run.finished_at }}{% endif %}</div>
+  <div class="hud-run-entry__note">{{ run.note or run.source or '—' }}</div>
+</article>
