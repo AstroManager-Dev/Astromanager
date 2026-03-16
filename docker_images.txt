@@ -2,9 +2,9 @@ IMAGE                                           ID             DISK USAGE   CONT
 alpine:3.20                                     6b91e8dda53a       8.82MB             0B        
 alpine:latest                                   1ab49c19c53e        8.7MB             0B        
 astromanager-base:bookworm                      3571fca2d6ad       1.98GB             0B        
-compose-astromanager-runner:latest              99c9bc8b0ee8       1.98GB             0B   U    
+compose-astromanager-runner:latest              063f3c244146       1.98GB             0B   U    
 compose-astromanager-vlm:latest                 853b5033c639       1.99GB             0B        
-compose-astromanager-web:latest                 c247830c3e41       1.98GB             0B   U    
+compose-astromanager-web:latest                 d56df042bdd5       1.98GB             0B   U    
 compose-pipeline-runner:latest                  8a688501f632        300MB             0B        
 compose-web-ui:latest                           de874471f065        300MB             0B        
 containrrr/watchtower:latest                    c352868a1654       14.2MB             0B   U    

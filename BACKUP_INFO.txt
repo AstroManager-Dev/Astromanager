@@ -1,12 +1,12 @@
 Backup: AstroManager ohne Mediendaten
-Erstellt: 2026-03-16_14-27-03
-Projektversion: 0.4.015
+Erstellt: 2026-03-15_20-43-32
+Projektversion: 0.4.013
 Schema-Version: 2
 Backup-Label: 
 Quelle: /home/pi/docker/astromanager
 Zielordner: /home/pi/docker/astromanager/_backups/astromanager
 Archivordner: /home/pi/docker/astromanager/_backups/astromanager/Archiv
-ZIP: /home/pi/docker/astromanager/_backups/astromanager/astromanager_v0.4.015_2026-03-16_14-27-03.zip
+ZIP: /home/pi/docker/astromanager/_backups/astromanager/astromanager_v0.4.013_2026-03-15_20-43-32.zip
 
 Enthalten:
 - compose/

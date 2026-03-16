@@ -111,7 +111,7 @@ def dedupe_runs(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
 
     deduped = list(grouped.values())
     deduped.sort(key=lambda x: int(x.get("id", 0)), reverse=True)
-    return deduped[:20]
+    return deduped[:15]
 
 
 def db_recent_runs() -> list[dict[str, Any]]:

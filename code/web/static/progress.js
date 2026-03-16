@@ -11,16 +11,14 @@
   const sqlGridEl = document.getElementById("sql-files-grid");
 
   const featuredNameEl = document.getElementById("featured-run-name");
-  const featuredHeroEl = document.getElementById("featured-run-hero");
   const featuredNoteEl = document.getElementById("featured-run-note");
   const featuredStatusEl = document.getElementById("featured-run-status");
   const featuredStartedEl = document.getElementById("featured-run-started");
   const featuredWorkflowEl = document.getElementById("featured-run-workflow");
   const featuredStepEl = document.getElementById("featured-run-step");
   const featuredActiveCountEl = document.getElementById("featured-run-active-count");
-  const featuredMetricsEl = document.getElementById("featured-run-metrics");
-  const featuredMetricLabels = [1,2,3,4].map((i) => document.getElementById(`featured-metric-label-${i}`));
-  const featuredMetricValues = [1,2,3,4].map((i) => document.getElementById(`featured-metric-value-${i}`));
+  const featuredRingEl = document.getElementById("featured-progress-ring");
+  const featuredPctEl = document.getElementById("featured-progress-pct");
 
   let timer = null;
 
@@ -82,66 +80,6 @@
       </article>`).join("");
   }
 
-  function noteMetric(note, key) {
-    const match = String(note || '').match(new RegExp(`(?:^|[,\s])${key}=([^,\s]+)`));
-    return match ? match[1] : null;
-  }
-
-
-  function buildFeaturedMetrics(progress, featuredRun) {
-    const workflow = String(progress.workflow || featuredRun?.job_name || '').toLowerCase();
-    const note = featuredRun?.note || '';
-    if (workflow.includes('raw_sync')) {
-      return [
-        ['Geplant', progress.plan_count],
-        ['Geladen', progress.downloaded],
-        ['Skip', progress.skipped],
-        ['Fehler', progress.errors],
-      ].filter((item) => item[1] !== undefined && item[1] !== null);
-    }
-    if (workflow.includes('index')) {
-      return [
-        ['Indexed', progress.files_indexed ?? noteMetric(note, 'files_indexed')],
-        ['Hashes', progress.files_hashed ?? noteMetric(note, 'files_hashed')],
-        ['Reused', progress.files_reused ?? noteMetric(note, 'files_reused')],
-        ['Skipped', progress.skipped ?? noteMetric(note, 'sessions_skipped_unchanged')],
-      ].filter((item) => item[1] !== undefined && item[1] !== null);
-    }
-    if (workflow.includes('master_darks')) {
-      return [
-        ['Gruppen', progress.group_count],
-        ['Erstellt', progress.created_count],
-        ['Skip', progress.skipped],
-        ['Fehler', progress.errors],
-      ].filter((item) => item[1] !== undefined && item[1] !== null);
-    }
-    if (workflow.includes('siril')) {
-      return [
-        ['Sessions', progress.sessions_total],
-        ['Fertig', progress.sessions_done],
-        ['Skip', progress.skipped],
-        ['Fehler', progress.errors],
-      ].filter((item) => item[1] !== undefined && item[1] !== null);
-    }
-    return [];
-  }
-
-  function applyFeaturedMetrics(metrics) {
-    if (!featuredMetricsEl) return;
-    if (!metrics.length) {
-      featuredMetricsEl.hidden = true;
-      featuredMetricLabels.forEach((el) => setText(el, ''));
-      featuredMetricValues.forEach((el) => setText(el, ''));
-      return;
-    }
-    featuredMetricsEl.hidden = false;
-    for (let i = 0; i < 4; i += 1) {
-      const item = metrics[i];
-      setText(featuredMetricLabels[i], item ? item[0] : '');
-      setText(featuredMetricValues[i], item ? item[1] : '');
-    }
-  }
-
   function applyFeaturedSummary(data) {
     const progress = data.progress || {};
     const active = Boolean(progress.active);
@@ -158,16 +96,17 @@
     setText(featuredWorkflowEl, progress.workflow || featuredRun?.job_name || 'idle');
     setText(featuredStepEl, progress.current_step || '—');
     setText(featuredActiveCountEl, (data.active_runs || []).length || 0);
+    setText(featuredPctEl, `${pct}%`);
 
     if (featuredStatusEl) {
       const status = (featuredRun?.status || (active ? 'running' : 'idle')).toString();
       featuredStatusEl.textContent = status;
       featuredStatusEl.className = `status-pill status-${status.toLowerCase()}`;
     }
-    if (featuredHeroEl) {
-      featuredHeroEl.classList.toggle('is-running', active);
+    if (featuredRingEl) {
+      featuredRingEl.style.setProperty('--progress', String(pct));
+      featuredRingEl.classList.toggle('is-running', active);
     }
-    applyFeaturedMetrics(buildFeaturedMetrics(progress, featuredRun).slice(0, 4));
   }
 
   async function fetchDevFiles() {

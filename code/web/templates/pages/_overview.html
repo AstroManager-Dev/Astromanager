@@ -1,7 +1,49 @@
 <section class="tab-panel" data-panel="overview">
-  {% set overview_runs = runs[:5] %}
-  {% include 'pages/overview/_status_hero.html' %}
-  {% include 'pages/overview/_actions.html' %}
-  {% include 'pages/overview/_response.html' %}
-  {% include 'pages/overview/_recent_runs.html' %}
+  <div class="hud-control-grid">
+    <div class="hud-action-panel">
+      <div class="hud-section-head hud-section-head--tight">
+        <div>
+          <div class="eyebrow">Zentrale</div>
+          <h2>Aktionen</h2>
+        </div>
+      </div>
+      <div class="hud-action-chips">
+        <button class="btn" data-action="raw_sync">RAW Sync</button>
+        <button class="btn" data-action="index_sessions">Index Sessions</button>
+        <button class="btn" data-action="master_darks">Master Darks</button>
+        <button class="btn" data-action="siril_session">Siril Session</button>
+        <button class="btn" data-action="siril_group">Siril Group</button>
+        <button class="btn btn-secondary" id="status-btn">Status ansehen</button>
+      </div>
+    </div>
+
+    <div class="hud-panel">
+      <div class="hud-panel__head">
+        <h3>Antwort</h3>
+        <button class="btn btn-secondary btn-sm">Service prüfen</button>
+      </div>
+      <pre id="response-box" class="hud-console-box">Bereit.</pre>
+    </div>
+
+    <div class="hud-panel">
+      <div class="hud-panel__head">
+        <h3>Letzte Runs</h3>
+        <span class="muted">kompakt</span>
+      </div>
+      <div class="hud-run-list">
+        {% for run in runs %}
+        <article class="hud-run-row">
+          <div class="hud-run-row__head">
+            <strong>{{ run.job_name }}</strong>
+            <span class="status-pill status-{{ run.status|lower }}">{{ run.status }}</span>
+          </div>
+          <div class="muted">{{ run.started_at or '—' }}{% if run.finished_at %} → {{ run.finished_at }}{% endif %}</div>
+          <div class="hud-run-row__note">{{ run.note or run.source or '—' }}</div>
+        </article>
+        {% else %}
+        <article class="hud-run-row"><div class="muted">Keine Runs vorhanden.</div></article>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 </section>
