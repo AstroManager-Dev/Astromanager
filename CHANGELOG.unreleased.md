@@ -1,6 +1,7 @@
+0.4.016 | 2026-03-16 13:42:26 | Targets-Layout finalisiert: Deep-Sky-CTA neben Distanz gesetzt, Solar-System-Targets ohne RA/DEC/NASA bereinigt und zusätzlicher Bottom-Safe-Space gegen abgeschnittenen letzten Eintrag ergänzt
 0.4.015 | 2026-03-16 08:27:09 | Web-Refactor vorbereitet: app.py verschlankt und Kernfunktionen in code/web/functions in kleine Fachmodule für Programm-Info, Datenbank, Status, Targets und Galerie ausgelagert; Header-Version und Programm-Info-Templates zusätzlich bereinigt
 0.4.014 | 2026-03-16 07:54:43 | Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
-0.4.014 | 2026-03-16 07:47:25 | Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
+0.4.013 | 2026-03-16 07:47:25 | Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
 0.4.012 | 2026-03-15 20:27:45 | Galerie mit echten Sessions aus der DB verbunden: Monatsgruppen, Session-Targets, Preview-Fallback und Session-Unterseite /sessions/<id> ergänzt
 0.4.011 | 2026-03-15 20:13:19 | Galerie- und Session-Templates wie bei Targets modularisiert: Monatsblöcke, Session-Karten, Bild- und Metablöcke in eigene Include-Dateien ausgelagert
 0.4.010 | 2026-03-15 18:37:41 | Bottom-Navigation auf Target-Unterseiten vollständig repariert: Tab-Buttons führen zur Hauptseite zurück und auf /targets/<id> wird Targets als aktiver Navigationspunkt markiert
@@ -13,6 +14,3 @@
 0.4.003 | 2026-03-15 15:47:09 | Legacy-Survey-Resolver ergänzt, SkyView-No-Data-Prüfung eingebaut, Bild-Fachlogik zentralisiert und Target-Bildfallback auf Session → Legacy → SkyView → NASA umgestellt
 0.4.002 | 2026-03-15 15:12:36 | SkyView-Fallback verifizieren, Resolver-Struktur erweitern, Target-Bildlogik härten
 0.4.001 | 2026-03-14 10:18:16 | Dev-Bereich für Core-Backup/Restore und ZIP-Import erweitert: Kern-Backups für code/scripts/Versionsdateien, Archiv mit Download/Restore, letztes Backup zurückspielen und ZIP einspielen mit Überschreiben.
-0.4.001 | 2026-03-15 13:55:00 | Target-Webbildfolge auf Session -> SkyView -> NASA umgestellt und SkyView-Resolver um Survey-Auswahl je Objekttyp sowie dynamische FOV-Groesse erweitert.
-0.4.002 | 2026-03-15 15:45:00 | Legacy-Survey als eigener Target-Bildresolver mit eigener Migration/Steps/Tabelle ergänzt, SkyView-No-Data-Guard eingebaut und Bild-Fachlogik in zentrale Python-Module ausgelagert.
-- Programm-Info modularisiert: Versionsheader, Patch-Log und Minor-Log in eigene Include-Module ausgelagert; UI bleibt include-basiert.

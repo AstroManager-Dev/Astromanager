@@ -100,6 +100,8 @@ def _load_gallery_sessions() -> list[dict[str, Any]]:
                 {', '.join(select_parts)}
             FROM sessions s
             {' '.join(joins)}
+            WHERE COALESCE(s.session_type, '') = 'light_session'
+              AND COALESCE(s.category, '') IN ('deepsky', 'moon', 'sun')
             GROUP BY s.id
             ORDER BY COALESCE(s.session_datetime, '') DESC, s.id DESC
             """
@@ -124,8 +126,11 @@ def _load_gallery_sessions() -> list[dict[str, Any]]:
                     if name and name not in names:
                         names.append(name)
             fallback_target = str(item.get("target") or "").strip()
+            category_value = str(item.get("category") or "").strip().lower()
             if not names and fallback_target:
                 names.append(fallback_target)
+            if not names and category_value in ("sun", "moon"):
+                names.append("Solarsystem")
             item["session_target_names_list"] = names
             item["session_target_names_label"] = " · ".join(names) if names else "Kein Session-Target"
             preview_id = item.get("dwarf_preview_raw_file_id")
@@ -219,4 +224,22 @@ def _load_session_detail(session_id: int) -> dict[str, Any] | None:
 
 load_gallery_sessions = _load_gallery_sessions
 group_gallery_sessions = _group_gallery_sessions
+
+
+def _apply_solarsystem_target_fallback(item: dict[str, Any]) -> dict[str, Any]:
+    names = list(item.get("session_target_names_list") or [])
+    fallback_target = str(item.get("target") or "").strip()
+    category_value = str(item.get("category") or "").strip().lower()
+
+    if not names and fallback_target and fallback_target.lower() != "unbenanntes target":
+        names.append(fallback_target)
+
+    if not names and category_value in ("sun", "moon"):
+        names.append("Solarsystem")
+
+    item["session_target_names_list"] = names
+    item["session_target_names_label"] = " · ".join(names) if names else "Kein Session-Target"
+    return item
+
+
 load_session_detail = _load_session_detail

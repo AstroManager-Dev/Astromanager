@@ -1,9 +1,9 @@
-<section class="card gallery-month-card">
-  <div class="section-title-row">
-    <h2>{{ group.label }}</h2>
-    <span class="muted">{{ group.session_items|length }} Sessions</span>
+<section class="hud-month-section">
+  <div class="hud-month-section__head">
+    <h3>{{ group.label }}</h3>
+    <span>{{ group.session_items|length }}</span>
   </div>
-  <div class="gallery-session-list">
+  <div class="hud-session-list">
     {% for item in group.session_items %}
       {% include "pages/gallery/_session_card.html" %}
     {% endfor %}

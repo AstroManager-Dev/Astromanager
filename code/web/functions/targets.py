@@ -1,4 +1,5 @@
 import math
+import sqlite3
 from typing import Any
 
 from .common import TARGET_THUMBNAIL_FILE_NAME, TARGET_THUMB_CENTER_RADIUS_FACTOR
@@ -656,7 +657,7 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
             item["gain_label"] = gain_label
             total_seconds = effective_light_count * exp_float if (effective_light_count > 0 and exp_float is not None) else 0
             item["total_exposure_label"] = _format_exposure_duration_label(total_seconds)
-            item["session_href"] = f"/?table=sessions&filter_id={int(item.get('id') or 0)}"
+            item["session_href"] = f"/sessions/{int(item.get('id') or 0)}?back=target&target_id={int(target_id)}"
 
             preview_id = item.get("dwarf_preview_raw_file_id")
             item["dwarf_preview_url"] = f"/media/raw-file/{int(preview_id)}" if preview_id else ""

@@ -1,20 +1,15 @@
-<details class="info-collapse">
-  <summary class="info-collapse-summary">
-    <span class="info-collapse-title">Minor-Log</span>
-    <span class="info-collapse-meta">{{ program_info["minor_count"] if program_info else 0 }} Releases</span>
+<details class="hud-collapse">
+  <summary class="hud-collapse__summary">
+    <span>Minor-Log</span>
+    <span>{{ program_info["minor_count"] if program_info else 0 }} Releases</span>
   </summary>
-  <div class="info-collapse-body">
-    <p class="muted info-collapse-intro">Offizielle Meilensteine aus <code>CHANGELOG.md</code>.</p>
-    <div class="info-list">
-      {% if program_info %}
-        {% for release in program_info["minor_log"] %}
-          {% include "pages/program_info/_minor_release_entry.html" %}
-        {% else %}
-        <p class="muted">Keine Minor-Releases vorhanden.</p>
-        {% endfor %}
+  <div class="hud-collapse__body">
+    {% if program_info %}
+      {% for release in program_info["minor_log"] %}
+        {% include "pages/program_info/_minor_release_entry.html" %}
       {% else %}
       <p class="muted">Keine Minor-Releases vorhanden.</p>
-      {% endif %}
-    </div>
+      {% endfor %}
+    {% endif %}
   </div>
 </details>

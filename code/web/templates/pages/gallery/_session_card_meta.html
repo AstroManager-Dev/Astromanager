@@ -1,4 +1,8 @@
-<div class="gallery-session-main">
-  <a class="btn btn-secondary gallery-session-button" href="{{ item.session_href }}">{{ item.session_datetime_label }}</a>
-  <div class="gallery-session-targets">{{ item.session_target_names_label }}</div>
+<div class="hud-session-row__text">
+  <div class="hud-session-row__title">{{ item.session_datetime_label }}</div>
+  <div class="hud-session-row__subtitle">{{ item.session_target_names_label }}</div>
+  {% if item.exp_label or item.gain_label or item.total_exposure_label %}
+  <div class="hud-session-row__meta">EXP {{ item.exp_label or '—' }} · Gain {{ item.gain_label or '—' }} · Gesamt {{ item.total_exposure_label or '—' }}</div>
+  {% endif %}
 </div>
+<div class="hud-session-row__chevron" aria-hidden="true">›</div>

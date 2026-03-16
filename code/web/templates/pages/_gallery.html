@@ -1,18 +1,18 @@
 <section class="tab-panel active" data-panel="gallery">
-  <div class="card section-hero-card">
-    <div class="section-title-row">
-      <div>
-        <div class="eyebrow">Galerie</div>
-        <h2>Sessions nach Datum und Ergebnis</h2>
-      </div>
-      <span class="status-pill status-idle">Chronologisch</span>
+  <div class="hud-section-head">
+    <div>
+      <div class="eyebrow">Galerie</div>
+      <h2>Sessions nach Datum</h2>
+      <p class="muted">Monatsweise gruppiert, direkt zur Session.</p>
     </div>
-    <p class="muted">Sessions werden hier nach Monat und Jahr gruppiert angezeigt. Jeder Eintrag zeigt die zugehörigen Session-Targets und führt per Button zur eigentlichen Session-Seite.</p>
+    <span class="hud-chip">Chronologisch</span>
   </div>
 
   {% for group in gallery_session_groups %}
     {% include "pages/gallery/_month_group.html" %}
   {% else %}
-  <div class="card"><p class="muted">Keine Sessions gefunden.</p></div>
+  <div class="hud-empty-card">
+    <p class="muted">Keine Sessions gefunden.</p>
+  </div>
   {% endfor %}
 </section>

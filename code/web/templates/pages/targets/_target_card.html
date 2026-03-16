@@ -1,18 +1,63 @@
 <article class="card target-card gallery-card">
-  <div class="target-image-col">
-    {% include "pages/targets/_target_card_image.html" %}
-  </div>
-  <div class="target-meta">
-    <h3>{{ item.display_name or empty_name_label }}</h3>
-    {% if item.catalog_name and item.catalog_name != item.display_name %}
-    <div class="muted">Katalogname: {{ item.catalog_name }}</div>
-    {% endif %}
-    <div class="sub">{{ item.objtype or fallback_objtype }} · {{ item.session_count }} Sessions</div>
-    <div class="kv compact-kv">
-      <div>RA</div><div>{{ item.final_ra_deg_fmt or '—' }}</div>
-      <div>DEC</div><div>{{ item.final_dec_deg_fmt or '—' }}</div>
-      <div>{{ third_label }}</div><div>{{ third_value or '—' }}</div>
+  <div class="target-card-main target-card-main--stacked">
+    <div class="target-card-copy">
+      <h3 class="target-card-title">{{ item.display_name or empty_name_label }}</h3>
+
+      {% if item.catalog_name and item.catalog_name != item.display_name %}
+      <div class="target-card-catalog">Katalog: {{ item.catalog_name }}</div>
+      {% endif %}
+
+      <div class="target-card-subtitle">{{ item.objtype or fallback_objtype }} · {{ item.session_count }} {{ 'Session' if item.session_count == 1 else 'Sessions' }}</div>
     </div>
-    {% if show_action is not defined or show_action %}<div class="target-card-actions"><a class="btn btn-secondary target-open-btn" href="/targets/{{ item.id }}">{{ action_label|default("Sessions ansehen") }}</a></div>{% endif %}
+
+    <div class="target-card-media target-card-media--wide">
+      {% include "pages/targets/_target_card_image.html" %}
+    </div>
+
+    {% set obj_label = (item.objtype or fallback_objtype or '') %}
+    {% set is_solar = obj_label in ['Sun', 'Moon', 'Systemziel'] %}
+
+    <div class="target-card-facts target-card-facts--friendly">
+      <div class="target-card-fact">
+        <span class="target-card-fact-label">Typ</span>
+        <span class="target-card-fact-value">{{ obj_label }}</span>
+      </div>
+
+      <div class="target-card-fact">
+        <span class="target-card-fact-label">Sessions</span>
+        <span class="target-card-fact-value">{{ item.session_count }}</span>
+      </div>
+
+      {% if not is_solar %}
+      <div class="target-card-fact">
+        <span class="target-card-fact-label">RA</span>
+        <span class="target-card-fact-value">{{ item.final_ra_deg_fmt or '—' }}</span>
+      </div>
+
+      <div class="target-card-fact">
+        <span class="target-card-fact-label">DEC</span>
+        <span class="target-card-fact-value">{{ item.final_dec_deg_fmt or '—' }}</span>
+      </div>
+
+      <div class="target-card-fact target-card-fact--cta-row">
+        <div class="target-card-fact-main">
+          <span class="target-card-fact-label">{{ third_label }}</span>
+          <span class="target-card-fact-value">{{ third_value or '—' }}</span>
+        </div>
+
+        {% if show_action is not defined or show_action %}
+        <div class="target-card-fact-action">
+          <a class="btn btn-secondary target-open-btn" href="/targets/{{ item.id }}">{{ action_label|default("Sessions ansehen") }}</a>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      {% if show_action is not defined or show_action %}
+      <div class="target-card-fact target-card-fact--full target-card-fact--cta-only">
+        <a class="btn btn-secondary target-open-btn" href="/targets/{{ item.id }}">{{ action_label|default("Sessions ansehen") }}</a>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
   </div>
 </article>

@@ -1,8 +1,14 @@
-{% set item = target %}
-{% set fallback_short = 'TG' %}
-{% set empty_name_label = 'Unbenanntes Target' %}
-{% set fallback_objtype = 'Target' %}
-{% set third_label = 'Distanz' %}
-{% set third_value = target.distance_label %}
-{% set show_action = false %}
-{% include "pages/targets/_target_card.html" %}
+<section class="hud-target-card">
+  <div class="hud-target-card__media">
+    <img class="target-thumb" src="{{ target.thumb_url or '/static/img/nopic_session.svg' }}" alt="{{ target.display_name or 'Target' }}">
+  </div>
+  <div class="hud-target-card__content">
+    <h2 class="hud-target-card__title">{{ target.display_name or 'Unbenanntes Target' }}</h2>
+    <div class="hud-target-card__subtitle">{{ target.objtype or 'Target' }} · {{ target.session_count }} Sessions</div>
+    <div class="hud-target-card__facts">
+      <div class="hud-target-card__fact"><span>RA</span><strong>{{ target.final_ra_deg_fmt or '—' }}</strong></div>
+      <div class="hud-target-card__fact"><span>DEC</span><strong>{{ target.final_dec_deg_fmt or '—' }}</strong></div>
+      <div class="hud-target-card__fact"><span>Distanz</span><strong>{{ target.distance_label or '—' }}</strong></div>
+    </div>
+  </div>
+</section>

@@ -1,3 +1,1 @@
-<div class="gallery-session-preview">
-  <img class="target-thumb" src="{{ session.dwarf_preview_url }}" alt="{{ session.session_datetime_label }}">
-</div>
+<img class="target-thumb" src="{{ session.dwarf_preview_url or '/static/img/nopic_session.svg' }}" alt="{{ session.session_datetime_label }}">

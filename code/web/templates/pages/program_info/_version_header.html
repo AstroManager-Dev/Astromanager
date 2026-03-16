@@ -1,9 +1,11 @@
-<div class="info-header">
-  <div class="eyebrow">Programm-Infos</div>
-  <h2>Versionen und Änderungsstand</h2>
-  <p class="muted info-version-line">
-    {% if program_info and program_info["version"] %}Version {{ program_info["version"] }}{% else %}Version —{% endif %}
-    ·
-    {% if program_info and program_info["schema_version"] %}Schema {{ program_info["schema_version"] }}{% else %}Schema —{% endif %}
-  </p>
+<div class="hud-section-head hud-section-head--tight">
+  <div>
+    <div class="eyebrow">Programm-Infos</div>
+    <h2>Versionen und Änderungsstand</h2>
+    <p class="muted hud-version-line">
+      {% if program_info and program_info["version"] %}Version {{ program_info["version"] }}{% else %}Version —{% endif %}
+      ·
+      {% if program_info and program_info["schema_version"] %}Schema {{ program_info["schema_version"] }}{% else %}Schema —{% endif %}
+    </p>
+  </div>
 </div>

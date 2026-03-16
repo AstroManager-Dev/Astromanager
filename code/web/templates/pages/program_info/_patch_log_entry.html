@@ -1,7 +1,7 @@
-<article class="info-entry">
-  <div class="info-entry-head">
+<article class="hud-log-entry">
+  <div class="hud-log-entry__head">
     <strong>{{ entry["version"] or 'Patch' }}</strong>
-    {% if entry["date"] %}<span class="muted">{{ entry["date"] }}</span>{% endif %}
+    {% if entry["date"] %}<span>{{ entry["date"] }}</span>{% endif %}
   </div>
-  <p class="muted">{{ entry["message"] }}</p>
+  <p>{{ entry["message"] }}</p>
 </article>

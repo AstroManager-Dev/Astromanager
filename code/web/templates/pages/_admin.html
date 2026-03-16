@@ -1,29 +1,30 @@
 <section class="tab-panel" data-panel="admin">
-  <div class="section-title-row">
-    <div>
-      <div class="eyebrow">Admin</div>
-      <h2>Technik, Diagnose und Wartung</h2>
+  <div class="hud-panel">
+    <div class="hud-section-head hud-section-head--tight">
+      <div>
+        <div class="eyebrow">Admin</div>
+        <h2>Technik, Diagnose und Wartung</h2>
+      </div>
     </div>
-  </div>
-
-  <div class="admin-grid">
-    <article class="card compact-card">
-      <h3>Debug</h3>
-      <p class="muted">Technische Fehlerdetails, Step-Dumps und API-Rohdaten bleiben im Admin-Kontext.</p>
-    </article>
-    <article class="card compact-card">
-      <h3>Jobs</h3>
-      <p class="muted">Deduplizierte Job-Runs und laufende Prozesse getrennt von Galerie und Targets.</p>
-    </article>
-    <article class="card compact-card">
-      <h3>Datenbank</h3>
-      <p class="muted">Tabellenansicht und Prüffunktionen liegen hier gebündelt.</p>
-      <button class="btn btn-secondary admin-inline-btn" data-tab="database">Datenbank öffnen</button>
-    </article>
-    <article class="card compact-card">
-      <h3>Dev</h3>
-      <p class="muted">In der Dev-Version bleibt der Entwicklungsbereich getrennt und ist nicht Teil der Final-Version.</p>
-      <button class="btn admin-inline-btn" data-tab="dev">Dev öffnen</button>
-    </article>
+    <div class="hud-card-grid">
+      <article class="hud-mini-card">
+        <h3>Debug</h3>
+        <p class="muted">Technische Fehlerdetails, Step-Dumps und API-Rohdaten bleiben im Admin-Kontext.</p>
+      </article>
+      <article class="hud-mini-card">
+        <h3>Jobs</h3>
+        <p class="muted">Deduplizierte Job-Runs und laufende Prozesse getrennt von Galerie und Targets.</p>
+      </article>
+      <article class="hud-mini-card">
+        <h3>Datenbank</h3>
+        <p class="muted">Tabellenansicht und Prüffunktionen liegen hier gebündelt.</p>
+        <button class="btn btn-secondary admin-inline-btn" data-tab="database">Datenbank öffnen</button>
+      </article>
+      <article class="hud-mini-card">
+        <h3>Dev</h3>
+        <p class="muted">Entwicklungsbereich getrennt von der Final-Oberfläche.</p>
+        <button class="btn admin-inline-btn" data-tab="dev">Dev öffnen</button>
+      </article>
+    </div>
   </div>
 </section>

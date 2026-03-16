@@ -5,7 +5,7 @@
   const bottomButtons = document.querySelectorAll(".bottom-nav-btn[data-tab]");
   const menuButtons = document.querySelectorAll(".sheet-link[data-tab]");
   const pathname = window.location.pathname || "/";
-  const openMenuBtn = document.getElementById("open-menu-btn");
+  const openMenuBtns = document.querySelectorAll("#open-menu-btn, #open-menu-btn-bottom");
   const closeMenuBtn = document.getElementById("close-menu-btn");
   const menuSheet = document.getElementById("menu-sheet");
   const menuBackdrop = document.getElementById("menu-backdrop");
@@ -52,19 +52,19 @@
   }
 
   function closeMenu() {
-    if (!menuSheet || !menuBackdrop || !openMenuBtn) return;
+    if (!menuSheet || !menuBackdrop) return;
     menuSheet.classList.remove("open");
     menuSheet.setAttribute("aria-hidden", "true");
     menuBackdrop.hidden = true;
-    openMenuBtn.setAttribute("aria-expanded", "false");
+    openMenuBtns.forEach((btn) => btn.setAttribute("aria-expanded", "false"));
   }
 
   function openMenu() {
-    if (!menuSheet || !menuBackdrop || !openMenuBtn) return;
+    if (!menuSheet || !menuBackdrop) return;
     menuSheet.classList.add("open");
     menuSheet.setAttribute("aria-hidden", "false");
     menuBackdrop.hidden = false;
-    openMenuBtn.setAttribute("aria-expanded", "true");
+    openMenuBtns.forEach((btn) => btn.setAttribute("aria-expanded", "true"));
   }
 
   function activateTab(name) {

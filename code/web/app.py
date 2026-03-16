@@ -9,7 +9,7 @@ from flask import Flask, abort, jsonify, render_template, request, send_file
 
 from actions import ACTION_HANDLERS
 from progress_runtime import get_live_progress
-from functions.common import ASTROCTL, PROJECT_CORE_ROOT, UPLOAD_ROOT
+from functions.common import ASTROCTL, PROJECT_CORE_ROOT, PROJECT_ROOT, UPLOAD_ROOT
 from functions.database import (
     build_table_config,
     db_conn,
@@ -23,7 +23,7 @@ from functions.database import (
     row_to_dict,
 )
 from functions.gallery import group_gallery_sessions, load_gallery_sessions, load_session_detail
-from functions.program_info import app_version_value, load_program_info
+from functions.program_info import load_program_info
 from functions.status import append_web_log, dev_assets, latest_web_log, resolve_download, summarize_service_state
 from functions.targets import deepsky_targets, load_target_detail, system_targets
 
@@ -32,7 +32,26 @@ APP = Flask(__name__)
 
 @APP.context_processor
 def inject_global_ui_context() -> dict[str, Any]:
-    return {"app_version": app_version_value()}
+    try:
+        return {"program_info_global": load_program_info()}
+    except Exception:
+        return {"program_info_global": None}
+
+
+@APP.context_processor
+def inject_global_ui_context() -> dict[str, Any]:
+    try:
+        return {"program_info_global": load_program_info()}
+    except Exception:
+        return {"program_info_global": None}
+
+
+@APP.context_processor
+def inject_global_ui_context() -> dict[str, Any]:
+    try:
+        return {"program_info_global": load_program_info()}
+    except Exception:
+        return {"program_info_global": None}
 
 
 @APP.get("/")
@@ -95,7 +114,19 @@ def session_detail_page(session_id: int):
     session = load_session_detail(session_id)
     if session is None:
         abort(404)
+
+    back = (request.args.get("back") or "").strip().lower()
+    target_id = (request.args.get("target_id") or "").strip()
+
+    if back == "target" and target_id.isdigit():
+        session["back_href"] = f"/targets/{target_id}"
+        session["back_label"] = "Zurück zu Target"
+    else:
+        session["back_href"] = "/#gallery"
+        session["back_label"] = "Zurück zur Galerie"
+
     return render_template("session_detail.html", session=session)
+
 
 
 @APP.get("/targets/<int:target_id>")

@@ -1,14 +1,19 @@
-<header class="topbar astro-glow topbar--brand-only">
-  <div class="brand-block" data-tab="overview">
-    <div class="brand-logo-shell brand-logo-shell--full astro-glow-soft">
-      <img class="brand-logo brand-logo--full" src="/static/logo.jpg" alt="AstroManager Logo">
+<header class="hud-topbar">
+  <div class="hud-topbar__inner">
+    <div class="hud-topbar__brand">
+      <div class="hud-topbar__logo-rail">
+        <img class="hud-topbar__logo" src="/static/logo.jpg" alt="AstroManager Logo">
+      </div>
+      <div class="hud-topbar__copy">
+        <div class="hud-topbar__title">DeepSky Sessions</div>
+        {% if program_info_global and program_info_global["version"] %}
+        <div class="hud-topbar__version">V. {{ program_info_global["version"] }}</div>
+        {% endif %}
+      </div>
     </div>
-    <div class="brand-copy brand-copy--stacked">
-      <div class="brand-kicker">DeepSky Sessions</div>
-      {% if app_version %}
-      <div class="brand-version">V. {{ app_version }}</div>
-      {% endif %}
-      <p class="brand-subtitle brand-subtitle--headline">Telescope to Preview</p>
-    </div>
+
+    <a class="hud-topbar__settings" href="/#settings" aria-label="Einstellungen">
+      <span aria-hidden="true">⚙</span>
+    </a>
   </div>
 </header>

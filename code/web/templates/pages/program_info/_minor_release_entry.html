@@ -1,9 +1,9 @@
-<article class="info-entry">
-  <div class="info-entry-head">
+<article class="hud-log-entry">
+  <div class="hud-log-entry__head">
     <strong>{{ release["version"] or 'Release' }}</strong>
-    {% if release["date"] %}<span class="muted">{{ release["date"] }}</span>{% endif %}
+    {% if release["date"] %}<span>{{ release["date"] }}</span>{% endif %}
   </div>
-  <ul class="info-entry-list">
+  <ul class="hud-log-entry__list">
     {% for item in release["items"] %}
     <li>{{ item }}</li>
     {% endfor %}

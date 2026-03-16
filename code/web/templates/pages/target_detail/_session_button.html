@@ -1,11 +1,10 @@
-<article class="card target-session-entry">
-  <div class="target-session-entry-preview">
+<a class="hud-session-row" href="/sessions/{{ item.id }}?back=target&target_id={{ target.id }}">
+  <div class="hud-session-row__thumb">
     <img class="target-thumb" src="{{ item.dwarf_preview_url or '/static/img/nopic_session.svg' }}" alt="{{ item.session_button_label }}">
   </div>
-  <div class="target-session-entry-main">
-    <a class="btn btn-secondary target-session-btn" href="{{ item.session_href }}">
-      <span class="target-session-btn-title">{{ item.session_button_label }}</span>
-    </a>
-    <div class="target-session-btn-meta">EXP {{ item.exp_label }} · Gain {{ item.gain_label }} · Gesamt {{ item.total_exposure_label }}</div>
+  <div class="hud-session-row__text">
+    <div class="hud-session-row__title">{{ item.session_button_label }}</div>
+    <div class="hud-session-row__meta">EXP {{ item.exp_label or '—' }} · Gain {{ item.gain_label or '—' }} · Gesamt {{ item.total_exposure_label or '—' }}</div>
   </div>
-</article>
+  <div class="hud-session-row__chevron" aria-hidden="true">›</div>
+</a>

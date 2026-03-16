@@ -1,6 +1,4 @@
-<div class="gallery-session-main">
-  <div class="gallery-session-button">{{ session.session_datetime_label }}</div>
-  <div class="gallery-session-targets">{{ session.session_target_names_label }}</div>
-  <div class="muted">EXP {{ session.exp if session.exp is not none else '—' }}s · Gain {{ session.gain if session.gain is not none else '—' }}</div>
-  <div class="muted">{{ session.raw_session_path or session.session_key }}</div>
-</div>
+<div class="hud-detail-card__title">{{ session.session_datetime_label }}</div>
+<div class="hud-detail-card__subtitle">{{ session.session_target_names_label }}</div>
+<div class="hud-detail-card__meta">EXP {{ session.exp if session.exp is not none else '—' }}s · Gain {{ session.gain if session.gain is not none else '—' }}</div>
+<div class="hud-detail-card__path">{{ session.raw_session_path or session.session_key }}</div>

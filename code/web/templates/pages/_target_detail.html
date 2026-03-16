@@ -1,17 +1,15 @@
-<section class="card target-detail-page">
-  <div class="section-title-row">
+<section class="target-detail-page">
+  <div class="hud-detail-head">
     <div>
       <div class="eyebrow">Target</div>
     </div>
-    <a class="btn" href="/#targets">Zurück zu Targets</a>
+    <a class="hud-back-btn" href="/#targets">Zurück zu Targets</a>
   </div>
 
   {% include "pages/target_detail/_target_header_card.html" %}
 
-  <div class="muted">{{ target.session_count }} Sessions</div>
-
   {% if target.detail_error %}
-  <div class="card">
+  <div class="hud-panel">
     <p class="muted">Session-Liste konnte nicht vollständig geladen werden: {{ target.detail_error }}</p>
   </div>
   {% endif %}
