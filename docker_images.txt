@@ -1,0 +1,41 @@
+IMAGE                                           ID             DISK USAGE   CONTENT SIZE   EXTRA
+alpine:3.20                                     6b91e8dda53a       8.82MB             0B        
+alpine:latest                                   1ab49c19c53e        8.7MB             0B        
+astromanager-base:bookworm                      3571fca2d6ad       1.98GB             0B        
+compose-astromanager-runner:latest              063f3c244146       1.98GB             0B   U    
+compose-astromanager-vlm:latest                 853b5033c639       1.99GB             0B        
+compose-astromanager-web:latest                 d56df042bdd5       1.98GB             0B   U    
+compose-pipeline-runner:latest                  8a688501f632        300MB             0B        
+compose-web-ui:latest                           de874471f065        300MB             0B        
+containrrr/watchtower:latest                    c352868a1654       14.2MB             0B   U    
+developer-agent-developer-agent-web:latest      c9ef76ce8d22        200MB             0B        
+developer-agent-developer-agent-worker:latest   fd3203425227        200MB             0B        
+developer-agent-web:latest                      9393e6e67fc8        239MB             0B   U    
+developer-agent-worker:latest                   06d12bfd2e2a        239MB             0B   U    
+fitsweb-fitsweb:latest                          994bbe1fb520        422MB             0B   U    
+ghcr.io/containrrr/watchtower:latest            c352868a1654       14.2MB             0B   U    
+ghcr.io/hotio/prowlarr:latest                   ce376d326d03        266MB             0B   U    
+ghcr.io/hotio/radarr:latest                     fb257a4f795b        287MB             0B        
+ghcr.io/hotio/sonarr:latest                     e981eb2f9ba1        276MB             0B        
+ghcr.io/jorenn92/maintainerr:latest             b522bd0bd11a        737MB             0B   U    
+ghcr.io/open-webui/open-webui:main              82b6dc99a8c8        4.2GB             0B   U    
+ghcr.io/seerr-team/seerr:latest                 90be772731c2       1.29GB             0B   U    
+httpd:2.4-alpine                                01f7e8ffbe69       76.2MB             0B   U    
+itzg/minecraft-bedrock-server:latest            1cba0c1d7c43        308MB             0B   U    
+linuxserver/nzbget:latest                       e9876aa4ce19        131MB             0B        
+linuxserver/readarr:0.4.19-nightly              eb97c8d46658        212MB             0B   U    
+louislam/uptime-kuma:latest                     9cf30f324f2c        439MB             0B   U    
+lscr.io/linuxserver/bazarr:latest               08773b12c93d        414MB             0B   U    
+lscr.io/linuxserver/lidarr:latest               bcfa06c7916a        299MB             0B   U    
+lscr.io/linuxserver/nzbget:latest               cb7083a2d1cc        130MB             0B   U    
+lscr.io/linuxserver/overseerr:latest            ddd10258cc50        714MB             0B        
+lscr.io/linuxserver/plex:latest                 55ef4ea5f237        378MB             0B   U    
+lscr.io/linuxserver/prowlarr:latest             4ac5e3985a9e        215MB             0B        
+lscr.io/linuxserver/radarr:latest               db1939e9f79c        236MB             0B   U    
+lscr.io/linuxserver/sonarr:latest               56a07187ec23        225MB             0B   U    
+lscr.io/linuxserver/tautulli:latest             46a81a66d6b2        160MB             0B   U    
+nzbgetcom/nzbget:latest                         bea3f87becba       87.6MB             0B        
+ollama/ollama:latest                            04ca2a095336       5.54GB             0B   U    
+portainer/portainer-ce:lts                      5acb532131b5        175MB             0B   U    
+postgres:15                                     8e044a3419af        467MB             0B   U    
+thespad/whisparr:arm64v8-v2                     35dbbdd43a96        218MB             0B   U    

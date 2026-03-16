@@ -1,0 +1,9 @@
+<div class="info-header">
+  <div class="eyebrow">Programm-Infos</div>
+  <h2>Versionen und Änderungsstand</h2>
+  <p class="muted info-version-line">
+    {% if program_info["version"] if program_info else "" %}Version {{ program_info["version"] if program_info else "" }}{% else %}Version —{% endif %}
+    ·
+    {% if program_info["schema_version"] if program_info else "" %}Schema {{ program_info["schema_version"] if program_info else "" }}{% else %}Schema —{% endif %}
+  </p>
+</div>

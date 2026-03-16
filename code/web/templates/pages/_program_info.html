@@ -1,24 +1,7 @@
 <section class="tab-panel" data-panel="info">
-  <div class="card">
-    <div class="section-title-row">
-      <div>
-        <div class="eyebrow">Programm-Infos</div>
-        <h2>Version, Struktur und Ausblick</h2>
-      </div>
-    </div>
-    <div class="info-grid">
-      <article class="card compact-card">
-        <h3>Aktueller Fokus</h3>
-        <p class="muted">Neue Hauptstruktur mit Galerie, Atlas, Targets und Zentrale. Dev bleibt nur in der Entwicklungsfassung sichtbar.</p>
-      </article>
-      <article class="card compact-card">
-        <h3>Atlas</h3>
-        <p class="muted">Der Atlas ist jetzt als eigene Platzhalter-Seite vorbereitet und wird später als räumliche Himmelsansicht neu aufgebaut.</p>
-      </article>
-      <article class="card compact-card">
-        <h3>Galerie</h3>
-        <p class="muted">Die Galerie wird in Richtung Session-Unterseiten mit Dwarf-Stack und Siril-Stack vorbereitet. Die Bildpfade liegen bereits in der Datenbank.</p>
-      </article>
-    </div>
+  <div class="card info-shell">
+    {% include "pages/program_info/_version_header.html" %}
+    {% include "pages/program_info/_patch_log_collapse.html" %}
+    {% include "pages/program_info/_minor_log_collapse.html" %}
   </div>
 </section>

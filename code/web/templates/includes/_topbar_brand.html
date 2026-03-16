@@ -1,0 +1,14 @@
+<header class="topbar astro-glow topbar--brand-only">
+  <div class="brand-block" data-tab="overview">
+    <div class="brand-logo-shell brand-logo-shell--full astro-glow-soft">
+      <img class="brand-logo brand-logo--full" src="/static/logo.jpg" alt="AstroManager Logo">
+    </div>
+    <div class="brand-copy brand-copy--stacked">
+      <div class="brand-kicker">DeepSky Sessions</div>
+      {% if app_version %}
+      <div class="brand-version">V. {{ app_version }}</div>
+      {% endif %}
+      <p class="brand-subtitle brand-subtitle--headline">Telescope to Preview</p>
+    </div>
+  </div>
+</header>

@@ -1,4 +1,0 @@
-step_run() {
-  log "targets step450: sync target_vizier_resolve"
-  python3 /app/bin/sync_target_resolver_tables.py "$DB_PATH" vizier
-}

@@ -1,0 +1,16 @@
+<details class="info-collapse">
+  <summary class="info-collapse-summary">
+    <span class="info-collapse-title">Patch-Log</span>
+    <span class="info-collapse-meta">{{ program_info.patch_count }} Einträge</span>
+  </summary>
+  <div class="info-collapse-body">
+    <p class="muted info-collapse-intro">Laufende Änderungen aus <code>CHANGELOG.unreleased.md</code>.</p>
+    <div class="info-list">
+      {% for entry in program_info.patch_log %}
+        {% include "pages/program_info/_patch_log_entry.html" %}
+      {% else %}
+      <p class="muted">Keine Patch-Einträge vorhanden.</p>
+      {% endfor %}
+    </div>
+  </div>
+</details>

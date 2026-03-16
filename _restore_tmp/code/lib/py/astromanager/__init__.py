@@ -1,1 +1,0 @@
-# AstroManager Python library package

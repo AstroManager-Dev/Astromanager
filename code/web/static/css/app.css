@@ -314,3 +314,13 @@ body{padding-bottom:78px}
 .gallery-session-main{display:grid;gap:10px;min-width:0}
 .gallery-session-button{text-decoration:none;width:100%;text-align:center}
 .gallery-session-targets{font-size:16px;line-height:1.4;color:#dcefff}
+
+.brand-version{
+  font-size:12px;
+  line-height:1.2;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(220,239,255,.78);
+  margin-top:4px;
+}
+

@@ -1,0 +1,16 @@
+<details class="info-collapse">
+  <summary class="info-collapse-summary">
+    <span class="info-collapse-title">Minor-Log</span>
+    <span class="info-collapse-meta">{{ program_info.minor_count }} Releases</span>
+  </summary>
+  <div class="info-collapse-body">
+    <p class="muted info-collapse-intro">Offizielle Meilensteine aus <code>CHANGELOG.md</code>.</p>
+    <div class="info-list">
+      {% for release in program_info.minor_log %}
+        {% include "pages/program_info/_minor_release_entry.html" %}
+      {% else %}
+      <p class="muted">Keine Minor-Releases vorhanden.</p>
+      {% endfor %}
+    </div>
+  </div>
+</details>

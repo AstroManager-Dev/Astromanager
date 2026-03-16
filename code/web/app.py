@@ -289,6 +289,21 @@ def _format_exposure_duration_label(total_seconds: Any) -> str:
         return f'{hours}h {minutes:02d}m'
     return f'{total_minutes}m'
 
+
+def app_version_value() -> str:
+    try:
+        return (PROJECT_ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    except Exception:
+        return ""
+
+
+@APP.context_processor
+def inject_global_ui_context() -> dict[str, Any]:
+    return {
+        "app_version": app_version_value(),
+    }
+
+
 def latest_web_log(limit: int = 40) -> str:
     if not LOG_FILE.exists():
         return ""
@@ -1128,9 +1143,7 @@ def _load_gallery_sessions() -> list[dict[str, Any]]:
                 {', '.join(select_parts)}
             FROM sessions s
             {' '.join(joins)}
-            WHERE COALESCE(s.session_type, '') = 'light_session'
-                  AND COALESCE(s.category, '') IN ('deepsky', 'moon', 'sun')
-                GROUP BY s.id
+            GROUP BY s.id
             ORDER BY COALESCE(s.session_datetime, '') DESC, s.id DESC
             """
         ).fetchall()
@@ -1382,6 +1395,7 @@ def index():
 
     gallery_sessions = _load_gallery_sessions()
     gallery_session_groups = _group_gallery_sessions(gallery_sessions)
+    program_info = load_program_info()
 
     return render_template(
         "index.html",
@@ -1397,6 +1411,7 @@ def index():
         db_query=q,
         service_state=summarize_service_state(),
         dev_assets=dev_assets(),
+        program_info=program_info,
     )
 
 

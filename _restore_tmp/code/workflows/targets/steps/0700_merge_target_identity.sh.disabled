@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-step_run() {
-  log "targets step70: merge target identity"
-  python3 /app/bin/merge_target_final.py
-}

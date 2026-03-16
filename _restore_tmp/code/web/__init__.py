@@ -1,1 +1,0 @@
-# AstroManager web package

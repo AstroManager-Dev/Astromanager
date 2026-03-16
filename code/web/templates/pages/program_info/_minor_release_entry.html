@@ -1,0 +1,11 @@
+<article class="info-entry">
+  <div class="info-entry-head">
+    <strong>{{ release["version"] or 'Release' }}</strong>
+    {% if release["date"] %}<span class="muted">{{ release["date"] }}</span>{% endif %}
+  </div>
+  <ul class="info-entry-list">
+    {% for item in release["items"] %}
+    <li>{{ item }}</li>
+    {% endfor %}
+  </ul>
+</article>

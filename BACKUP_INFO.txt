@@ -1,0 +1,31 @@
+Backup: AstroManager ohne Mediendaten
+Erstellt: 2026-03-15_20-43-32
+Projektversion: 0.4.013
+Schema-Version: 2
+Backup-Label: 
+Quelle: /home/pi/docker/astromanager
+Zielordner: /home/pi/docker/astromanager/_backups/astromanager
+Archivordner: /home/pi/docker/astromanager/_backups/astromanager/Archiv
+ZIP: /home/pi/docker/astromanager/_backups/astromanager/astromanager_v0.4.013_2026-03-15_20-43-32.zip
+
+Enthalten:
+- compose/
+- code/
+- config/
+- env/
+- image/
+- scripts/
+- Dokumentation/
+- VERSION
+- SCHEMA_VERSION
+- zusammengeführtes CHANGELOG.md
+- kleine DB-/Projektdateien
+- Docker-Zustandsinfos, falls verfügbar
+
+Ausgeschlossen:
+- _backups/
+- FITS
+- Bilder/Video
+- raw/data/work/cache/tmp/logs
+- Astronomy/Burst/Normal_Photos/Panoramas/Videos/Catalog/DarkPool
+- CHANGELOG.unreleased.md im finalen Backup

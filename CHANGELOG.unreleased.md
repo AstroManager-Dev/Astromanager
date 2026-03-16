@@ -1,4 +1,5 @@
-0.4.013 | 2026-03-15 20:43:32 | Galerie und Session-Unterseiten auf echte Beobachtungssessions begrenzt: nur light_session für deepsky, moon und sun; Kalibrierungs-Sessions werden nicht mehr angezeigt
+0.4.014 | 2026-03-16 07:54:43 | Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
+0.4.014 | 2026-03-16 07:47:25 | Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
 0.4.012 | 2026-03-15 20:27:45 | Galerie mit echten Sessions aus der DB verbunden: Monatsgruppen, Session-Targets, Preview-Fallback und Session-Unterseite /sessions/<id> ergänzt
 0.4.011 | 2026-03-15 20:13:19 | Galerie- und Session-Templates wie bei Targets modularisiert: Monatsblöcke, Session-Karten, Bild- und Metablöcke in eigene Include-Dateien ausgelagert
 0.4.010 | 2026-03-15 18:37:41 | Bottom-Navigation auf Target-Unterseiten vollständig repariert: Tab-Buttons führen zur Hauptseite zurück und auf /targets/<id> wird Targets als aktiver Navigationspunkt markiert
@@ -13,3 +14,4 @@
 0.4.001 | 2026-03-14 10:18:16 | Dev-Bereich für Core-Backup/Restore und ZIP-Import erweitert: Kern-Backups für code/scripts/Versionsdateien, Archiv mit Download/Restore, letztes Backup zurückspielen und ZIP einspielen mit Überschreiben.
 0.4.001 | 2026-03-15 13:55:00 | Target-Webbildfolge auf Session -> SkyView -> NASA umgestellt und SkyView-Resolver um Survey-Auswahl je Objekttyp sowie dynamische FOV-Groesse erweitert.
 0.4.002 | 2026-03-15 15:45:00 | Legacy-Survey als eigener Target-Bildresolver mit eigener Migration/Steps/Tabelle ergänzt, SkyView-No-Data-Guard eingebaut und Bild-Fachlogik in zentrale Python-Module ausgelagert.
+- Programm-Info modularisiert: Versionsheader, Patch-Log und Minor-Log in eigene Include-Module ausgelagert; UI bleibt include-basiert.
