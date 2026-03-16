@@ -2,19 +2,12 @@
   <div class="session-light-shell__head">
     <div>
       <div class="eyebrow">Lights</div>
-      <div class="hud-run-entry__meta">Einzelne Lights aus der DB, direkt verlinkt.</div>
+      <div class="hud-run-entry__meta">Einzelne RAW-Lights als eigene Liste mit Dateidetailseite.</div>
     </div>
     <span class="hud-chip">{{ session.light_frames_count }}</span>
   </div>
-  {% if session.light_frames %}
-    <div class="session-light-list">
-      {% for light in session.light_frames %}
-        {% include "pages/session_detail/_light_frame_item.html" %}
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="session-placeholder-card session-placeholder-card--subtle">
-      <div class="session-placeholder-card__text">Noch keine einzelnen Lights für diese Session gefunden.</div>
-    </div>
-  {% endif %}
+  <a class="session-light-list-link" href="{{ session.raw_page_href }}">
+    <span class="session-light-list-link__title">Lights-Liste öffnen</span>
+    <span class="session-light-list-link__meta">{{ session.light_frames_count }} Einzeldateien · RAW-Dateiliste mit Verlinkung auf die einzelnen Dateien</span>
+  </a>
 </section>

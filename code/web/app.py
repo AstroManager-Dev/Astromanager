@@ -22,7 +22,13 @@ from functions.database import (
     parse_text_arg,
     row_to_dict,
 )
-from functions.gallery import group_gallery_sessions, load_gallery_sessions, load_session_detail
+from functions.gallery import (
+    group_gallery_sessions,
+    load_gallery_sessions,
+    load_raw_file_detail,
+    load_session_detail,
+    load_session_raw_list,
+)
 from functions.program_info import load_program_info
 from functions.status import append_web_log, dev_assets, latest_web_log, resolve_download, summarize_service_state
 from functions.targets import deepsky_targets, load_target_detail, system_targets
@@ -170,6 +176,53 @@ def media_raw_file(raw_file_id: int):
 
     return send_file(file_path)
 
+
+
+
+@APP.get("/sessions/<int:session_id>/raw")
+def session_raw_list_page(session_id: int):
+    session = load_session_detail(session_id)
+    if session is None:
+        abort(404)
+    source = (request.args.get("source") or "dwarf").strip().lower()
+    page = parse_int_arg("page", 1, 1, 100000)
+    page_size = parse_int_arg("page_size", 10, 1, 100)
+    session = load_session_raw_list(session, source, page, page_size)
+    return render_template("session_raw_list.html", session=session)
+
+
+@APP.get("/raw-files/<int:raw_file_id>")
+def raw_file_detail_page(raw_file_id: int):
+    raw_file = load_raw_file_detail(raw_file_id)
+    if raw_file is None:
+        abort(404)
+    return render_template("raw_file_detail.html", raw_file=raw_file)
+
+
+@APP.get("/download/raw-file/<int:raw_file_id>")
+def download_raw_file(raw_file_id: int):
+    conn = db_conn()
+    try:
+        if not db_table_exists(conn, "raw_files"):
+            abort(404)
+        columns = set(db_table_columns(conn, "raw_files"))
+        path_expr = "COALESCE(abs_path, rel_path)" if {"abs_path", "rel_path"} <= columns else ("abs_path" if "abs_path" in columns else "rel_path")
+        row = conn.execute(
+            f"SELECT id, file_name, {path_expr} AS file_path FROM raw_files WHERE id = ? LIMIT 1",
+            (raw_file_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+    if row is None:
+        abort(404)
+
+    item = row_to_dict(row)
+    file_path = Path(str(item.get("file_path") or ""))
+    if not file_path.exists() or not file_path.is_file():
+        abort(404)
+
+    return send_file(file_path, as_attachment=True, download_name=str(item.get("file_name") or file_path.name))
 
 @APP.get("/api/progress/current")
 def api_progress_current():
