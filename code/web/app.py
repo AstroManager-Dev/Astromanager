@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, abort, jsonify, render_template, request, send_file
+from flask import Flask, abort, jsonify, render_template, request, send_file, Response
 
 from actions import ACTION_HANDLERS
 from progress_runtime import get_live_progress
@@ -29,6 +29,7 @@ from functions.gallery import (
     load_session_detail,
     load_session_raw_list,
 )
+from functions.fits_viewer import enrich_raw_file_viewer_context, render_raw_file_fits_preview
 from functions.program_info import load_program_info
 from functions.status import append_web_log, dev_assets, latest_web_log, resolve_download, summarize_service_state
 from functions.targets import deepsky_targets, load_target_detail, system_targets
@@ -196,7 +197,20 @@ def raw_file_detail_page(raw_file_id: int):
     raw_file = load_raw_file_detail(raw_file_id)
     if raw_file is None:
         abort(404)
+    raw_file = enrich_raw_file_viewer_context(raw_file, request.args.get("view"), request.args.get("debayer"))
     return render_template("raw_file_detail.html", raw_file=raw_file)
+
+
+@APP.get("/media/raw-file-fits-preview/<int:raw_file_id>.png")
+def media_raw_file_fits_preview(raw_file_id: int):
+    raw_file = load_raw_file_detail(raw_file_id)
+    if raw_file is None or not raw_file.get("is_fits"):
+        abort(404)
+    try:
+        payload = render_raw_file_fits_preview(raw_file, request.args.get("debayer"), request.args.get("kind"))
+    except FileNotFoundError:
+        abort(404)
+    return Response(payload, mimetype="image/png")
 
 
 @APP.get("/download/raw-file/<int:raw_file_id>")

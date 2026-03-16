@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 from .database import db_conn, db_table_columns, db_table_exists, row_to_dict
+from .fits_viewer import enrich_raw_file_viewer_context
 from .formatters import _format_exposure_duration_label, _format_session_datetime_label, _format_session_group_label, _format_session_month_label
 
 
@@ -494,6 +495,7 @@ def _collect_session_raw_assets(conn, session_key: str | None) -> list[dict[str,
             "media_href": f"/media/raw-file/{int(item.get('id') or 0)}",
             "download_href": f"/download/raw-file/{int(item.get('id') or 0)}",
             "detail_href": f"/raw-files/{int(item.get('id') or 0)}",
+            "fits_thumb_url": f"/media/raw-file-fits-preview/{int(item.get('id') or 0)}.png?debayer=auto&kind=thumb" if is_fits else "",
             "path_label": str(item.get("rel_path") or item.get("abs_path") or ""),
             "meta_label": " · ".join(meta_bits),
             "is_fits": is_fits,
@@ -583,6 +585,11 @@ def _load_raw_file_detail(raw_file_id: int) -> dict[str, Any] | None:
             "size_bytes" if "size_bytes" in columns else "NULL AS size_bytes",
             "mtime_epoch" if "mtime_epoch" in columns else "NULL AS mtime_epoch",
             "sha256" if "sha256" in columns else "NULL AS sha256",
+            "header_bayerpat" if "header_bayerpat" in columns else "NULL AS header_bayerpat",
+            "header_xbayroff" if "header_xbayroff" in columns else "NULL AS header_xbayroff",
+            "header_ybayroff" if "header_ybayroff" in columns else "NULL AS header_ybayroff",
+            "is_color_sensor" if "is_color_sensor" in columns else "NULL AS is_color_sensor",
+            "debayer_required" if "debayer_required" in columns else "NULL AS debayer_required",
         ]
         row = conn.execute(
             f"SELECT {', '.join(selected_cols)} FROM raw_files WHERE id = ? LIMIT 1",
@@ -620,6 +627,7 @@ def _load_raw_file_detail(raw_file_id: int) -> dict[str, Any] | None:
                 session = _load_session_detail(int(session_row[0]))
         item["session"] = session
         item["session_raw_href"] = f"/sessions/{int(session.get('id') or 0)}/raw" if session else "/#gallery"
+        item = enrich_raw_file_viewer_context(item, view=None, debayer=None)
         return item
     finally:
         conn.close()

@@ -1826,6 +1826,7 @@ body {
 .raw-pagination-btn--disabled { opacity:.45; pointer-events:none; }
 .raw-file-image { width:100%; display:block; border-radius:18px; border:1px solid rgba(102,180,255,.12); background: rgba(5,12,24,.72); }
 .raw-file-fits-dummy { display:grid; gap:6px; padding:16px; border-radius:18px; border:1px dashed rgba(102,180,255,.18); background: rgba(7,16,29,.36); color: rgba(214,232,255,.82); }
+.raw-view-chip { text-decoration:none; color:inherit; }
 @media (max-width: 640px) {
   .raw-file-item { grid-template-columns:72px minmax(0,1fr); }
   .raw-file-item__cta { grid-column: 1 / -1; }
