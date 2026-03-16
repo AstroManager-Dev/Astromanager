@@ -1,3 +1,4 @@
+0.4.015 | 2026-03-16 08:27:09 | Web-Refactor vorbereitet: app.py verschlankt und Kernfunktionen in code/web/functions in kleine Fachmodule für Programm-Info, Datenbank, Status, Targets und Galerie ausgelagert; Header-Version und Programm-Info-Templates zusätzlich bereinigt
 0.4.014 | 2026-03-16 07:54:43 | Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
 0.4.014 | 2026-03-16 07:47:25 | Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
 0.4.012 | 2026-03-15 20:27:45 | Galerie mit echten Sessions aus der DB verbunden: Monatsgruppen, Session-Targets, Preview-Fallback und Session-Unterseite /sessions/<id> ergänzt

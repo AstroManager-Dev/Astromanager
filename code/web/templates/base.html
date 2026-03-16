@@ -8,17 +8,7 @@
 </head>
 <body>
   <div class="app-shell app-shell--new-layout">
-    <header class="topbar astro-glow topbar--brand-only">
-      <div class="brand-block" data-tab="overview">
-        <div class="brand-logo-shell brand-logo-shell--full astro-glow-soft">
-          <img class="brand-logo brand-logo--full" src="/static/logo.jpg" alt="AstroManager Logo">
-        </div>
-        <div class="brand-copy brand-copy--stacked">
-          <div class="brand-kicker">DeepSky Sessions</div>
-          <p class="brand-subtitle brand-subtitle--headline">Telescope to Preview</p>
-        </div>
-      </div>
-    </header>
+    {% include "includes/_topbar_brand.html" %}
 
     <main class="app-content app-content--spacious">
       {% block content %}{% endblock %}
