@@ -1,0 +1,13 @@
+<section class="hud-info-shell session-module session-switch-panel active" data-switch-name="raw-source-group" data-switch-value="dwarf">
+  <div class="session-module__head">
+    <h2>Dwarf Lights</h2>
+    <span class="hud-chip">{{ session.raw_counts.dwarf }}</span>
+  </div>
+  <div class="raw-light-list">
+    {% for item in session.light_rows %}
+    {% include "pages/session_raw_detail/_light_row.html" %}
+    {% else %}
+    <div class="hud-empty-card"><p class="muted">Keine einzelnen Dwarf-Lights gefunden.</p></div>
+    {% endfor %}
+  </div>
+</section>

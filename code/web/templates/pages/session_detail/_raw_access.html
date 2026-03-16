@@ -1,0 +1,15 @@
+<section class="hud-info-shell session-raw-shell">
+  <div class="session-raw-shell__head">
+    <div>
+      <div class="eyebrow">RAW-Daten</div>
+      <div class="hud-run-entry__meta">Direkter Zugriff auf Session-Pfad und relevante Dateien.</div>
+    </div>
+    <span class="hud-chip">{{ session.raw_assets_count }} Dateien</span>
+  </div>
+  <div class="session-raw-shell__path">{{ session.raw_session_path or session.session_key }}</div>
+  <div class="session-raw-shell__links">
+    {% for raw in session.raw_assets[:6] %}
+      <a class="session-inline-link" href="{{ raw.media_href }}" target="_blank" rel="noopener">{{ raw.file_name }}</a>
+    {% endfor %}
+  </div>
+</section>

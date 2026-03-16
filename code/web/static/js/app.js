@@ -123,7 +123,7 @@
   });
 
   if (statusBtn) statusBtn.addEventListener("click", loadStatus);
-  if (openMenuBtn) openMenuBtn.addEventListener("click", (e) => { e.preventDefault(); openMenu(); });
+  openMenuBtns.forEach((btn) => btn.addEventListener("click", (e) => { e.preventDefault(); openMenu(); }));
   if (closeMenuBtn) closeMenuBtn.addEventListener("click", closeMenu);
   if (menuBackdrop) menuBackdrop.addEventListener("click", closeMenu);
   document.addEventListener("keydown", (event) => {
@@ -173,6 +173,33 @@ ${name}`)) {
       if (data.ok) setTimeout(() => window.location.reload(), 1000);
     });
   });
+
+
+  function initSegmentSwitches() {
+    const groups = document.querySelectorAll('[data-switch-group]');
+    groups.forEach((groupEl) => {
+      const group = groupEl.dataset.switchGroup;
+      if (!group) return;
+      const buttons = document.querySelectorAll(`[data-switch-group="${group}"][data-switch-target]`);
+      const panels = document.querySelectorAll(`[data-switch-panel="${group}"]`);
+      const activate = (value) => {
+        buttons.forEach((btn) => {
+          const active = btn.dataset.switchTarget === value;
+          btn.classList.toggle('active', active);
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.switchValue === value));
+      };
+      const defaultValue = groupEl.dataset.switchDefault || (buttons[0] && buttons[0].dataset.switchTarget) || '';
+      buttons.forEach((btn) => {
+        if (btn.disabled) return;
+        btn.addEventListener('click', () => activate(btn.dataset.switchTarget));
+      });
+      if (defaultValue) activate(defaultValue);
+    });
+  }
+
+  initSegmentSwitches();
 
   const hash = (window.location.hash || '#gallery').replace(/^#/, '');
   if (tabPanels.length) {

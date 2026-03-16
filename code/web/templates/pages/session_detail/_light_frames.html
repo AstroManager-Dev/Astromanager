@@ -1,0 +1,20 @@
+<section class="hud-info-shell session-light-shell">
+  <div class="session-light-shell__head">
+    <div>
+      <div class="eyebrow">Lights</div>
+      <div class="hud-run-entry__meta">Einzelne Lights aus der DB, direkt verlinkt.</div>
+    </div>
+    <span class="hud-chip">{{ session.light_frames_count }}</span>
+  </div>
+  {% if session.light_frames %}
+    <div class="session-light-list">
+      {% for light in session.light_frames %}
+        {% include "pages/session_detail/_light_frame_item.html" %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="session-placeholder-card session-placeholder-card--subtle">
+      <div class="session-placeholder-card__text">Noch keine einzelnen Lights für diese Session gefunden.</div>
+    </div>
+  {% endif %}
+</section>

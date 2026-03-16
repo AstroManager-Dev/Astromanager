@@ -1,0 +1,9 @@
+<div class="session-placeholder-card">
+  <div class="session-placeholder-card__title">FITS-Viewer</div>
+  {% if session.fits_available %}
+    <div class="session-placeholder-card__text">{{ session.fits_viewer_note }}</div>
+    <div class="session-placeholder-card__meta">Vorhandene FITS-Datei: {{ session.fits_preview_name }}</div>
+  {% else %}
+    <div class="session-placeholder-card__text">Für diese Session wurde noch keine FITS-Datei in der DB gefunden.</div>
+  {% endif %}
+</div>

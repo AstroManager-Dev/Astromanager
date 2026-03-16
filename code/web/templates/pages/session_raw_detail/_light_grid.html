@@ -1,0 +1,31 @@
+<section class="session-switch-panel active" data-switch-content="raw-source" data-switch-name="dwarf">
+  <section class="hud-info-shell session-module-card">
+    <div class="session-module-card__head">
+      <h3>Dwarf-Lights</h3>
+    </div>
+    <div class="light-grid">
+      {% for light in session.light_frames %}
+        <article class="light-card">
+          <a class="light-card__image-trigger" href="{{ light.media_url }}" target="_blank" rel="noopener noreferrer">
+            <div class="light-card__image-placeholder">RAW</div>
+          </a>
+          <div class="light-card__title">{{ light.file_name }}</div>
+          <div class="light-card__meta">{{ light.exp_label }} · Gain {{ light.gain_label }} · {{ light.filter_label }}</div>
+        </article>
+      {% else %}
+        <div class="session-placeholder-card"><span>Keine Dwarf-Lights gefunden.</span></div>
+      {% endfor %}
+    </div>
+  </section>
+</section>
+<section class="session-switch-panel" data-switch-content="raw-source" data-switch-name="astromanager">
+  <section class="hud-info-shell session-module-card">
+    <div class="session-module-card__head">
+      <h3>AstroManager-Einzelbilder</h3>
+    </div>
+    <div class="session-placeholder-card">
+      <strong>Spätere Bearbeitungsstufen</strong>
+      <span>Hier kommen später Einzelbilder hinein, z. B. nach Hintergrundrausch-Reduktion und vor dem Stack.</span>
+    </div>
+  </section>
+</section>

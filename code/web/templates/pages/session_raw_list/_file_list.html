@@ -1,0 +1,1 @@
+<section class="hud-info-shell raw-list-shell">{% if session.raw_files %}<div class="raw-file-list">{% for raw_file in session.raw_files %}{% include "pages/session_raw_list/_file_item.html" %}{% endfor %}</div>{% else %}<div class="hud-empty-card">Keine Dateien für diese Quelle gefunden.</div>{% endif %}</section>

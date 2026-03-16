@@ -1,0 +1,16 @@
+<section class="session-switch-panel active" data-switch-content="session-source" data-switch-name="telescope">
+  <section class="hud-info-shell session-module-card">
+    <div class="session-module-card__head session-module-card__head--space">
+      <h3>Session-Metadaten</h3>
+      <a class="hud-ghost-link" href="{{ session.raw_page_href }}">RAW-Daten ansehen</a>
+    </div>
+    <div class="session-meta-grid">
+      <div class="session-meta-item"><span>EXP</span><strong>{{ session.exp if session.exp is not none else '—' }}s</strong></div>
+      <div class="session-meta-item"><span>Gain</span><strong>{{ session.gain if session.gain is not none else '—' }}</strong></div>
+      <div class="session-meta-item"><span>Filter</span><strong>{{ session.filter_set or '—' }}</strong></div>
+      <div class="session-meta-item"><span>Frames</span><strong>{{ session.light_frames_count or session.frame_count or '—' }}</strong></div>
+      <div class="session-meta-item"><span>Status</span><strong>{{ session.status or '—' }}</strong></div>
+      <div class="session-meta-item"><span>Pfad</span><strong>{{ session.raw_session_path or session.session_key or '—' }}</strong></div>
+    </div>
+  </section>
+</section>

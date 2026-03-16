@@ -1,0 +1,7 @@
+{% if session.image_gallery_items %}
+  <div class="session-preview-grid">
+    {% for image in session.image_gallery_items %}
+      {% include "pages/session_detail/_preview_gallery_item.html" %}
+    {% endfor %}
+  </div>
+{% endif %}

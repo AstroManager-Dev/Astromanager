@@ -1,0 +1,10 @@
+<section class="hud-info-shell raw-title-shell">
+  <div class="raw-title-block">
+    <div>
+      <h1 class="raw-title-block__title">{{ session.session_target_names_label }}</h1>
+      <div class="raw-title-block__subtitle">{{ session.session_datetime_label }}</div>
+      <div class="raw-title-block__meta">EXP {{ session.exp if session.exp is not none else '—' }}s · Gain {{ session.gain if session.gain is not none else '—' }} · Filter {{ session.filter_set or '—' }}</div>
+    </div>
+    <div class="raw-title-block__stats"><span class="hud-chip">Lights {{ session.light_count or 0 }}</span><span class="hud-chip">Failed {{ session.failed_count or 0 }}</span><span class="hud-chip">Bad FITS {{ session.bad_fits_count or 0 }}</span></div>
+  </div>
+</section>

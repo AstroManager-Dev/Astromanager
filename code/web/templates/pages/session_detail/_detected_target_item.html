@@ -1,0 +1,8 @@
+<div class="session-target-item">
+  <div class="session-target-item__name">{{ target.name }}</div>
+  <div class="session-target-item__meta">
+    {% if target.object_type %}{{ target.object_type }}{% endif %}
+    {% if target.source %} · {{ target.source }}{% endif %}
+    {% if target.distance_to_center_deg is not none %} · {{ target.distance_to_center_deg }}° zur Mitte{% endif %}
+  </div>
+</div>

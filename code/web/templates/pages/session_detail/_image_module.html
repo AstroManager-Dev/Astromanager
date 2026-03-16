@@ -1,0 +1,17 @@
+<section class="hud-info-shell session-image-module">
+  <div class="session-image-module__head">
+    <div>
+      <div class="eyebrow">Bildbereich</div>
+      <div class="hud-run-entry__meta">Stack-PNG zuerst. FITS-Ansicht wird vorbereitet.</div>
+    </div>
+    {% include "pages/session_detail/_image_mode_switch.html" %}
+  </div>
+  <div class="session-image-module__panels">
+    <div class="session-image-panel" data-switch-panel="session-image-mode" data-switch-value="png">
+      {% include "pages/session_detail/_png_panel.html" %}
+    </div>
+    <div class="session-image-panel" data-switch-panel="session-image-mode" data-switch-value="fits">
+      {% include "pages/session_detail/_fits_panel.html" %}
+    </div>
+  </div>
+</section>

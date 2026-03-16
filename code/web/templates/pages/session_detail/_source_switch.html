@@ -1,0 +1,9 @@
+<section class="hud-info-shell session-switch-shell">
+  <div class="session-switch-shell__head">
+    <div class="eyebrow">Quelle</div>
+    <div class="hud-run-entry__meta">Zwischen Teleskop-Rohdaten und AstroManager-Auswertung wechseln.</div>
+  </div>
+  <div class="hud-segment-switch" data-switch-group="session-source" data-switch-default="{{ session.source_mode_default or 'telescope' }}">
+    {% include "pages/session_detail/_source_switch_button.html" %}
+  </div>
+</section>

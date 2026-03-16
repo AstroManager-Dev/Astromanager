@@ -1,0 +1,8 @@
+<article class="raw-light-row">
+  <div class="raw-light-row__main">
+    <strong>{{ item.file_name }}</strong>
+    <div class="raw-light-row__meta">{{ item.captured_at }} · EXP {{ item.exp_label }} · Gain {{ item.gain_label }} · Filter {{ item.filter_label }}</div>
+    <div class="raw-light-row__meta">{{ item.camera_label }} · {{ item.size_label }} · {{ item.file_status }}{% if item.quality_flag %} · {{ item.quality_flag }}{% endif %}</div>
+  </div>
+  <a class="hud-back-btn raw-light-row__link" href="{{ item.open_href }}" target="_blank" rel="noopener">Datei öffnen</a>
+</article>

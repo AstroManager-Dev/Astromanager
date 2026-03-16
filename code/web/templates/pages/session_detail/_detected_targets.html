@@ -1,0 +1,20 @@
+<section class="hud-info-shell session-targets-shell">
+  <div class="session-targets-shell__head">
+    <div>
+      <div class="eyebrow">Erkannte Targets</div>
+      <div class="hud-run-entry__meta">Bildbezogene Objekte aus der Session-Auswertung.</div>
+    </div>
+    <span class="hud-chip">{{ session.detected_targets | length }}</span>
+  </div>
+  {% if session.detected_targets %}
+    <div class="session-target-list">
+      {% for target in session.detected_targets %}
+        {% include "pages/session_detail/_detected_target_item.html" %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="session-placeholder-card session-placeholder-card--subtle">
+      <div class="session-placeholder-card__text">Für diese Session liegen noch keine erkannten Targets vor.</div>
+    </div>
+  {% endif %}
+</section>

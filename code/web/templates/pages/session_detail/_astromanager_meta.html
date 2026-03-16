@@ -1,0 +1,8 @@
+<section class="hud-info-shell session-meta-shell">
+  <div class="eyebrow">AstroManager-Metadaten</div>
+  <div class="session-meta-grid">
+    {% for meta in session.astromanager_meta_items %}
+      {% include "pages/session_detail/_meta_item.html" %}
+    {% endfor %}
+  </div>
+</section>

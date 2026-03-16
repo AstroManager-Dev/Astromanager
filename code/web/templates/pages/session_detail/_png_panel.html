@@ -1,0 +1,4 @@
+<div class="session-primary-image">
+  <img src="{{ session.primary_image_url or '/static/img/nopic_session.svg' }}" alt="{{ session.display_target_name }}">
+</div>
+{% include "pages/session_detail/_preview_gallery.html" %}
