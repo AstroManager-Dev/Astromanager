@@ -8,14 +8,57 @@
   </div>
 
   {% if raw_file.view_mode == 'fits' and raw_file.fits_viewer_available %}
-    <div class="raw-file-viewer-head">
+    <div class="raw-file-viewer-toolbar">
       <div class="muted">{{ raw_file.fits_viewer_note }}</div>
-      <div class="raw-file-viewer-switch">
-        <a class="raw-view-chip {% if raw_file.debayer_mode == 'auto' %}active{% endif %}" href="{{ raw_file.debayer_auto_href }}">Auto Debayer</a>
-        <a class="raw-view-chip {% if raw_file.debayer_mode == 'mono' %}active{% endif %}" href="{{ raw_file.debayer_mono_href }}">Mono</a>
+      <div class="raw-file-viewer-presets">
+        {% for preset in raw_file.fits_presets %}
+          <a class="raw-view-chip {% if preset.active %}active{% endif %}" href="{{ preset.href }}">{{ preset.label }}</a>
+        {% endfor %}
       </div>
     </div>
-    <img class="raw-file-image" src="{{ raw_file.fits_preview_url }}" alt="{{ raw_file.display_name }} FITS Preview" loading="eager">
+
+    <form class="raw-file-viewer-form" method="get" action="/raw-files/{{ raw_file.id }}">
+      <input type="hidden" name="view" value="fits">
+      <div class="raw-file-viewer-grid">
+        <label class="raw-file-field">
+          <span>Debayer</span>
+          <select name="debayer">
+            <option value="auto" {% if raw_file.debayer_mode == 'auto' %}selected{% endif %}>Auto Debayer</option>
+            <option value="mono" {% if raw_file.debayer_mode == 'mono' %}selected{% endif %}>Mono</option>
+          </select>
+        </label>
+
+        <label class="raw-file-field">
+          <span>Stretch</span>
+          <select name="stretch">
+            <option value="auto" {% if raw_file.stretch_mode == 'auto' %}selected{% endif %}>Auto Stretch</option>
+            <option value="linear" {% if raw_file.stretch_mode == 'linear' %}selected{% endif %}>Linear</option>
+            <option value="arcsinh" {% if raw_file.stretch_mode == 'arcsinh' %}selected{% endif %}>Arcsinh</option>
+          </select>
+        </label>
+
+        <label class="raw-file-field">
+          <span>Black %</span>
+          <input type="number" name="black" min="0" max="25" step="0.1" value="{{ raw_file.black_point }}">
+        </label>
+
+        <label class="raw-file-field">
+          <span>White %</span>
+          <input type="number" name="white" min="75" max="100" step="0.1" value="{{ raw_file.white_point }}">
+        </label>
+
+        <label class="raw-file-field">
+          <span>Gamma</span>
+          <input type="number" name="gamma" min="0.2" max="4" step="0.05" value="{{ raw_file.gamma_value }}">
+        </label>
+
+        <div class="raw-file-field raw-file-field--submit">
+          <button type="submit" class="hud-action-btn hud-action-btn--soft">Vorschau aktualisieren</button>
+        </div>
+      </div>
+    </form>
+
+    <img class="raw-file-image raw-file-image--fits" src="{{ raw_file.fits_preview_url }}" alt="{{ raw_file.display_name }} FITS Preview" loading="eager">
   {% elif raw_file.is_image_preview %}
     <img class="raw-file-image" src="{{ raw_file.media_url }}" alt="{{ raw_file.display_name }}" loading="eager">
   {% elif raw_file.is_fits %}

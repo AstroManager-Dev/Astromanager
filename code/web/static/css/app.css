@@ -2014,3 +2014,38 @@ body {
     margin-top: 8px;
   }
 }
+
+
+.sheet-link--install { text-align:left; width:100%; border:0; cursor:pointer; }
+
+.raw-file-viewer-toolbar { display:grid; gap:12px; margin-bottom:14px; }
+.raw-file-viewer-presets { display:flex; gap:10px; flex-wrap:wrap; }
+.raw-file-viewer-form { margin-bottom:16px; }
+.raw-file-viewer-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
+.raw-file-field { display:grid; gap:8px; }
+.raw-file-field span { font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted-2, #8fa7c4); }
+.raw-file-field input,
+.raw-file-field select {
+  width:100%;
+  min-height:44px;
+  border-radius:16px;
+  border:1px solid rgba(130, 170, 255, .18);
+  background:rgba(7, 17, 40, .78);
+  color:#f5f8ff;
+  padding:0 14px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.raw-file-field--submit { align-content:end; }
+.raw-file-image--fits {
+  display:block;
+  width:100%;
+  border-radius:24px;
+  border:1px solid rgba(130,170,255,.18);
+  background:#030914;
+}
+@media (min-width: 880px) {
+  .raw-file-viewer-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .raw-file-viewer-grid { grid-template-columns:1fr; }
+}

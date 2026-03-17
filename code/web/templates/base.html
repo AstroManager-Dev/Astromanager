@@ -4,7 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>{% block title %}AstroManager{% endblock %}</title>
+  <meta name="theme-color" content="#041733">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AstroManager">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/static/pwa/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/pwa/icon-192.png">
   <link rel="stylesheet" href="/static/css/app.css">
+  {% for css_file in css_module_files or [] %}
+  <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}">
+  {% endfor %}
 </head>
 <body>
   <div class="app-shell app-shell--new-layout">

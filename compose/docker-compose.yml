@@ -1,5 +1,6 @@
 services:
   astromanager-runner:
+    profiles: ["astromanager"]
     container_name: astromanager-runner
     build:
       context: ..
@@ -46,6 +47,7 @@ services:
     restart: unless-stopped
 
   astromanager-web:
+    profiles: ["astromanager"]
     container_name: astromanager-web
     build:
       context: ..
@@ -91,7 +93,30 @@ services:
       - "${WEB_PORT}:${WEB_PORT}"
     restart: unless-stopped
 
+  astromanager-tailscale:
+    profiles: ["astromanager"]
+    image: tailscale/tailscale:latest
+    container_name: astromanager-tailscale
+    network_mode: "service:astromanager-web"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_HOSTNAME=astromanager
+      - TS_ACCEPT_DNS=false
+      - TS_AUTH_ONCE=true
+      - TS_USERSPACE=true
+      # - TS_AUTHKEY=tskey-xxxxxxxx
+      # - TS_EXTRA_ARGS=--advertise-tags=tag:container
+    volumes:
+      - /home/pi/docker/astromanager/config/tailscale:/var/lib/tailscale
+    depends_on:
+      - astromanager-web
+    restart: unless-stopped
+
   astromanager-ollama:
+    profiles: ["astro-ai"]
     container_name: astromanager-ollama
     image: ollama/ollama:latest
     environment:
@@ -101,6 +126,7 @@ services:
     restart: unless-stopped
 
   astromanager-vlm:
+    profiles: ["astro-ai"]
     container_name: astromanager-vlm
     build:
       context: ..

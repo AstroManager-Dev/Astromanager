@@ -1,0 +1,29 @@
+{
+  "name": "AstroManager",
+  "short_name": "AstroManager",
+  "description": "DeepSky Sessions, Targets, Galerie und FITS-Viewer als installierbare Web-App.",
+  "start_url": "/#gallery",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#031127",
+  "theme_color": "#041733",
+  "icons": [
+    {
+      "src": "/static/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/pwa/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

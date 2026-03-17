@@ -37,13 +37,33 @@ from functions.targets import deepsky_targets, load_target_detail, system_target
 APP = Flask(__name__)
 
 
+def discover_css_modules() -> list[str]:
+    candidate_roots = [
+        Path(APP.static_folder or "") / "css" / "modules",
+        PROJECT_ROOT / "code" / "web" / "static" / "css" / "modules",
+        PROJECT_CORE_ROOT / "code" / "web" / "static" / "css" / "modules",
+    ]
+    for css_root in candidate_roots:
+        if css_root.exists() and css_root.is_dir():
+            files = [
+                f"css/modules/{path.name}"
+                for path in sorted(css_root.glob("*.css"))
+                if path.is_file()
+            ]
+            if files:
+                return files
+    return []
+
+
 @APP.context_processor
 def inject_global_ui_context() -> dict[str, Any]:
     try:
-        return {"program_info_global": load_program_info()}
+        return {
+            "program_info_global": load_program_info(),
+            "css_module_files": discover_css_modules(),
+        }
     except Exception:
-        return {"program_info_global": None}
-
+        return {"program_info_global": None, "css_module_files": discover_css_modules()}
 
 
 @APP.get("/")
@@ -187,7 +207,15 @@ def raw_file_detail_page(raw_file_id: int):
     raw_file = load_raw_file_detail(raw_file_id)
     if raw_file is None:
         abort(404)
-    raw_file = enrich_raw_file_viewer_context(raw_file, request.args.get("view"), request.args.get("debayer"))
+    raw_file = enrich_raw_file_viewer_context(
+        raw_file,
+        request.args.get("view"),
+        request.args.get("debayer"),
+        request.args.get("stretch"),
+        request.args.get("black"),
+        request.args.get("white"),
+        request.args.get("gamma"),
+    )
     return render_template("raw_file_detail.html", raw_file=raw_file)
 
 

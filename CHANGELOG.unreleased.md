@@ -1,3 +1,4 @@
+0.4.023 | 2026-03-17 17:34:36 | feat: CSS-Modul-Loader integriert und RAW-Listen-CSS modular eingebunden
 0.4.022 | 2026-03-17 13:29:03 | Settings Info als eigenen Tab ergänzt und Minor-Log im Info-Bereich eingebunden
 0.4.021 | 2026-03-17 12:51:19 | Target-Detail Resolver-Modul kompakter als adaptives Grid aufgebaut
 0.4.020 | 2026-03-17 00:30:42 | RAW-Dateiliste und RAW-Datei-Detailseite weiter integriert, FITS-Viewer-Vorstufe mit Debayer-Metadaten eingebunden und RAW-Zugriff pro Session ausgebaut; Light-Zählung und FITS-Preview-Rendering werden im nächsten Patch fertiggestellt.

@@ -25,25 +25,46 @@ def _normalize_render_kind(value: str | None) -> str:
     return kind if kind in {"detail", "thumb"} else "detail"
 
 
-def enrich_raw_file_viewer_context(raw_file: dict[str, Any], view: str | None, debayer: str | None) -> dict[str, Any]:
+def enrich_raw_file_viewer_context(
+    raw_file: dict[str, Any],
+    view: str | None = None,
+    debayer: str | None = None,
+    stretch: str | None = None,
+    black: str | None = None,
+    white: str | None = None,
+    gamma: str | None = None,
+) -> dict[str, Any]:
     item = dict(raw_file)
     is_fits = bool(item.get("is_fits"))
     view_mode = _normalize_view_mode(view, is_fits)
     debayer_mode = _normalize_debayer_mode(debayer)
+    stretch_mode = (stretch or "auto").strip().lower() or "auto"
+    black_value = str(black).strip() if black is not None and str(black).strip() else "0.500"
+    white_value = str(white).strip() if white is not None and str(white).strip() else "99.500"
+    gamma_value = str(gamma).strip() if gamma is not None and str(gamma).strip() else "1.000"
     raw_file_id = int(item.get("id") or 0)
+
+    viewer_query = (
+        f"debayer={debayer_mode}&stretch={stretch_mode}"
+        f"&black={black_value}&white={white_value}&gamma={gamma_value}"
+    )
 
     item.update(
         {
             "view_mode": view_mode,
             "debayer_mode": debayer_mode,
+            "stretch_mode": stretch_mode,
+            "black_value": black_value,
+            "white_value": white_value,
+            "gamma_value": gamma_value,
             "view_file_href": f"/raw-files/{raw_file_id}?view=file",
-            "view_fits_href": f"/raw-files/{raw_file_id}?view=fits&debayer={debayer_mode}",
-            "debayer_auto_href": f"/raw-files/{raw_file_id}?view=fits&debayer=auto",
-            "debayer_mono_href": f"/raw-files/{raw_file_id}?view=fits&debayer=mono",
-            "fits_preview_url": f"/media/raw-file-fits-preview/{raw_file_id}.png?debayer={debayer_mode}&kind=detail",
+            "view_fits_href": f"/raw-files/{raw_file_id}?view=fits&{viewer_query}",
+            "debayer_auto_href": f"/raw-files/{raw_file_id}?view=fits&debayer=auto&stretch={stretch_mode}&black={black_value}&white={white_value}&gamma={gamma_value}",
+            "debayer_mono_href": f"/raw-files/{raw_file_id}?view=fits&debayer=mono&stretch={stretch_mode}&black={black_value}&white={white_value}&gamma={gamma_value}",
+            "fits_preview_url": f"/media/raw-file-fits-preview/{raw_file_id}.png?{viewer_query}&kind=detail",
             "fits_thumb_url": f"/media/raw-file-fits-preview/{raw_file_id}.png?debayer={debayer_mode}&kind=thumb",
             "fits_viewer_available": is_fits,
-            "fits_viewer_note": "Erste Viewer-Stufe: serverseitige Vorschau mit Auto-/Mono-Debayer.",
+            "fits_viewer_note": "Serverseitige Vorschau mit Stretch- und Debayer-Kompatibilität.",
         }
     )
     return item
@@ -59,15 +80,22 @@ def _resolve_fits_path(raw_file: dict[str, Any]) -> Path:
     raise FileNotFoundError("FITS file path not found")
 
 
-def _find_first_image_hdu(hdul) -> np.ndarray:
+def _read_hdu_data(hdu) -> np.ndarray | None:
+    try:
+        data = hdu.data
+    except Exception:
+        return None
+    if data is None:
+        return None
+    return np.asarray(data)
+
+
+def _find_first_image_hdu(hdul) -> tuple[np.ndarray, dict[str, Any]]:
     for hdu in hdul:
-        data = getattr(hdu, "data", None)
-        if data is None:
+        array = _read_hdu_data(hdu)
+        if array is None or array.size == 0:
             continue
-        array = np.asarray(data)
-        if array.size == 0:
-            continue
-        return array
+        return array, dict(getattr(hdu, "header", {}) or {})
     raise ValueError("No FITS image data found")
 
 
@@ -178,13 +206,9 @@ def render_raw_file_fits_preview(raw_file: dict[str, Any], debayer: str | None, 
     debayer_mode = _normalize_debayer_mode(debayer)
     render_kind = _normalize_render_kind(kind)
 
-    with fits.open(path, memmap=True) as hdul:
-        header = {}
-        for hdu in hdul:
-            if getattr(hdu, "data", None) is not None:
-                header = dict(getattr(hdu, "header", {}) or {})
-                break
-        data = _prepare_array(_find_first_image_hdu(hdul))
+    with fits.open(path, memmap=False) as hdul:
+        raw_data, header = _find_first_image_hdu(hdul)
+        data = _prepare_array(raw_data)
 
     if data.ndim == 2:
         pattern = str(raw_file.get("header_bayerpat") or header.get("BAYERPAT") or "").strip().upper()

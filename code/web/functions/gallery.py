@@ -632,7 +632,7 @@ def _load_raw_file_detail(raw_file_id: int) -> dict[str, Any] | None:
                 session = _load_session_detail(int(session_row[0]))
         item["session"] = session
         item["session_raw_href"] = f"/sessions/{int(session.get('id') or 0)}/raw" if session else "/#gallery"
-        item = enrich_raw_file_viewer_context(item, view=None, debayer=None)
+        item = enrich_raw_file_viewer_context(item, view=None, debayer=None, stretch=None, black=None, white=None, gamma=None)
         return item
     finally:
         conn.close()

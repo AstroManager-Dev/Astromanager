@@ -201,6 +201,53 @@ ${name}`)) {
 
   initSegmentSwitches();
 
+  const installAppBtn = document.getElementById("install-app-btn");
+  let deferredInstallPrompt = null;
+
+  function setInstallButtonVisible(visible) {
+    if (!installAppBtn) return;
+    installAppBtn.hidden = !visible;
+  }
+
+  if (installAppBtn) {
+    installAppBtn.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      try {
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === "accepted") {
+          showToast("AstroManager wird installiert.", true);
+        }
+      } catch (err) {
+        showToast(`Installationsdialog fehlgeschlagen: ${err}`, false);
+      }
+      deferredInstallPrompt = null;
+      setInstallButtonVisible(false);
+      closeMenu();
+    });
+  }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    setInstallButtonVisible(true);
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    setInstallButtonVisible(false);
+    showToast("AstroManager wurde zum Startbildschirm hinzugefügt.", true);
+  });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").catch((err) => {
+        console.warn("service worker registration failed", err);
+      });
+    });
+  }
+
+
   const hash = (window.location.hash || '#gallery').replace(/^#/, '');
   if (tabPanels.length) {
     activateTab(validTabs.includes(hash) ? hash : 'gallery');

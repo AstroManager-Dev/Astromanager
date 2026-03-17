@@ -1,17 +1,37 @@
-<a class="raw-file-item" href="{{ raw_file.detail_href }}">
-  <div class="raw-file-item__thumb">
-    {% if raw_file.is_fits and raw_file.fits_thumb_url %}
-      <img src="{{ raw_file.fits_thumb_url }}" alt="{{ raw_file.display_name }} FITS Preview" loading="lazy">
-    {% elif raw_file.preview_url and raw_file.preview_url != '/static/img/nopic_session.svg' %}
-      <img src="{{ raw_file.preview_url }}" alt="{{ raw_file.display_name }}" loading="lazy">
-    {% else %}
-      <div class="raw-file-item__thumb-fallback">{{ raw_file.file_ext }}</div>
+{#
+  Performance patch: do not render FITS previews inside RAW list cards.
+  Detail page keeps the FITS viewer.
+#}
+{% set entry = raw_file if raw_file is defined else (item if item is defined else (file if file is defined else None)) %}
+{% set raw_id = entry.id if entry else None %}
+{% set raw_name = entry.file_name if entry and entry.file_name else 'RAW-Datei' %}
+{% set detail_href = ('/raw-files/' ~ raw_id) if raw_id else '#' %}
+{% set exposure_text = entry.exposure_label if entry and entry.exposure_label else ('EXP ' ~ entry.exp_s ~ 's' if entry and entry.exp_s is not none else None) %}
+{% set gain_text = ('Gain ' ~ entry.gain) if entry and entry.gain is not none else None %}
+{% set filter_text = ('Filter ' ~ entry.filter_name) if entry and entry.filter_name else None %}
+{% set meta_parts = [] %}
+{% if exposure_text %}{% set _ = meta_parts.append(exposure_text) %}{% endif %}
+{% if gain_text %}{% set _ = meta_parts.append(gain_text) %}{% endif %}
+{% if filter_text %}{% set _ = meta_parts.append(filter_text) %}{% endif %}
+
+<article class="hud-list-card raw-file-card raw-file-card--no-fits-preview">
+  <a class="raw-file-card__thumb raw-file-card__thumb--placeholder" href="{{ detail_href }}" aria-label="{{ raw_name }} öffnen">
+    <span class="raw-file-card__thumb-badge">FITS</span>
+  </a>
+
+  <div class="raw-file-card__body">
+    <h3 class="raw-file-card__title">{{ raw_name }}</h3>
+
+    {% if meta_parts %}
+    <div class="raw-file-card__meta">{{ meta_parts|join(' · ') }}</div>
     {% endif %}
+
+    {% if entry and entry.rel_path %}
+    <div class="raw-file-card__path">{{ entry.rel_path }}</div>
+    {% endif %}
+
+    <div class="raw-file-card__actions">
+      <a class="hud-inline-link" href="{{ detail_href }}">Details</a>
+    </div>
   </div>
-  <div class="raw-file-item__body">
-    <div class="raw-file-item__title">{{ raw_file.display_name }}</div>
-    {% if raw_file.meta_label %}<div class="raw-file-item__meta">{{ raw_file.meta_label }}</div>{% endif %}
-    {% if raw_file.path_label %}<div class="raw-file-item__path">{{ raw_file.path_label }}</div>{% endif %}
-  </div>
-  <div class="raw-file-item__cta">Details</div>
-</a>
+</article>
