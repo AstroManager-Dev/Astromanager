@@ -1975,3 +1975,42 @@ body {
     grid-column: span 3;
   }
 }
+
+/* settings page modular shell */
+.settings-page {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-page__header-shell,
+.settings-page__switch-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-module-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.settings-info-stack {
+  display: grid;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .settings-page {
+    gap: 12px;
+  }
+
+  .settings-page__header-shell,
+  .settings-page__switch-shell {
+    gap: 10px;
+  }
+
+  .settings-module-stack {
+    gap: 10px;
+    margin-top: 8px;
+  }
+}

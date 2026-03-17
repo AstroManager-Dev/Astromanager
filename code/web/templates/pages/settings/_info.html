@@ -1,0 +1,17 @@
+{% set program_info = program_info_global %}
+<section class="session-source-panel settings-module-panel" data-switch-panel="settings-sections" data-switch-value="info">
+  <article class="hud-card settings-module-card">
+<!--    <div class="hud-section-head hud-section-head--tight">
+      <div>
+        <div class="eyebrow">Info</div>
+        <h3>Versionen und Änderungsstand</h3>
+      </div>
+    </div> -->
+    <div class="settings-info-stack">
+      {% include "pages/program_info/_version_header.html" %}
+      {% include "pages/program_info/_patch_log_collapse.html" %}
+      {% include "pages/program_info/_minor_log_collapse.html" %}
+
+    </div>
+  </article>
+</section>

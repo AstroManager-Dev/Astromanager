@@ -1,26 +1,5 @@
 # Changelog
 
-## 2026-03-15  Version: 0.4.013
-- Backup-Stand erzeugt
-- Projektversion: 0.4.013
-- Schema-Version: 2
-- Galerie und Session-Unterseiten auf echte Beobachtungssessions begrenzt: nur light_session für deepsky, moon und sun; Kalibrierungs-Sessions werden nicht mehr angezeigt
-- Galerie mit echten Sessions aus der DB verbunden: Monatsgruppen, Session-Targets, Preview-Fallback und Session-Unterseite /sessions/<id> ergänzt
-- Galerie- und Session-Templates wie bei Targets modularisiert: Monatsblöcke, Session-Karten, Bild- und Metablöcke in eigene Include-Dateien ausgelagert
-- Bottom-Navigation auf Target-Unterseiten vollständig repariert: Tab-Buttons führen zur Hauptseite zurück und auf /targets/<id> wird Targets als aktiver Navigationspunkt markiert
-- Target-Detailseite bereinigt: Titelblock vereinfacht, Session-Anzahl unter die Header-Card verschoben und Session-Preview-Fallback ergänzt
-- Target-Detailseite repariert: Session-Gruppierung auf session_items umgestellt und Session-Preview mit nopic-Fallback ergänzt
-- Target-Detailseite repariert: Session-Gruppierung in Jinja auf session_items umgestellt und 500-Fehler auf /targets/<id> behoben
-- Target-Detailseite repariert, Header-Card und Session-Buttons modularisiert sowie Dwarf-Preview, EXP, Gain und Gesamtbelichtungsdauer je Session ergänzt
-- Targets-Templates modularisiert: Deep-Sky- und Solarsystem-Blöcke ausgelagert, gemeinsame Target-Karte eingeführt und Bildblock als eigenes Include im pages/targets-Unterordner getrennt
-- Targets-Ansicht bereinigt, Introbereich entfernt und Sun & Moon in Solarsystem-Targets umbenannt
-- Legacy-Survey-Resolver ergänzt, SkyView-No-Data-Prüfung eingebaut, Bild-Fachlogik zentralisiert und Target-Bildfallback auf Session → Legacy → SkyView → NASA umgestellt
-- SkyView-Fallback verifizieren, Resolver-Struktur erweitern, Target-Bildlogik härten
-- Dev-Bereich für Core-Backup/Restore und ZIP-Import erweitert: Kern-Backups für code/scripts/Versionsdateien, Archiv mit Download/Restore, letztes Backup zurückspielen und ZIP einspielen mit Überschreiben.
-- Target-Webbildfolge auf Session -> SkyView -> NASA umgestellt und SkyView-Resolver um Survey-Auswahl je Objekttyp sowie dynamische FOV-Groesse erweitert.
-- Legacy-Survey als eigener Target-Bildresolver mit eigener Migration/Steps/Tabelle ergänzt, SkyView-No-Data-Guard eingebaut und Bild-Fachlogik in zentrale Python-Module ausgelagert.
-
-
 ## 2026-03-14  Version: 0.4.000
 - Web-UI konzeptionell auf mobile Astro-App umgestellt: Deep-Sky-Design, Logo-Integration, Bottom-Navigation, Live-Status, Dev-/Admin-Bereiche und Android-WebView-Richtung für den Raspberry Pi 5 AstroManager.
 - Designanpassungen

@@ -6,23 +6,9 @@
         <h3>Verhalten, Status und spätere Verwaltungsoptionen</h3>
       </div>
     </div>
-    <div class="hud-card-grid">
-      <article class="hud-mini-card">
-        <h4>Systemverhalten</h4>
-        <ul class="hud-bullet-list">
-          <li>Hintergrunddienste und Steuerung zentral bündeln</li>
-          <li>Status- und Diagnosepfade konsistent halten</li>
-          <li>Nur fachlich nutzbare Optionen produktiv speichern</li>
-        </ul>
-      </article>
-      <article class="hud-mini-card">
-        <h4>Modularer Ausbau</h4>
-        <ul class="hud-bullet-list">
-          <li>Jede neue Einstellungsgruppe als eigenes Teiltemplate</li>
-          <li>Spätere Formularlogik je Modul einzeln ergänzen</li>
-          <li>Menü bleibt sauber vom eigentlichen Settings-Layout getrennt</li>
-        </ul>
-      </article>
+    <div class="hud-card-grid settings-module-grid">
+      {% include "pages/settings/system/_behavior_module.html" %}
+      {% include "pages/settings/system/_modular_growth_module.html" %}
     </div>
   </article>
 </section>

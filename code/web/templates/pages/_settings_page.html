@@ -1,17 +1,13 @@
 <section class="settings-page">
-  <section class="hud-panel settings-page__switch-shell">
-    <div class="hud-section-head hud-section-head--tight">
-      <div>
-        <div class="eyebrow">Einstellungen</div>
-        <h2>Einstellungssektionen</h2>
-      </div>
-    </div>
+  {% include "pages/settings/_header.html" %}
 
+  <section class="hud-panel settings-page__switch-shell">
     <div class="hud-segment-switch" data-switch-group="settings-sections" data-switch-default="devices" aria-label="Einstellungssektionen">
       <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="devices">Geräte</button>
       <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="sources">Quellen</button>
       <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="display">Anzeige</button>
       <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="system">System</button>
+      <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="info">Info</button>
     </div>
 
     <div class="settings-module-stack">
@@ -19,6 +15,7 @@
       {% include "pages/settings/_sources.html" %}
       {% include "pages/settings/_display.html" %}
       {% include "pages/settings/_system.html" %}
+      {% include "pages/settings/_info.html" %}
     </div>
   </section>
 </section>

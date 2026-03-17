@@ -6,23 +6,9 @@
         <h3>Layout, Navigation und Darstellung</h3>
       </div>
     </div>
-    <div class="hud-card-grid">
-      <article class="hud-mini-card">
-        <h4>Mobile HUD-Ansicht</h4>
-        <ul class="hud-bullet-list">
-          <li>Kartenlayout statt Tabellen auf kleinen Displays</li>
-          <li>Modulansichten über Segment-Buttons getrennt halten</li>
-          <li>Header, Navigation und Safe-Spaces zentral pflegen</li>
-        </ul>
-      </article>
-      <article class="hud-mini-card">
-        <h4>Galerie und Viewer</h4>
-        <ul class="hud-bullet-list">
-          <li>Vorschauen, Cropping und FITS-Ansichten separat ausbauen</li>
-          <li>Liste und Detailseiten modular weiterführen</li>
-          <li>Anzeigeoptionen nicht mit Fachlogik vermischen</li>
-        </ul>
-      </article>
+    <div class="hud-card-grid settings-module-grid">
+      {% include "pages/settings/display/_mobile_hud_module.html" %}
+      {% include "pages/settings/display/_gallery_module.html" %}
     </div>
   </article>
 </section>
