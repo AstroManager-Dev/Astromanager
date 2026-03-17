@@ -1,10 +1,10 @@
 <section class="tab-panel" data-panel="database">
-  <div class="card">
-    <div class="section-title-row">
-      <h2>Admin · Datenbank</h2>
-      <span class="muted">Debug und technische Sicht</span>
-    </div>
+  {% set page_eyebrow = 'Datenbank' %}
+  {% set page_title = 'Admin · Datenbank' %}
+  {% set page_description = 'Technische Tabellenansicht für Prüfung, Suche und Sortierung.' %}
+  {% include 'includes/_page_intro.html' %}
 
+  <div class="card">
     {% if db_view %}
     <form class="db-tools" method="get" action="/#admin">
       <input type="hidden" name="offset" value="0">

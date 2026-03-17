@@ -1,14 +1,11 @@
 <section class="tab-panel" data-panel="dev">
-  <div class="hud-panel">
-    <div class="hud-section-head hud-section-head--tight">
-      <div>
-        <div class="eyebrow">Dev</div>
-        <h2>Backups, ZIP-Import und SQL-Dumps</h2>
-        <p class="muted">Wartungs- und Umbauwerkzeuge getrennt von der späteren Final-Version.</p>
-      </div>
-      <span class="hud-chip">Nur Dev-Version</span>
-    </div>
+  {% set page_eyebrow = 'Dev' %}
+  {% set page_title = 'Backups, ZIP-Import und SQL-Dumps' %}
+  {% set page_description = 'Wartungs- und Umbauwerkzeuge getrennt von der späteren Final-Version.' %}
+  {% set page_chip = 'Nur Dev-Version' %}
+  {% include 'includes/_page_intro.html' %}
 
+  <div class="hud-panel">
     <div class="hud-action-chips hud-action-chips--stack">
       <button class="btn btn-primary" data-action="backup_create">Backup erstellen</button>
       <button class="btn" data-action="backup_restore_latest">Letztes Backup zurückspielen</button>

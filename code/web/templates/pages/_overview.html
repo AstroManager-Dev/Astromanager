@@ -1,5 +1,9 @@
 <section class="tab-panel" data-panel="overview">
   {% set overview_runs = runs[:5] %}
+  {% set page_eyebrow = 'Zentrale' %}
+  {% set page_title = 'Workflow- und Systemübersicht' %}
+  {% set page_description = 'Status, Schnellaktionen und letzte Runs in einer kompakten Steueransicht.' %}
+  {% include 'includes/_page_intro.html' %}
   {% include 'pages/overview/_status_hero.html' %}
   {% include 'pages/overview/_actions.html' %}
   {% include 'pages/overview/_response.html' %}

@@ -1,0 +1,17 @@
+{% set resolver_sections = target.resolver_sections or [] %}
+{% if resolver_sections %}
+<section class="hud-panel resolver-panel resolver-panel--compact">
+  <div class="hud-section-head hud-section-head--tight">
+    <div>
+      <div class="eyebrow">Resolver</div>
+      <h2>Resolver-Daten</h2>
+    </div>
+  </div>
+
+  <div class="resolver-sections-list resolver-sections-list--compact">
+    {% for section in resolver_sections %}
+      {% include "pages/target_detail/_resolver_section.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

@@ -1,12 +1,9 @@
 <section class="tab-panel active" data-panel="gallery">
-  <div class="hud-section-head">
-    <div>
-      <div class="eyebrow">Galerie</div>
-      <h2>Sessions nach Datum</h2>
-      <p class="muted">Monatsweise gruppiert, direkt zur Session.</p>
-    </div>
-    <span class="hud-chip">Chronologisch</span>
-  </div>
+  {% set page_eyebrow = 'Galerie' %}
+  {% set page_title = 'Sessions nach Datum' %}
+  {% set page_description = 'Monatsweise gruppiert, direkt zur Session.' %}
+  {% set page_chip = 'Chronologisch' %}
+  {% include 'includes/_page_intro.html' %}
 
   {% for group in gallery_session_groups %}
     {% include "pages/gallery/_month_group.html" %}

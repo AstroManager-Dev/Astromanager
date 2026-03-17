@@ -1,3 +1,4 @@
+0.4.021 | 2026-03-17 12:51:19 | Target-Detail Resolver-Modul kompakter als adaptives Grid aufgebaut
 0.4.020 | 2026-03-17 00:30:42 | RAW-Dateiliste und RAW-Datei-Detailseite weiter integriert, FITS-Viewer-Vorstufe mit Debayer-Metadaten eingebunden und RAW-Zugriff pro Session ausgebaut; Light-Zählung und FITS-Preview-Rendering werden im nächsten Patch fertiggestellt.
 0.4.019 | 2026-03-17 00:18:52 | RAW-Dateiliste und RAW-Datei-Detailseite für Sessions angebunden, Download pro RAW-Datei ergänzt, FITS-Viewer-Grundlage mit Debayer-Vorbereitung und Metadatenanzeige eingebaut; Light-Zählung und Vorschau-Layout werden im nächsten Schritt nachgezogen.
 0.4.018 | 2026-03-16 23:36:06 | Session-Seite um RAW-Verlinkung ergänzt: Lights-Bereich mit Einstieg in die RAW-Dateiliste aufgebaut, Light-Erkennung über source_subtype korrigiert, RAW-Dateiliste mit Verlinkung auf einzelne RAW-Datei-Seiten und Download-Möglichkeit ergänzt.

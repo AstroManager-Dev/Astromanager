@@ -45,21 +45,6 @@ def inject_global_ui_context() -> dict[str, Any]:
         return {"program_info_global": None}
 
 
-@APP.context_processor
-def inject_global_ui_context() -> dict[str, Any]:
-    try:
-        return {"program_info_global": load_program_info()}
-    except Exception:
-        return {"program_info_global": None}
-
-
-@APP.context_processor
-def inject_global_ui_context() -> dict[str, Any]:
-    try:
-        return {"program_info_global": load_program_info()}
-    except Exception:
-        return {"program_info_global": None}
-
 
 @APP.get("/")
 def index():
@@ -114,6 +99,11 @@ def index():
         dev_assets=dev_assets(),
         program_info=program_info,
     )
+
+
+@APP.get("/settings")
+def settings_page():
+    return render_template("settings_page.html")
 
 
 @APP.get("/sessions/<int:session_id>")

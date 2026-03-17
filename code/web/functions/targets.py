@@ -505,6 +505,112 @@ def _target_session_count_join() -> str:
     """
 
 
+
+
+TARGET_DETAIL_RESOLVER_TABLES: list[tuple[str, str]] = [
+    ("target_base_resolve", "Base"),
+    ("target_name_resolve", "Name"),
+    ("target_meta_resolve", "Meta"),
+    ("target_wikidata_name_resolve", "Wikidata Name"),
+    ("target_wikidata_meta_resolve", "Wikidata Meta"),
+    ("target_simbad_resolve", "SIMBAD"),
+    ("target_ned_resolve", "NED"),
+    ("target_constellation_resolve", "Konstellation"),
+    ("target_nasa_resolve", "NASA"),
+    ("target_legacy_survey_resolve", "Legacy Survey"),
+    ("target_skyview_resolve", "SkyView"),
+    ("target_irsa_resolve", "IRSA"),
+    ("target_sesame_resolve", "Sesame"),
+    ("target_vizier_resolve", "VizieR"),
+    ("target_ssodnet_resolve", "SSODNet"),
+]
+
+TARGET_DETAIL_RESOLVER_EXCLUDED_COLUMNS = {
+    "id",
+    "target_id",
+    "raw_payload",
+}
+
+
+def _resolver_field_label(name: str) -> str:
+    return str(name or "").replace("_", " ").strip().upper()
+
+
+def _resolver_field_is_empty(value: Any) -> bool:
+    if value is None:
+        return True
+    text = str(value).strip()
+    return text == "" or text == "[]" or text == "{}"
+
+
+def _resolver_field_value(value: Any) -> str:
+    if value is None:
+        return "—"
+    if isinstance(value, float):
+        return f"{value:.6f}".rstrip("0").rstrip(".")
+    return str(value)
+
+
+def _resolver_field_span(key: str, value_text: str) -> str:
+    key_text = str(key or "")
+    lower_key = key_text.lower()
+    long_markers = ("payload", "json", "aliases", "notes", "summary", "text", "url")
+    if any(marker in lower_key for marker in long_markers):
+        return "full"
+    if len(key_text) <= 12 and len(value_text) <= 18:
+        return "tiny"
+    if len(key_text) <= 18 and len(value_text) <= 42:
+        return "medium"
+    return "full"
+
+
+def _load_target_resolver_sections(conn: sqlite3.Connection, target_id: int) -> list[dict[str, Any]]:
+    sections: list[dict[str, Any]] = []
+    for table_name, resolver_label in TARGET_DETAIL_RESOLVER_TABLES:
+        if not db_table_exists(conn, table_name):
+            continue
+
+        columns = db_table_columns(conn, table_name)
+        if "target_id" not in columns:
+            continue
+
+        order_column = "resolved_at" if "resolved_at" in columns else ("id" if "id" in columns else "target_id")
+        try:
+            row = conn.execute(
+                f"SELECT * FROM {table_name} WHERE target_id = ? ORDER BY {order_column} DESC LIMIT 1",
+                (target_id,),
+            ).fetchone()
+        except sqlite3.Error:
+            continue
+        if row is None:
+            continue
+
+        item = row_to_dict(row)
+        field_items: list[dict[str, Any]] = []
+        for column in columns:
+            if column in TARGET_DETAIL_RESOLVER_EXCLUDED_COLUMNS:
+                continue
+            raw_value = item.get(column)
+            if _resolver_field_is_empty(raw_value):
+                continue
+            value_text = _resolver_field_value(raw_value)
+            field_items.append({
+                "key": column,
+                "label": _resolver_field_label(column),
+                "value": value_text,
+                "span": _resolver_field_span(column, value_text),
+            })
+
+        if not field_items:
+            continue
+
+        sections.append({
+            "title": resolver_label,
+            "source_table": table_name,
+            "fields": field_items,
+        })
+
+    return sections
 def _load_target_detail(target_id: int) -> dict[str, Any] | None:
     conn = db_conn()
     try:
@@ -512,6 +618,7 @@ def _load_target_detail(target_id: int) -> dict[str, Any] | None:
         if not cards:
             return None
         target = cards[0]
+        target["resolver_sections"] = _load_target_resolver_sections(conn, target_id)
 
         if not db_table_exists(conn, "sessions"):
             target["sessions"] = []

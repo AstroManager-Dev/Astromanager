@@ -1,0 +1,20 @@
+{% set fields = section.fields or [] %}
+{% if fields %}
+<article class="hud-info-shell resolver-card resolver-card--compact">
+  <div class="resolver-card-head resolver-card-head--compact">
+    <h3 class="resolver-card-title">{{ section.title or section.label or 'Resolver' }}</h3>
+    {% if section.source_table %}
+    <div class="resolver-card-source">{{ section.source_table }}</div>
+    {% endif %}
+  </div>
+
+  <div class="resolver-facts-grid resolver-facts-grid--compact">
+    {% for field in fields %}
+      <div class="target-card-fact resolver-fact resolver-fact--{{ field.span }}">
+        <span class="target-card-fact-label">{{ field.label or field.key or 'Wert' }}</span>
+        <span class="target-card-fact-value resolver-fact-value">{{ field.value }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</article>
+{% endif %}

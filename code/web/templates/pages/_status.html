@@ -1,7 +1,12 @@
 <section class="tab-panel" data-panel="logs">
+  {% set page_eyebrow = 'Logs' %}
+  {% set page_title = 'Logs und Live-Status' %}
+  {% set page_description = 'Technische Laufzeitansicht mit Fortschritt, Web-Log und letzten Runs.' %}
+  {% include 'includes/_page_intro.html' %}
+
   <div class="card" id="live-progress-card">
     <div class="section-title-row">
-      <h2>Logs & Live-Status</h2>
+      <h2>Live-Status</h2>
       <span class="muted">Technische Sicht</span>
     </div>
     <div class="progress-block">

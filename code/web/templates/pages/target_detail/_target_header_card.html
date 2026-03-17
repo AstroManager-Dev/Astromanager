@@ -1,28 +1,30 @@
-<section class="hud-info-shell target-card">
+<section class="hud-info-shell target-card target-card--detail-side">
   <div class="target-card-copy">
     <h2 class="target-card-title">{{ target.display_name or 'Unbenanntes Target' }}</h2>
   </div>
 
-  <div class="target-card-media target-card-media--wide">
-    <img class="target-thumb" src="{{ target.thumb_url or '/static/img/nopic_session.svg' }}" alt="{{ target.display_name or 'Target' }}">
-  </div>
+  <div class="target-detail-summary-row">
+    <div class="target-detail-summary-row__media">
+      <img class="target-thumb target-thumb--detail-side" src="{{ target.thumb_url or '/static/img/nopic_session.svg' }}" alt="{{ target.display_name or 'Target' }}">
+    </div>
 
-  <div class="target-card-facts target-card-facts--friendly">
-    <div class="target-card-fact target-card-fact--full">
-      <span class="target-card-fact-label">Typ</span>
-      <span class="target-card-fact-value">{{ target.objtype or 'Target' }} · {{ target.session_count }} Sessions</span>
-    </div>
-    <div class="target-card-fact">
-      <span class="target-card-fact-label">RA</span>
-      <span class="target-card-fact-value">{{ target.final_ra_deg_fmt or '—' }}</span>
-    </div>
-    <div class="target-card-fact">
-      <span class="target-card-fact-label">DEC</span>
-      <span class="target-card-fact-value">{{ target.final_dec_deg_fmt or '—' }}</span>
-    </div>
-    <div class="target-card-fact target-card-fact--full">
-      <span class="target-card-fact-label">Distanz</span>
-      <span class="target-card-fact-value">{{ target.distance_label or '—' }}</span>
+    <div class="target-detail-summary-row__facts target-card-facts target-card-facts--friendly target-card-facts--detail-side">
+      <div class="target-card-fact target-card-fact--full">
+        <span class="target-card-fact-label">Typ</span>
+        <span class="target-card-fact-value">{{ target.objtype or 'Target' }} · {{ target.session_count }} Sessions</span>
+      </div>
+      <div class="target-card-fact">
+        <span class="target-card-fact-label">RA</span>
+        <span class="target-card-fact-value">{{ target.final_ra_deg_fmt or '—' }}</span>
+      </div>
+      <div class="target-card-fact">
+        <span class="target-card-fact-label">DEC</span>
+        <span class="target-card-fact-value">{{ target.final_dec_deg_fmt or '—' }}</span>
+      </div>
+      <div class="target-card-fact target-card-fact--full">
+        <span class="target-card-fact-label">Distanz</span>
+        <span class="target-card-fact-value">{{ target.distance_label or '—' }}</span>
+      </div>
     </div>
   </div>
 </section>

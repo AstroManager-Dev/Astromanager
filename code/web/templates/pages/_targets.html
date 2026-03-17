@@ -1,6 +1,15 @@
 <section class="tab-panel" data-panel="targets">
-  <div class="card">
-    {% include "pages/targets/_deepsky_section.html" %}
-    {% include "pages/targets/_solarsystem_section.html" %}
+  {% set page_eyebrow = 'Targets' %}
+  {% set page_title = 'Deep-Sky-Targets' %}
+  {% include "includes/_page_intro.html" %}
+
+  <div class="targets-page-stack">
+    <div class="targets-section-block">
+      {% include "pages/targets/_deepsky_section.html" %}
+    </div>
+
+    <div class="targets-section-block">
+      {% include "pages/targets/_solarsystem_section.html" %}
+    </div>
   </div>
 </section>

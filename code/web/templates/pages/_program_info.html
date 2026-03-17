@@ -1,4 +1,9 @@
 <section class="tab-panel" data-panel="info">
+  {% set page_eyebrow = 'Programm' %}
+  {% set page_title = 'Versionen und Änderungsstand' %}
+  {% set page_description = 'Release- und Patch-Historie des aktuellen Projektstands.' %}
+  {% include 'includes/_page_intro.html' %}
+
   <div class="hud-info-shell">
     {% include "pages/program_info/_version_header.html" %}
     {% include "pages/program_info/_patch_log_collapse.html" %}
