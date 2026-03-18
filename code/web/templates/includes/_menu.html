@@ -10,17 +10,38 @@
   </div>
 
   <div class="menu-group">
-    <div class="menu-group-title">System</div>
-    <button class="sheet-link sheet-link--install" id="install-app-btn" hidden><strong>App installieren</strong><span>AstroManager direkt zum Startbildschirm hinzufügen</span></button>
-    <a class="sheet-link" href="/settings"><strong>Einstellungen</strong><span>Teleskope, Quellen, Anzeige und Verhalten</span></a>
-    <button class="sheet-link" data-tab="admin"><strong>Admin</strong><span>Technik, Diagnose, Datenbank und Wartung</span></button>
-    <button class="sheet-link" data-tab="logs"><strong>Logs</strong><span>Live-Status, Web-Log und letzte Runs</span></button>
-    <button class="sheet-link" data-tab="info"><strong>Programm-Infos</strong><span>Version, Changelog und Layout-Stand</span></button>
+    <div class="menu-group-title">Zugang</div>
+    <a class="sheet-link" href="{{ auth_context_global.action_href or '/login' }}"><strong>{{ auth_context_global.action_label }}</strong><span>{{ auth_context_global.display_name }} · {{ auth_context_global.primary_role_label }}</span></a>
   </div>
 
+  {% if auth_context_global.can_manage_settings or auth_context_global.can_view_logs %}
+  <div class="menu-group">
+    <div class="menu-group-title">System</div>
+    <button class="sheet-link sheet-link--install" id="install-app-btn" hidden><strong>App installieren</strong><span>AstroManager direkt zum Startbildschirm hinzufügen</span></button>
+    {% if auth_context_global.can_manage_settings %}
+    <a class="sheet-link" href="/settings"><strong>Einstellungen</strong><span>Teleskope, Quellen, Anzeige und Verhalten</span></a>
+    {% endif %}
+    {% if auth_context_global.can_manage_settings %}
+    <button class="sheet-link" data-tab="admin"><strong>Admin</strong><span>Technik, Diagnose, Datenbank und Wartung</span></button>
+    {% endif %}
+    {% if auth_context_global.can_view_logs %}
+    <button class="sheet-link" data-tab="logs"><strong>Logs</strong><span>Live-Status, Web-Log und letzte Runs</span></button>
+    {% endif %}
+    {% if auth_context_global.can_manage_settings %}
+    <button class="sheet-link" data-tab="info"><strong>Programm-Infos</strong><span>Version, Changelog und Layout-Stand</span></button>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if auth_context_global.can_manage_dev_tools or auth_context_global.can_view_database %}
   <div class="menu-group">
     <div class="menu-group-title">Dev</div>
+    {% if auth_context_global.can_manage_dev_tools %}
     <button class="sheet-link" data-tab="dev"><strong>Dev-Bereich</strong><span>Core-Backups, Restore, SQL-Dumps und ZIP-Import</span></button>
+    {% endif %}
+    {% if auth_context_global.can_view_database %}
     <button class="sheet-link" data-tab="database"><strong>Datenbank</strong><span>Technische Tabellenansicht für Prüfung und Debug</span></button>
+    {% endif %}
   </div>
+  {% endif %}
 </aside>

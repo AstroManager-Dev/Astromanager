@@ -4,9 +4,11 @@
       <div>
         <div class="eyebrow">Login</div>
         <h2>Zugang und Benutzerstatus</h2>
-        <p class="muted">Der Kopfbereich zeigt immer direkt an, ob aktuell ein Gastmodus aktiv ist oder ein Benutzer hinterlegt wurde.</p>
+        <p class="muted">Gast und Observer sehen Galerie, Sessions, Targets, Atlas und Viewer. User dürfen Workflows starten. Admins dürfen zusätzlich Einstellungen und Benutzerverwaltung öffnen.</p>
       </div>
+      {% if auth_context.can_manage_settings %}
       <a class="astro-btn astro-btn--sm astro-btn--secondary" href="/settings">Einstellungen</a>
+      {% endif %}
     </div>
   </section>
 
@@ -16,21 +18,25 @@
         <div>
           <div class="eyebrow">Benutzer</div>
           <h3>{{ login_info.user_label }}</h3>
-          <p class="muted">{{ login_info.status_label }}</p>
+          <p class="muted">{{ login_info.status_label }} · {{ login_info.role_label }}</p>
         </div>
       </div>
       <div class="hud-card-grid settings-module-grid login-page__grid">
         <div class="session-meta-card">
-          <div class="eyebrow">Status</div>
-          <strong>{{ "Eingeloggt" if login_info.is_logged_in else "Gastmodus" }}</strong>
+          <div class="eyebrow">Rolle</div>
+          <strong>{{ login_info.role_label }}</strong>
         </div>
         <div class="session-meta-card">
           <div class="eyebrow">Aktion</div>
           <strong>{{ login_info.action_label }}</strong>
         </div>
         <div class="session-meta-card login-page__full-row">
-          <div class="eyebrow">Hinweis</div>
-          <span>Der Login-Bereich ist vorbereitet. Später können hier echte Auth-Provider, Tailscale-Login oder ein lokaler Benutzerfluss angeschlossen werden.</span>
+          <div class="eyebrow">Rollenmodell</div>
+          <span>Gast / Observer = nur ansehen · User = Workflows · Admin = Einstellungen und Benutzer</span>
+        </div>
+        <div class="session-meta-card login-page__full-row">
+          <div class="eyebrow">Aktive Rechte</div>
+          <span>{{ login_info.permissions | join(', ') if login_info.permissions else 'keine zusätzlichen Rechte' }}</span>
         </div>
       </div>
     </article>

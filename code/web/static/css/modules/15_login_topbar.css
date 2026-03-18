@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -30,7 +30,12 @@
     0 10px 24px rgba(0,0,0,.22);
   color: rgba(232,242,255,.96);
   text-decoration: none;
-  font-size: 20px;
+}
+
+.hud-topbar__icon-btn i {
+  font-size: 18px;
+  line-height: 1;
+  color: rgba(232,242,255,.96);
 }
 
 .hud-topbar__userline {
@@ -42,23 +47,16 @@
 }
 
 .hud-topbar__user-name {
-  font-size: 12px;
-  line-height: 1.15;
+  font-size: 11px;
+  line-height: 1.1;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: rgba(208,232,255,.82);
-}
-
-.hud-topbar__user-state {
-  margin-top: 2px;
-  font-size: 11px;
-  line-height: 1.2;
-  color: rgba(208,232,255,.62);
+  color: rgba(208,232,255,.78);
 }
 
 @media (max-width: 640px) {
   .hud-topbar__inner {
-    min-height: 82px;
+    min-height: 78px;
   }
 
   .hud-topbar__action-row {
@@ -69,38 +67,13 @@
     width: 40px;
     height: 40px;
     border-radius: 14px;
-    font-size: 18px;
+  }
+
+  .hud-topbar__icon-btn i {
+    font-size: 16px;
   }
 
   .hud-topbar__user-name {
-    font-size: 11px;
-  }
-
-  .hud-topbar__user-state {
     font-size: 10px;
-  }
-}
-
-.hud-topbar__icon-btn i {
-  font-size: 18px;
-  line-height: 1;
-  color: rgba(232,242,255,.96);
-}
-
-@media (max-width: 640px) {
-  .hud-topbar__icon-btn i {
-    font-size: 16px;
-  }
-}
-
-.hud-topbar__icon-btn i {
-  font-size: 18px;
-  line-height: 1;
-  color: rgba(232,242,255,.96);
-}
-
-@media (max-width: 640px) {
-  .hud-topbar__icon-btn i {
-    font-size: 16px;
   }
 }

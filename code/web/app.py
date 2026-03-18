@@ -10,6 +10,7 @@ from flask import Flask, abort, jsonify, render_template, request, send_file, Re
 from actions import ACTION_HANDLERS
 from progress_runtime import get_live_progress
 from functions.common import ASTROCTL, PROJECT_CORE_ROOT, PROJECT_ROOT, UPLOAD_ROOT
+from functions.auth import action_permission, build_login_info, get_auth_context, has_permission, require_permission
 from functions.database import (
     build_table_config,
     db_conn,
@@ -37,25 +38,6 @@ from functions.targets import deepsky_targets, load_target_detail, system_target
 APP = Flask(__name__)
 
 
-def load_login_info() -> dict[str, Any]:
-    user_name = (os.environ.get("ASTROMANAGER_LOGIN_USER") or "").strip()
-    profile_href = (os.environ.get("ASTROMANAGER_LOGIN_HREF") or "/login").strip() or "/login"
-    if user_name:
-        return {
-            "is_logged_in": True,
-            "user_label": user_name,
-            "status_label": "Eingeloggt",
-            "action_label": "Profil",
-            "action_href": profile_href,
-        }
-    return {
-        "is_logged_in": False,
-        "user_label": "Gast",
-        "status_label": "Nicht angemeldet",
-        "action_label": "Login",
-        "action_href": profile_href,
-    }
-
 
 def discover_css_modules() -> list[str]:
     candidate_roots = [
@@ -77,14 +59,25 @@ def discover_css_modules() -> list[str]:
 
 @APP.context_processor
 def inject_global_ui_context() -> dict[str, Any]:
+    auth_context = get_auth_context()
     try:
         return {
             "program_info_global": load_program_info(),
             "css_module_files": discover_css_modules(),
-            "login_info_global": load_login_info(),
+            "auth_context_global": auth_context,
+            "login_info_global": build_login_info(auth_context),
+            "login_user": auth_context.get("display_name", "Gast"),
+            "login_href": auth_context.get("action_href", "/login"),
         }
     except Exception:
-        return {"program_info_global": None, "css_module_files": discover_css_modules(), "login_info_global": load_login_info()}
+        return {
+            "program_info_global": None,
+            "css_module_files": discover_css_modules(),
+            "auth_context_global": auth_context,
+            "login_info_global": build_login_info(auth_context),
+            "login_user": auth_context.get("display_name", "Gast"),
+            "login_href": auth_context.get("action_href", "/login"),
+        }
 
 
 @APP.get("/")
@@ -143,13 +136,15 @@ def index():
 
 
 @APP.get("/settings")
+@require_permission("manage_settings")
 def settings_page():
     return render_template("settings_page.html")
 
 
 @APP.get("/login")
 def login_page():
-    return render_template("login_page.html", login_info=load_login_info())
+    auth_context = get_auth_context()
+    return render_template("login_page.html", login_info=build_login_info(auth_context), auth_context=auth_context)
 
 
 @APP.get("/sessions/<int:session_id>")
@@ -312,11 +307,13 @@ def api_runs():
 
 
 @APP.get("/api/db/tables")
+@require_permission("view_database")
 def api_db_tables():
     return jsonify({"ok": True, "tables": db_tables_summary()})
 
 
 @APP.get("/api/db/<table>")
+@require_permission("view_database")
 def api_db_table(table: str):
     limit = parse_int_arg("limit", 50, 1, 500)
     offset = parse_int_arg("offset", 0, 0, 1_000_000)
@@ -338,6 +335,7 @@ def api_db_table(table: str):
 
 
 @APP.get("/api/db/<table>/<int:row_id>")
+@require_permission("view_database")
 def api_db_row(table: str, row_id: int):
     conn = db_conn()
     try:
@@ -364,21 +362,25 @@ def api_db_row(table: str, row_id: int):
 
 
 @APP.get("/api/live/summary")
+@require_permission("view_system_status")
 def api_live_summary():
     return jsonify({"ok": True, **summarize_service_state(), "progress": get_live_progress()})
 
 
 @APP.get("/api/dev/files")
+@require_permission("manage_dev_tools")
 def api_dev_files():
     return jsonify({"ok": True, **dev_assets()})
 
 
 @APP.get("/dev/archive")
+@require_permission("manage_dev_tools")
 def dev_archive_page():
     return render_template("dev_archive.html", dev_assets=dev_assets())
 
 
 @APP.post("/api/dev/upload-core-zip")
+@require_permission("manage_dev_tools")
 def api_dev_upload_core_zip():
     upload = request.files.get("zip_file")
     if upload is None or not upload.filename:
@@ -395,6 +397,7 @@ def api_dev_upload_core_zip():
 
 
 @APP.post("/api/dev/restore/<path:filename>")
+@require_permission("manage_dev_tools")
 def api_dev_restore_archive(filename: str):
     try:
         path = resolve_download("backup", filename)
@@ -406,6 +409,7 @@ def api_dev_restore_archive(filename: str):
 
 
 @APP.post("/api/dev/delete/<bucket>/<path:filename>")
+@require_permission("manage_dev_tools")
 def api_dev_delete_artifact(bucket: str, filename: str):
     try:
         path = resolve_download(bucket, filename)
@@ -429,6 +433,8 @@ def api_dev_delete_artifact(bucket: str, filename: str):
 
 @APP.get("/download/<bucket>/<path:filename>")
 def download_file(bucket: str, filename: str):
+    if bucket in {"backup", "sql"} and not has_permission("manage_dev_tools"):
+        abort(403)
     try:
         path = resolve_download(bucket, filename)
     except FileNotFoundError:
@@ -440,6 +446,10 @@ def download_file(bucket: str, filename: str):
 def api_run(action: str):
     if action not in ACTION_HANDLERS:
         return jsonify({"ok": False, "error": "unknown action"}), 404
+
+    required_permission = action_permission(action)
+    if required_permission and not has_permission(required_permission):
+        return jsonify({"ok": False, "error": "forbidden", "required_permission": required_permission}), 403
 
     subprocess.run([ASTROCTL, "db", "init"], capture_output=True, text=True)
 
@@ -457,6 +467,11 @@ def api_run(action: str):
     result["recent_runs"] = db_recent_runs()
     return jsonify(result)
 
+
+@APP.errorhandler(403)
+def forbidden_page(error):
+    auth_context = get_auth_context()
+    return render_template("403.html", auth_context=auth_context), 403
 
 if __name__ == "__main__":
     subprocess.run([ASTROCTL, "db", "init"], capture_output=True, text=True)

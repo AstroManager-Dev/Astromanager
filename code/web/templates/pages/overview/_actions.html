@@ -5,7 +5,9 @@
       <h2>Aktionen</h2>
     </div>
   </div>
+  {% if auth_context_global.can_run_workflows or auth_context_global.can_view_system_status %}
   <div class="hud-quick-actions__grid hud-quick-actions__grid--compact">
+    {% if auth_context_global.can_run_workflows %}
     <button class="btn hud-action-btn hud-action-btn--compact hud-action-btn--primary" data-action="raw_sync">
       <span class="hud-action-btn__kicker">Sync</span>
       <strong>RAW Sync</strong>
@@ -14,7 +16,7 @@
       <span class="hud-action-btn__kicker">Index</span>
       <strong>Index Sessions</strong>
     </button>
-    <button class="btn hud-action-btn hud-action-btn--compact" data-action="master_darks">
+    <button class="btn hud-action-btn hud-action-btn--compact" data-action="masterdarks">
       <span class="hud-action-btn__kicker">Kalibrierung</span>
       <strong>Master Darks</strong>
     </button>
@@ -26,9 +28,20 @@
       <span class="hud-action-btn__kicker">Siril</span>
       <strong>Siril Group</strong>
     </button>
+    {% endif %}
+    {% if auth_context_global.can_view_system_status %}
     <button class="btn hud-action-btn hud-action-btn--compact hud-action-btn--status" id="status-btn">
       <span class="hud-action-btn__kicker">System</span>
       <strong>Status ansehen</strong>
     </button>
+    {% endif %}
   </div>
+  {% else %}
+  <div class="hud-card hud-card--empty-state">
+    <div class="eyebrow">Zentrale</div>
+    <strong>Nur für User und Admin</strong>
+    <p class="muted">Gast und Observer dürfen Galerie, Sessions, Targets, Atlas und Viewer öffnen. Für Workflow-Aktionen ist ein Benutzer mit Rolle User oder Admin nötig.</p>
+    <a class="astro-btn astro-btn--sm astro-btn--secondary" href="{{ auth_context_global.action_href or '/login' }}">Login / Profil</a>
+  </div>
+  {% endif %}
 </section>

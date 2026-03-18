@@ -1,3 +1,4 @@
+0.4.029 | 2026-03-18 09:19:56 | Benutzerverwaltung und Rollenbasis eingeführt, Login-Bereich vorbereitet und Header-Nutzeranzeige verschlankt
 0.4.028 | 2026-03-18 08:45:03 | Login-Bereich eingeführt, kompakte Topbar-Nutzeranzeige ergänzt und Font Awesome Icons vorbereitet
 0.4.027 | 2026-03-18 08:00:51 | Test Release-Skript mit backup.sh
 0.4.026 | 2026-03-18 07:51:07 | Test neuer Backup-Aufruf
