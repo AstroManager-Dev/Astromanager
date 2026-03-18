@@ -108,3 +108,23 @@
     font-size: 0.82rem;
   }
 }
+
+
+.raw-file-card--no-fits-preview .raw-file-card__title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.raw-file-card--no-fits-preview .raw-file-card__title-link:hover,
+.raw-file-card--no-fits-preview .raw-file-card__title-link:active {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.raw-file-card--no-fits-preview .raw-file-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+}

@@ -8,7 +8,7 @@
   </div>
   <div class="session-raw-shell__path">{{ session.raw_session_path or session.session_key }}</div>
   <div class="session-raw-shell__actions">
-    <a class="btn btn-secondary" href="{{ session.raw_page_href }}">RAW-Dateien ansehen</a>
+    <a class="astro-btn astro-btn--md astro-btn--secondary" href="{{ session.raw_page_href }}">RAW-Dateien ansehen</a>
   </div>
   <div class="session-raw-shell__links">
     {% for raw in session.raw_assets[:6] %}

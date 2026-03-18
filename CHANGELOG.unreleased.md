@@ -1,3 +1,7 @@
+0.4.027 | 2026-03-18 08:00:51 | Test Release-Skript mit backup.sh
+0.4.026 | 2026-03-18 07:51:07 | Test neuer Backup-Aufruf
+0.4.025 | 2026-03-18 07:21:56 | Button-System in eigenes CSS-Modul ausgelagert und kompakte Hauptaktionsbuttons angeglichen
+0.4.024 | 2026-03-17 20:13:16 | FITS-Viewer: DB-Presets, Slider-Steuerung, WebP-Previews und Preset-Sync im RAW-Detail repariert
 0.4.023 | 2026-03-17 17:34:36 | feat: CSS-Modul-Loader integriert und RAW-Listen-CSS modular eingebunden
 0.4.022 | 2026-03-17 13:29:03 | Settings Info als eigenen Tab ergänzt und Minor-Log im Info-Bereich eingebunden
 0.4.021 | 2026-03-17 12:51:19 | Target-Detail Resolver-Modul kompakter als adaptives Grid aufgebaut

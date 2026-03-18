@@ -5,7 +5,23 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from PIL import Image
+from PIL import Image, features
+
+try:
+    import cv2  # type: ignore
+except Exception:  # pragma: no cover - optional runtime dependency
+    cv2 = None
+
+from .database import db_conn, db_table_exists, row_to_dict
+
+DEFAULT_PRESET_KEY = "auto"
+DEFAULT_BLACK = 0.5
+DEFAULT_WHITE = 99.5
+DEFAULT_GAMMA = 1.0
+DEFAULT_STRETCH = "auto"
+DEFAULT_DEBAYER = "auto"
+VALID_STRETCH_MODES = {"auto", "linear", "arcsinh"}
+VALID_DEBAYER_MODES = {"auto", "mono", "rggb", "bggr", "grbg", "gbrg"}
 
 
 def _normalize_view_mode(value: str | None, is_fits: bool) -> str:
@@ -16,13 +32,159 @@ def _normalize_view_mode(value: str | None, is_fits: bool) -> str:
 
 
 def _normalize_debayer_mode(value: str | None) -> str:
-    mode = (value or "auto").strip().lower()
-    return mode if mode in {"auto", "mono"} else "auto"
+    mode = (value or DEFAULT_DEBAYER).strip().lower()
+    return mode if mode in VALID_DEBAYER_MODES else DEFAULT_DEBAYER
+
+
+def _normalize_stretch_mode(value: str | None) -> str:
+    mode = (value or DEFAULT_STRETCH).strip().lower()
+    return mode if mode in VALID_STRETCH_MODES else DEFAULT_STRETCH
 
 
 def _normalize_render_kind(value: str | None) -> str:
     kind = (value or "detail").strip().lower()
     return kind if kind in {"detail", "thumb"} else "detail"
+
+
+def _parse_float(value: str | None, default: float, minimum: float, maximum: float) -> float:
+    raw = str(value or "").strip().replace(",", ".")
+    if not raw:
+        return default
+    try:
+        parsed = float(raw)
+    except ValueError:
+        return default
+    return max(minimum, min(maximum, parsed))
+
+
+def _format_float(value: float, digits: int = 2) -> str:
+    return f"{float(value):.{digits}f}"
+
+
+def _supports_webp() -> bool:
+    try:
+        return bool(features.check("webp"))
+    except Exception:
+        return False
+
+
+def _preview_extension() -> str:
+    return "webp" if _supports_webp() else "png"
+
+
+def _preview_mimetype() -> str:
+    return "image/webp" if _supports_webp() else "image/png"
+
+
+def _load_fits_viewer_presets() -> list[dict[str, Any]]:
+    conn = db_conn()
+    try:
+        if not db_table_exists(conn, "fits_viewer_presets"):
+            return []
+        rows = conn.execute(
+            """
+            SELECT id, preset_key, label, description, sort_order, is_active,
+                   debayer_mode, stretch_mode, black_value, white_value, gamma_value
+            FROM fits_viewer_presets
+            WHERE is_active = 1
+            ORDER BY sort_order ASC, label COLLATE NOCASE ASC
+            """
+        ).fetchall()
+        return [row_to_dict(row) for row in rows]
+    finally:
+        conn.close()
+
+
+def _auto_preset_key(raw_file: dict[str, Any]) -> str:
+    category = str(raw_file.get("session", {}).get("category") or raw_file.get("category") or "").strip().lower()
+    target_name = str(raw_file.get("session", {}).get("target") or raw_file.get("header_object") or raw_file.get("display_name") or "").strip().lower()
+    filter_name = str(raw_file.get("header_filter") or raw_file.get("filter_set") or "").strip().lower()
+    exposure = raw_file.get("header_exptime") if raw_file.get("header_exptime") not in (None, "") else raw_file.get("exp")
+    try:
+        exposure_value = float(exposure or 0.0)
+    except Exception:
+        exposure_value = 0.0
+
+    moon_planet_terms = {"moon", "mond", "sun", "sonne", "jupiter", "saturn", "mars", "venus", "mercury"}
+    nebula_terms = ("duo", "dual", "ha", "h-alpha", "oiii", "sii", "narrow", "nebula")
+
+    if category in {"moon", "sun", "planet", "solar_system"} or any(term in target_name for term in moon_planet_terms):
+        return "moon_planet"
+    if any(term in filter_name for term in nebula_terms) or exposure_value >= 30.0:
+        return "nebula"
+    if bool(raw_file.get("is_color_sensor")) or bool(raw_file.get("debayer_required")) or str(raw_file.get("header_bayerpat") or "").strip():
+        return "neutral"
+    return "neutral"
+
+
+def _build_preset_map(raw_file: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    rows = _load_fits_viewer_presets()
+    preset_map: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        key = str(row.get("preset_key") or "").strip().lower()
+        if not key:
+            continue
+        preset_map[key] = {
+            "key": key,
+            "label": str(row.get("label") or key.title()),
+            "description": str(row.get("description") or "").strip(),
+            "debayer_mode": _normalize_debayer_mode(str(row.get("debayer_mode") or DEFAULT_DEBAYER)),
+            "stretch_mode": _normalize_stretch_mode(str(row.get("stretch_mode") or DEFAULT_STRETCH)),
+            "black_value": _parse_float(str(row.get("black_value") or DEFAULT_BLACK), DEFAULT_BLACK, 0.0, 25.0),
+            "white_value": _parse_float(str(row.get("white_value") or DEFAULT_WHITE), DEFAULT_WHITE, 75.0, 100.0),
+            "gamma_value": _parse_float(str(row.get("gamma_value") or DEFAULT_GAMMA), DEFAULT_GAMMA, 0.2, 4.0),
+        }
+    if DEFAULT_PRESET_KEY not in preset_map:
+        preset_map[DEFAULT_PRESET_KEY] = {
+            "key": DEFAULT_PRESET_KEY,
+            "label": "Auto",
+            "description": "Automatische Auswahl anhand der RAW-Metadaten.",
+            "debayer_mode": DEFAULT_DEBAYER,
+            "stretch_mode": DEFAULT_STRETCH,
+            "black_value": DEFAULT_BLACK,
+            "white_value": DEFAULT_WHITE,
+            "gamma_value": DEFAULT_GAMMA,
+        }
+    resolved_auto_key = _auto_preset_key(raw_file)
+    if resolved_auto_key in preset_map:
+        auto_base = preset_map[resolved_auto_key]
+        preset_map[DEFAULT_PRESET_KEY] = {
+            **preset_map[DEFAULT_PRESET_KEY],
+            "resolved_key": resolved_auto_key,
+            "resolved_label": str(auto_base.get("label") or resolved_auto_key.title()),
+            "debayer_mode": auto_base["debayer_mode"],
+            "stretch_mode": auto_base["stretch_mode"],
+            "black_value": auto_base["black_value"],
+            "white_value": auto_base["white_value"],
+            "gamma_value": auto_base["gamma_value"],
+        }
+    return preset_map
+
+
+def _is_close(a: float, b: float, tol: float = 0.005) -> bool:
+    return abs(float(a) - float(b)) <= tol
+
+
+def _active_preset_key(
+    selected_key: str,
+    preset_map: dict[str, dict[str, Any]],
+    debayer_mode: str,
+    stretch_mode: str,
+    black_value: float,
+    white_value: float,
+    gamma_value: float,
+) -> str:
+    preset = preset_map.get(selected_key)
+    if preset is None:
+        return "custom"
+    matches = (
+        preset.get("debayer_mode") == debayer_mode
+        and preset.get("stretch_mode") == stretch_mode
+        and _is_close(float(preset.get("black_value") or 0.0), black_value)
+        and _is_close(float(preset.get("white_value") or 0.0), white_value)
+        and _is_close(float(preset.get("gamma_value") or 0.0), gamma_value)
+    )
+    return selected_key if matches else "custom"
 
 
 def enrich_raw_file_viewer_context(
@@ -33,25 +195,73 @@ def enrich_raw_file_viewer_context(
     black: str | None = None,
     white: str | None = None,
     gamma: str | None = None,
+    preset: str | None = None,
 ) -> dict[str, Any]:
     item = dict(raw_file)
     is_fits = bool(item.get("is_fits"))
     view_mode = _normalize_view_mode(view, is_fits)
-    debayer_mode = _normalize_debayer_mode(debayer)
-    stretch_mode = (stretch or "auto").strip().lower() or "auto"
-    black_value = str(black).strip() if black is not None and str(black).strip() else "0.500"
-    white_value = str(white).strip() if white is not None and str(white).strip() else "99.500"
-    gamma_value = str(gamma).strip() if gamma is not None and str(gamma).strip() else "1.000"
+    preset_key = (preset or DEFAULT_PRESET_KEY).strip().lower() or DEFAULT_PRESET_KEY
+    preset_map = _build_preset_map(item)
+    base_preset = preset_map.get(preset_key) or preset_map.get(DEFAULT_PRESET_KEY) or {
+        "key": DEFAULT_PRESET_KEY,
+        "label": "Auto",
+        "debayer_mode": DEFAULT_DEBAYER,
+        "stretch_mode": DEFAULT_STRETCH,
+        "black_value": DEFAULT_BLACK,
+        "white_value": DEFAULT_WHITE,
+        "gamma_value": DEFAULT_GAMMA,
+    }
+
+    debayer_mode = _normalize_debayer_mode(debayer or str(base_preset.get("debayer_mode") or DEFAULT_DEBAYER))
+    stretch_mode = _normalize_stretch_mode(stretch or str(base_preset.get("stretch_mode") or DEFAULT_STRETCH))
+    black_value_num = _parse_float(black, float(base_preset.get("black_value") or DEFAULT_BLACK), 0.0, 25.0)
+    white_value_num = _parse_float(white, float(base_preset.get("white_value") or DEFAULT_WHITE), 75.0, 100.0)
+    gamma_value_num = _parse_float(gamma, float(base_preset.get("gamma_value") or DEFAULT_GAMMA), 0.2, 4.0)
+
+    black_value = _format_float(black_value_num, 2)
+    white_value = _format_float(white_value_num, 2)
+    gamma_value = _format_float(gamma_value_num, 2)
     raw_file_id = int(item.get("id") or 0)
+    preview_ext = _preview_extension()
 
     viewer_query = (
-        f"debayer={debayer_mode}&stretch={stretch_mode}"
+        f"preset={preset_key}&debayer={debayer_mode}&stretch={stretch_mode}"
         f"&black={black_value}&white={white_value}&gamma={gamma_value}"
     )
+
+    selected_preset_key = _active_preset_key(
+        preset_key,
+        preset_map,
+        debayer_mode,
+        stretch_mode,
+        black_value_num,
+        white_value_num,
+        gamma_value_num,
+    )
+    selected_preset_label = "Custom" if selected_preset_key == "custom" else str((preset_map.get(selected_preset_key) or {}).get("label") or selected_preset_key.title())
+
+    preset_options = [
+        {
+            "key": key,
+            "label": str(preset_row.get("label") or key.title()),
+            "selected": key == selected_preset_key,
+            "resolved_label": str(preset_row.get("resolved_label") or "").strip(),
+            "debayer_mode": str(preset_row.get("debayer_mode") or DEFAULT_DEBAYER),
+            "stretch_mode": str(preset_row.get("stretch_mode") or DEFAULT_STRETCH),
+            "black_value": _format_float(float(preset_row.get("black_value") or DEFAULT_BLACK), 2),
+            "white_value": _format_float(float(preset_row.get("white_value") or DEFAULT_WHITE), 2),
+            "gamma_value": _format_float(float(preset_row.get("gamma_value") or DEFAULT_GAMMA), 2),
+        }
+        for key, preset_row in sorted(preset_map.items(), key=lambda item: (0 if item[0] == DEFAULT_PRESET_KEY else 1, str(item[1].get("label") or "")))
+    ]
 
     item.update(
         {
             "view_mode": view_mode,
+            "preset_key": preset_key,
+            "selected_preset_key": selected_preset_key,
+            "selected_preset_label": selected_preset_label,
+            "fits_preset_options": preset_options,
             "debayer_mode": debayer_mode,
             "stretch_mode": stretch_mode,
             "black_value": black_value,
@@ -59,12 +269,11 @@ def enrich_raw_file_viewer_context(
             "gamma_value": gamma_value,
             "view_file_href": f"/raw-files/{raw_file_id}?view=file",
             "view_fits_href": f"/raw-files/{raw_file_id}?view=fits&{viewer_query}",
-            "debayer_auto_href": f"/raw-files/{raw_file_id}?view=fits&debayer=auto&stretch={stretch_mode}&black={black_value}&white={white_value}&gamma={gamma_value}",
-            "debayer_mono_href": f"/raw-files/{raw_file_id}?view=fits&debayer=mono&stretch={stretch_mode}&black={black_value}&white={white_value}&gamma={gamma_value}",
-            "fits_preview_url": f"/media/raw-file-fits-preview/{raw_file_id}.png?{viewer_query}&kind=detail",
-            "fits_thumb_url": f"/media/raw-file-fits-preview/{raw_file_id}.png?debayer={debayer_mode}&kind=thumb",
+            "fits_preview_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?{viewer_query}&kind=detail",
+            "fits_thumb_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?preset={preset_key}&debayer={debayer_mode}&stretch={stretch_mode}&black={black_value}&white={white_value}&gamma={gamma_value}&kind=thumb",
+            "fits_preview_format": preview_ext.upper(),
             "fits_viewer_available": is_fits,
-            "fits_viewer_note": "Serverseitige Vorschau mit Stretch- und Debayer-Kompatibilität.",
+            "fits_viewer_note": f"Serverseitige Vorschau mit OpenCV-Debayer, Presets, Stretch und {preview_ext.upper()}-Ausgabe.",
         }
     )
     return item
@@ -127,7 +336,7 @@ def _channel_masks(height: int, width: int, pattern: str, xoff: int = 0, yoff: i
     elif pattern == "GRBG":
         r = (row == 0) & (col == 1)
         b = (row == 1) & (col == 0)
-    else:  # RGGB default
+    else:
         r = (row == 0) & (col == 0)
         b = (row == 1) & (col == 1)
     g = ~(r | b)
@@ -160,21 +369,111 @@ def _debayer_bayer(data: np.ndarray, pattern: str, xoff: int = 0, yoff: int = 0)
     return np.stack([r, g, b], axis=-1)
 
 
-def _stretch_to_uint8(data: np.ndarray) -> np.ndarray:
+def _opencv_bayer_code(pattern: str) -> int | None:
+    if cv2 is None:
+        return None
+    mapping = {
+        "RGGB": getattr(cv2, "COLOR_BAYER_RG2RGB", None),
+        "BGGR": getattr(cv2, "COLOR_BAYER_BG2RGB", None),
+        "GRBG": getattr(cv2, "COLOR_BAYER_GR2RGB", None),
+        "GBRG": getattr(cv2, "COLOR_BAYER_GB2RGB", None),
+    }
+    return mapping.get((pattern or "RGGB").upper())
+
+
+def _detect_bayer_pattern(raw_file: dict[str, Any], header: dict[str, Any], requested_mode: str) -> str:
+    requested = (requested_mode or "auto").strip().lower()
+    if requested in {"rggb", "bggr", "grbg", "gbrg"}:
+        return requested.upper()
+    pattern = str(raw_file.get("header_bayerpat") or header.get("BAYERPAT") or "").strip().upper()
+    return pattern if pattern in {"RGGB", "BGGR", "GRBG", "GBRG"} else "RGGB"
+
+
+def _opencv_debayer(data: np.ndarray, pattern: str) -> np.ndarray | None:
+    if cv2 is None:
+        return None
+    code = _opencv_bayer_code(pattern)
+    if code is None:
+        return None
+    values = np.asarray(data, dtype=np.float32)
+    finite = np.isfinite(values)
+    if not finite.any():
+        return None
+    lo = float(np.nanpercentile(values[finite], 0.1))
+    hi = float(np.nanpercentile(values[finite], 99.9))
+    if hi <= lo:
+        hi = lo + 1.0
+    scaled = np.clip((values - lo) / (hi - lo), 0.0, 1.0)
+    source = np.clip(scaled * 65535.0, 0, 65535).astype(np.uint16)
+    rgb = cv2.cvtColor(source, code)
+    return rgb.astype(np.float32) / 65535.0
+
+
+def _background_neutralize(rgb: np.ndarray) -> np.ndarray:
+    arr = np.asarray(rgb, dtype=np.float32)
+    if arr.ndim != 3 or arr.shape[-1] != 3:
+        return arr
+    out = arr.copy()
+    channel_medians = []
+    for idx in range(3):
+        channel = out[..., idx]
+        finite = np.isfinite(channel)
+        if not finite.any():
+            channel_medians.append(1.0)
+            continue
+        channel_medians.append(float(np.nanpercentile(channel[finite], 30.0)))
+    target = float(np.median(channel_medians)) if channel_medians else 1.0
+    if target <= 0:
+        return out
+    for idx, median in enumerate(channel_medians):
+        if median > 0:
+            out[..., idx] *= target / median
+    return out
+
+
+def _reduce_green(rgb: np.ndarray, strength: float = 0.55) -> np.ndarray:
+    arr = np.asarray(rgb, dtype=np.float32).copy()
+    if arr.ndim != 3 or arr.shape[-1] != 3:
+        return arr
+    red = arr[..., 0]
+    green = arr[..., 1]
+    blue = arr[..., 2]
+    target = (red + blue) / 2.0
+    excess = np.maximum(green - target, 0.0)
+    arr[..., 1] = green - excess * strength
+    return arr
+
+
+def _apply_mono(data: np.ndarray) -> np.ndarray:
+    mono = np.asarray(data, dtype=np.float32)
+    return np.stack([mono, mono, mono], axis=-1)
+
+
+def _stretch_to_uint8(data: np.ndarray, stretch: str, black: float, white: float, gamma: float) -> np.ndarray:
     arr = np.asarray(data, dtype=np.float32)
     finite = np.isfinite(arr)
     if not finite.any():
         if arr.ndim == 3:
             return np.zeros((arr.shape[0], arr.shape[1], 3), dtype=np.uint8)
         return np.zeros(arr.shape[:2], dtype=np.uint8)
+
     valid = arr[finite]
-    lo = float(np.percentile(valid, 0.5))
-    hi = float(np.percentile(valid, 99.5))
+    lo = float(np.percentile(valid, black))
+    hi = float(np.percentile(valid, white))
     if hi <= lo:
         hi = lo + 1.0
+
     norm = np.clip((arr - lo) / (hi - lo), 0.0, 1.0)
-    stretched = np.arcsinh(norm * 8.0) / np.arcsinh(8.0)
-    return np.clip(stretched * 255.0, 0, 255).astype(np.uint8)
+    stretch_mode = _normalize_stretch_mode(stretch)
+    if stretch_mode == "linear":
+        stretched = norm
+    else:
+        strength = 10.0 if stretch_mode == "arcsinh" else 8.0
+        stretched = np.arcsinh(norm * strength) / np.arcsinh(strength)
+
+    gamma_value = max(0.2, float(gamma))
+    corrected = np.power(np.clip(stretched, 0.0, 1.0), 1.0 / gamma_value)
+    return np.clip(corrected * 255.0, 0, 255).astype(np.uint8)
 
 
 def _square_crop(image: Image.Image, size: int) -> Image.Image:
@@ -196,14 +495,26 @@ def _resize_detail(image: Image.Image, max_width: int = 1600) -> Image.Image:
     return image.resize((max_width, max(1, int(height * ratio))), Image.Resampling.LANCZOS)
 
 
-def render_raw_file_fits_preview(raw_file: dict[str, Any], debayer: str | None, kind: str | None) -> bytes:
+def render_raw_file_fits_preview(
+    raw_file: dict[str, Any],
+    debayer: str | None,
+    stretch: str | None,
+    black: str | None,
+    white: str | None,
+    gamma: str | None,
+    kind: str | None,
+) -> tuple[bytes, str]:
     try:
         from astropy.io import fits  # type: ignore
-    except Exception as exc:  # pragma: no cover - runtime dependency
+    except Exception as exc:
         raise RuntimeError("astropy is required for FITS preview rendering") from exc
 
     path = _resolve_fits_path(raw_file)
     debayer_mode = _normalize_debayer_mode(debayer)
+    stretch_mode = _normalize_stretch_mode(stretch)
+    black_value = _parse_float(black, DEFAULT_BLACK, 0.0, 25.0)
+    white_value = _parse_float(white, DEFAULT_WHITE, 75.0, 100.0)
+    gamma_value = _parse_float(gamma, DEFAULT_GAMMA, 0.2, 4.0)
     render_kind = _normalize_render_kind(kind)
 
     with fits.open(path, memmap=False) as hdul:
@@ -211,17 +522,23 @@ def render_raw_file_fits_preview(raw_file: dict[str, Any], debayer: str | None, 
         data = _prepare_array(raw_data)
 
     if data.ndim == 2:
-        pattern = str(raw_file.get("header_bayerpat") or header.get("BAYERPAT") or "").strip().upper()
-        xoff = int(raw_file.get("header_xbayroff") or header.get("XBAYROFF") or 0)
-        yoff = int(raw_file.get("header_ybayroff") or header.get("YBAYROFF") or 0)
-        debayer_required = bool(raw_file.get("debayer_required")) or bool(raw_file.get("is_color_sensor")) or bool(pattern)
-        if debayer_mode == "auto" and debayer_required:
-            rgb = _debayer_bayer(data, pattern or "RGGB", xoff=xoff, yoff=yoff)
-            display = _stretch_to_uint8(rgb)
+        pattern = _detect_bayer_pattern(raw_file, header, debayer_mode)
+        debayer_required = bool(raw_file.get("debayer_required")) or bool(raw_file.get("is_color_sensor")) or bool(str(raw_file.get("header_bayerpat") or header.get("BAYERPAT") or "").strip())
+        if debayer_mode == "mono":
+            prepared = _apply_mono(data)
+        elif debayer_required or debayer_mode in {"rggb", "bggr", "grbg", "gbrg"}:
+            prepared = _opencv_debayer(data, pattern)
+            if prepared is None:
+                prepared = _debayer_bayer(data, pattern)
+            prepared = _background_neutralize(prepared)
+            prepared = _reduce_green(prepared)
         else:
-            display = _stretch_to_uint8(data)
+            prepared = _apply_mono(data)
+        display = _stretch_to_uint8(prepared, stretch_mode, black_value, white_value, gamma_value)
     else:
-        display = _stretch_to_uint8(data)
+        prepared = _background_neutralize(data)
+        prepared = _reduce_green(prepared, strength=0.35)
+        display = _stretch_to_uint8(prepared, stretch_mode, black_value, white_value, gamma_value)
 
     image = Image.fromarray(display)
     if render_kind == "thumb":
@@ -230,5 +547,8 @@ def render_raw_file_fits_preview(raw_file: dict[str, Any], debayer: str | None, 
         image = _resize_detail(image, 1600)
 
     buf = BytesIO()
-    image.save(buf, format="PNG", optimize=True)
-    return buf.getvalue()
+    if _supports_webp():
+        image.save(buf, format="WEBP", quality=88, method=6)
+    else:
+        image.save(buf, format="PNG", optimize=True)
+    return buf.getvalue(), _preview_mimetype()

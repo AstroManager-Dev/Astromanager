@@ -494,12 +494,16 @@ def _collect_session_raw_assets(conn, session_key: str | None) -> list[dict[str,
             meta_bits.append(f"Gain {float(gain_value):g}")
         if filter_value and filter_value.lower() != "unknown":
             meta_bits.append(f"Filter {filter_value}")
+        raw_id = int(item.get('id') or 0)
+        detail_href = f"/raw-files/{raw_id}"
+        viewer_href = f"{detail_href}?view=fits" if is_fits else detail_href
         item.update({
             "file_ext": ext[1:].upper() if ext.startswith('.') else ext.upper(),
-            "media_href": f"/media/raw-file/{int(item.get('id') or 0)}",
-            "download_href": f"/download/raw-file/{int(item.get('id') or 0)}",
-            "detail_href": f"/raw-files/{int(item.get('id') or 0)}",
-            "fits_thumb_url": f"/media/raw-file-fits-preview/{int(item.get('id') or 0)}.png?debayer=auto&kind=thumb" if is_fits else "",
+            "media_href": f"/media/raw-file/{raw_id}",
+            "download_href": f"/download/raw-file/{raw_id}",
+            "detail_href": detail_href,
+            "viewer_href": viewer_href,
+            "fits_thumb_url": f"/media/raw-file-fits-preview/{raw_id}.webp?preset=auto&debayer=auto&stretch=auto&black=0.50&white=99.50&gamma=1.00&kind=thumb" if is_fits else "",
             "path_label": str(item.get("rel_path") or item.get("abs_path") or ""),
             "meta_label": " · ".join(meta_bits),
             "is_fits": is_fits,

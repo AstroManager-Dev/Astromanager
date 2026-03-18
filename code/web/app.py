@@ -207,28 +207,42 @@ def raw_file_detail_page(raw_file_id: int):
     raw_file = load_raw_file_detail(raw_file_id)
     if raw_file is None:
         abort(404)
+    requested_view = request.args.get("view")
+    if requested_view is None and raw_file.get("is_fits"):
+        requested_view = "fits"
     raw_file = enrich_raw_file_viewer_context(
         raw_file,
-        request.args.get("view"),
+        requested_view,
         request.args.get("debayer"),
         request.args.get("stretch"),
         request.args.get("black"),
         request.args.get("white"),
         request.args.get("gamma"),
+        request.args.get("preset"),
     )
     return render_template("raw_file_detail.html", raw_file=raw_file)
 
 
-@APP.get("/media/raw-file-fits-preview/<int:raw_file_id>.png")
-def media_raw_file_fits_preview(raw_file_id: int):
+@APP.get("/media/raw-file-fits-preview/<int:raw_file_id>.<string:fmt>")
+def media_raw_file_fits_preview(raw_file_id: int, fmt: str):
     raw_file = load_raw_file_detail(raw_file_id)
     if raw_file is None or not raw_file.get("is_fits"):
         abort(404)
+    if fmt not in {"png", "webp"}:
+        abort(404)
     try:
-        payload = render_raw_file_fits_preview(raw_file, request.args.get("debayer"), request.args.get("kind"))
+        payload, mimetype = render_raw_file_fits_preview(
+            raw_file,
+            request.args.get("debayer"),
+            request.args.get("stretch"),
+            request.args.get("black"),
+            request.args.get("white"),
+            request.args.get("gamma"),
+            request.args.get("kind"),
+        )
     except FileNotFoundError:
         abort(404)
-    return Response(payload, mimetype="image/png")
+    return Response(payload, mimetype=mimetype)
 
 
 @APP.get("/download/raw-file/<int:raw_file_id>")

@@ -1,11 +1,12 @@
 {#
-  Performance patch: do not render FITS previews inside RAW list cards.
-  Detail page keeps the FITS viewer.
+  Performance patch: no FITS preview rendering inside RAW list cards.
+  FITS files open directly in the FITS viewer, details stays separate.
 #}
 {% set entry = raw_file if raw_file is defined else (item if item is defined else (file if file is defined else None)) %}
 {% set raw_id = entry.id if entry else None %}
 {% set raw_name = entry.file_name if entry and entry.file_name else 'RAW-Datei' %}
-{% set detail_href = ('/raw-files/' ~ raw_id) if raw_id else '#' %}
+{% set detail_href = entry.detail_href if entry and entry.detail_href else (('/raw-files/' ~ raw_id) if raw_id else '#') %}
+{% set viewer_href = entry.viewer_href if entry and entry.viewer_href else detail_href %}
 {% set exposure_text = entry.exposure_label if entry and entry.exposure_label else ('EXP ' ~ entry.exp_s ~ 's' if entry and entry.exp_s is not none else None) %}
 {% set gain_text = ('Gain ' ~ entry.gain) if entry and entry.gain is not none else None %}
 {% set filter_text = ('Filter ' ~ entry.filter_name) if entry and entry.filter_name else None %}
@@ -15,12 +16,12 @@
 {% if filter_text %}{% set _ = meta_parts.append(filter_text) %}{% endif %}
 
 <article class="hud-list-card raw-file-card raw-file-card--no-fits-preview">
-  <a class="raw-file-card__thumb raw-file-card__thumb--placeholder" href="{{ detail_href }}" aria-label="{{ raw_name }} öffnen">
-    <span class="raw-file-card__thumb-badge">FITS</span>
+  <a class="raw-file-card__thumb raw-file-card__thumb--placeholder" href="{{ viewer_href }}" aria-label="{{ raw_name }} im Viewer öffnen">
+    <span class="raw-file-card__thumb-badge">{{ entry.file_ext if entry and entry.file_ext else 'FITS' }}</span>
   </a>
 
   <div class="raw-file-card__body">
-    <h3 class="raw-file-card__title">{{ raw_name }}</h3>
+    <h3 class="raw-file-card__title"><a class="raw-file-card__title-link" href="{{ viewer_href }}">{{ raw_name }}</a></h3>
 
     {% if meta_parts %}
     <div class="raw-file-card__meta">{{ meta_parts|join(' · ') }}</div>
@@ -31,7 +32,8 @@
     {% endif %}
 
     <div class="raw-file-card__actions">
-      <a class="hud-inline-link" href="{{ detail_href }}">Details</a>
+      <a class="astro-btn astro-btn--sm astro-btn--primary" href="{{ viewer_href }}">Viewer öffnen</a>
+      <a class="astro-btn astro-btn--sm astro-btn--secondary" href="{{ detail_href }}">Details</a>
     </div>
   </div>
 </article>

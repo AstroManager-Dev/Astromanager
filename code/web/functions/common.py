@@ -9,6 +9,7 @@ PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", "/app"))
 CORE_BACKUP_ROOT = Path(os.environ.get("CORE_BACKUP_ROOT", "/runtime/backups/core"))
 SQL_DUMP_ROOT = Path(os.environ.get("SQL_DUMP_ROOT", "/runtime/backups/sql"))
 UPLOAD_ROOT = Path(os.environ.get("UPLOAD_ROOT", "/runtime/uploads"))
+CACHE_ROOT = Path(os.environ.get("CACHE_ROOT", "/cache"))
 PROJECT_CORE_ROOT = Path(os.environ.get("PROJECT_CORE_ROOT", "/project-core"))
 
 DB_TABLE_DEFAULTS = {

@@ -10,50 +10,84 @@
   {% if raw_file.view_mode == 'fits' and raw_file.fits_viewer_available %}
     <div class="raw-file-viewer-toolbar">
       <div class="muted">{{ raw_file.fits_viewer_note }}</div>
-      <div class="raw-file-viewer-presets">
-        {% for preset in raw_file.fits_presets %}
-          <a class="raw-view-chip {% if preset.active %}active{% endif %}" href="{{ preset.href }}">{{ preset.label }}</a>
-        {% endfor %}
+      <div class="raw-file-viewer-toolbar-grid">
+        <div class="raw-file-viewer-preset-info">
+          <div class="eyebrow">Preset</div>
+          <strong>{{ raw_file.selected_preset_label }}</strong>
+        </div>
+        <div class="raw-file-viewer-preset-info">
+          <div class="eyebrow">Preview</div>
+          <strong>{{ raw_file.fits_preview_format }}</strong>
+        </div>
       </div>
     </div>
 
-    <form class="raw-file-viewer-form" method="get" action="/raw-files/{{ raw_file.id }}">
+    <form class="raw-file-viewer-form" method="get" action="/raw-files/{{ raw_file.id }}" data-fits-preset-form>
       <input type="hidden" name="view" value="fits">
       <div class="raw-file-viewer-grid">
+        <label class="raw-file-field raw-file-field--wide">
+          <span>Preset</span>
+          <select name="preset" data-fits-preset-select>
+            {% for preset in raw_file.fits_preset_options %}
+              <option
+                value="{{ preset.key }}"
+                data-debayer="{{ preset.debayer_mode }}"
+                data-stretch="{{ preset.stretch_mode }}"
+                data-black="{{ preset.black_value }}"
+                data-white="{{ preset.white_value }}"
+                data-gamma="{{ preset.gamma_value }}"
+                {% if preset.selected %}selected{% endif %}
+              >
+                {{ preset.label }}{% if preset.key == 'auto' and preset.resolved_label %} → {{ preset.resolved_label }}{% endif %}
+              </option>
+            {% endfor %}
+            {% if raw_file.selected_preset_key == 'custom' %}
+              <option value="custom" selected>Custom</option>
+            {% endif %}
+          </select>
+        </label>
+
         <label class="raw-file-field">
           <span>Debayer</span>
-          <select name="debayer">
+          <select name="debayer" data-fits-control="debayer">
             <option value="auto" {% if raw_file.debayer_mode == 'auto' %}selected{% endif %}>Auto Debayer</option>
+            <option value="rggb" {% if raw_file.debayer_mode == 'rggb' %}selected{% endif %}>RGGB</option>
+            <option value="bggr" {% if raw_file.debayer_mode == 'bggr' %}selected{% endif %}>BGGR</option>
+            <option value="grbg" {% if raw_file.debayer_mode == 'grbg' %}selected{% endif %}>GRBG</option>
+            <option value="gbrg" {% if raw_file.debayer_mode == 'gbrg' %}selected{% endif %}>GBRG</option>
             <option value="mono" {% if raw_file.debayer_mode == 'mono' %}selected{% endif %}>Mono</option>
           </select>
         </label>
 
         <label class="raw-file-field">
           <span>Stretch</span>
-          <select name="stretch">
+          <select name="stretch" data-fits-control="stretch">
             <option value="auto" {% if raw_file.stretch_mode == 'auto' %}selected{% endif %}>Auto Stretch</option>
             <option value="linear" {% if raw_file.stretch_mode == 'linear' %}selected{% endif %}>Linear</option>
             <option value="arcsinh" {% if raw_file.stretch_mode == 'arcsinh' %}selected{% endif %}>Arcsinh</option>
           </select>
         </label>
 
-        <label class="raw-file-field">
+        <label class="raw-file-field raw-file-field--slider">
           <span>Black %</span>
-          <input type="number" name="black" min="0" max="25" step="0.1" value="{{ raw_file.black_point }}">
+          <input type="range" name="black" min="0" max="25" step="0.1" value="{{ raw_file.black_value }}" data-range-output="black-{{ raw_file.id }}" data-fits-control="black">
+          <output id="black-{{ raw_file.id }}" class="raw-file-field__value">{{ raw_file.black_value }}</output>
         </label>
 
-        <label class="raw-file-field">
+        <label class="raw-file-field raw-file-field--slider">
           <span>White %</span>
-          <input type="number" name="white" min="75" max="100" step="0.1" value="{{ raw_file.white_point }}">
+          <input type="range" name="white" min="75" max="100" step="0.1" value="{{ raw_file.white_value }}" data-range-output="white-{{ raw_file.id }}" data-fits-control="white">
+          <output id="white-{{ raw_file.id }}" class="raw-file-field__value">{{ raw_file.white_value }}</output>
         </label>
 
-        <label class="raw-file-field">
+        <label class="raw-file-field raw-file-field--slider">
           <span>Gamma</span>
-          <input type="number" name="gamma" min="0.2" max="4" step="0.05" value="{{ raw_file.gamma_value }}">
+          <input type="range" name="gamma" min="0.2" max="4" step="0.01" value="{{ raw_file.gamma_value }}" data-range-output="gamma-{{ raw_file.id }}" data-fits-control="gamma">
+          <output id="gamma-{{ raw_file.id }}" class="raw-file-field__value">{{ raw_file.gamma_value }}</output>
         </label>
 
-        <div class="raw-file-field raw-file-field--submit">
-          <button type="submit" class="hud-action-btn hud-action-btn--soft">Vorschau aktualisieren</button>
+        <div class="raw-file-field raw-file-field--submit raw-file-field--wide">
+          <button type="submit" class="astro-btn astro-btn--md astro-btn--primary">Vorschau aktualisieren</button>
         </div>
       </div>
     </form>

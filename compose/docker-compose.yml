@@ -97,7 +97,7 @@ services:
     profiles: ["astromanager"]
     image: tailscale/tailscale:latest
     container_name: astromanager-tailscale
-    network_mode: "service:astromanager-web"
+    hostname: astromanager
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -107,12 +107,8 @@ services:
       - TS_ACCEPT_DNS=false
       - TS_AUTH_ONCE=true
       - TS_USERSPACE=true
-      # - TS_AUTHKEY=tskey-xxxxxxxx
-      # - TS_EXTRA_ARGS=--advertise-tags=tag:container
     volumes:
       - /home/pi/docker/astromanager/config/tailscale:/var/lib/tailscale
-    depends_on:
-      - astromanager-web
     restart: unless-stopped
 
   astromanager-ollama:

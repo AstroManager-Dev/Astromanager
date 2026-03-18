@@ -201,6 +201,61 @@ ${name}`)) {
 
   initSegmentSwitches();
 
+  function initRangeOutputs() {
+    document.querySelectorAll('[data-range-output]').forEach((input) => {
+      const outputId = input.dataset.rangeOutput;
+      const output = outputId ? document.getElementById(outputId) : null;
+      if (!output) return;
+      const sync = () => { output.value = input.value; output.textContent = input.value; };
+      input.addEventListener('input', sync);
+      sync();
+    });
+  }
+
+  initRangeOutputs();
+
+  function initFitsPresetControls() {
+    document.querySelectorAll('[data-fits-preset-form]').forEach((form) => {
+      const presetSelect = form.querySelector('[data-fits-preset-select]');
+      if (!presetSelect) return;
+      const controls = {
+        debayer: form.querySelector('[data-fits-control="debayer"]'),
+        stretch: form.querySelector('[data-fits-control="stretch"]'),
+        black: form.querySelector('[data-fits-control="black"]'),
+        white: form.querySelector('[data-fits-control="white"]'),
+        gamma: form.querySelector('[data-fits-control="gamma"]'),
+      };
+      const syncOutput = (input) => {
+        if (!input || !input.dataset.rangeOutput) return;
+        const output = document.getElementById(input.dataset.rangeOutput);
+        if (!output) return;
+        output.value = input.value;
+        output.textContent = input.value;
+      };
+      const applyPreset = () => {
+        const option = presetSelect.options[presetSelect.selectedIndex];
+        if (!option) return;
+        if (controls.debayer && option.dataset.debayer) controls.debayer.value = option.dataset.debayer;
+        if (controls.stretch && option.dataset.stretch) controls.stretch.value = option.dataset.stretch;
+        if (controls.black && option.dataset.black) {
+          controls.black.value = option.dataset.black;
+          syncOutput(controls.black);
+        }
+        if (controls.white && option.dataset.white) {
+          controls.white.value = option.dataset.white;
+          syncOutput(controls.white);
+        }
+        if (controls.gamma && option.dataset.gamma) {
+          controls.gamma.value = option.dataset.gamma;
+          syncOutput(controls.gamma);
+        }
+      };
+      presetSelect.addEventListener('change', applyPreset);
+    });
+  }
+
+  initFitsPresetControls();
+
   const installAppBtn = document.getElementById("install-app-btn");
   let deferredInstallPrompt = null;
 

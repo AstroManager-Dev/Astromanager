@@ -1,9 +1,18 @@
-<div class="session-placeholder-card">
-  <div class="session-placeholder-card__title">FITS-Viewer</div>
-  {% if session.fits_available %}
-    <div class="session-placeholder-card__text">{{ session.fits_viewer_note }}</div>
-    <div class="session-placeholder-card__meta">Vorhandene FITS-Datei: {{ session.fits_preview_name }}</div>
-  {% else %}
+{% if session.session_fits_viewer %}
+  <section class="session-fits-viewer-block">
+    <div class="session-fits-viewer-head">
+      <div>
+        <div class="eyebrow">FITS-Viewer</div>
+        <div class="hud-run-entry__meta">Quelle: {{ session.session_fits_viewer.session_fits_source_label }}</div>
+      </div>
+      <a class="hud-action-btn hud-action-btn--soft" href="{{ session.session_fits_viewer.open_detail_href }}">RAW-Detail öffnen</a>
+    </div>
+    {% set raw_file = session.session_fits_viewer %}
+    {% include "pages/raw_file_detail/_viewer_module.html" %}
+  </section>
+{% else %}
+  <div class="session-placeholder-card">
+    <div class="session-placeholder-card__title">FITS-Viewer</div>
     <div class="session-placeholder-card__text">Für diese Session wurde noch keine FITS-Datei in der DB gefunden.</div>
-  {% endif %}
-</div>
+  </div>
+{% endif %}

@@ -1,0 +1,237 @@
+/* Centralized button system extracted from app.css.
+   Reuses the Zentrale primary-action look for smaller controls. */
+
+.astro-btn,
+.raw-switch-btn,
+.raw-page-size-btn,
+.raw-view-chip,
+.hud-back-btn,
+.btn,
+.btn.btn-secondary,
+.hud-action-btn,
+.hud-segment-switch__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(102, 180, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(8, 18, 36, 0.96), rgba(8, 15, 28, 0.82)),
+    radial-gradient(circle at top right, rgba(69, 144, 255, 0.10), transparent 26%);
+  color: #eff7ff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .01em;
+  box-shadow:
+    0 0 0 1px rgba(74, 144, 255, 0.06) inset,
+    0 12px 24px rgba(0,0,0,0.18);
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.astro-btn::before,
+.raw-switch-btn::before,
+.raw-page-size-btn::before,
+.raw-view-chip::before,
+.hud-back-btn::before,
+.btn::before,
+.hud-action-btn::before,
+.hud-segment-switch__btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(120, 204, 255, 0.12), transparent 34%);
+}
+
+.astro-btn:hover,
+.astro-btn:active,
+.raw-switch-btn:hover,
+.raw-switch-btn:active,
+.raw-page-size-btn:hover,
+.raw-page-size-btn:active,
+.raw-view-chip:hover,
+.raw-view-chip:active,
+.hud-back-btn:hover,
+.hud-back-btn:active,
+.btn:hover,
+.btn:active,
+.hud-action-btn:hover,
+.hud-action-btn:active,
+.hud-segment-switch__btn:hover,
+.hud-segment-switch__btn:active {
+  transform: translateY(-1px);
+  border-color: rgba(124, 208, 255, 0.30);
+  box-shadow:
+    0 0 0 1px rgba(92, 180, 255, 0.08) inset,
+    0 16px 30px rgba(0,0,0,0.22),
+    0 0 18px rgba(64, 168, 255, 0.10);
+}
+
+.astro-btn--primary,
+.raw-switch-btn.active,
+.raw-page-size-btn.active,
+.raw-view-chip.active,
+.hud-segment-switch__btn.active,
+.hud-action-btn--primary,
+.hud-action-btn--status {
+  border-color: rgba(118, 208, 255, 0.26);
+  box-shadow:
+    0 0 0 1px rgba(104, 192, 255, 0.08) inset,
+    0 16px 30px rgba(0,0,0,0.20),
+    inset 3px 0 0 rgba(110, 208, 255, 0.68);
+}
+
+.astro-btn--primary::after,
+.raw-switch-btn.active::after,
+.raw-page-size-btn.active::after,
+.raw-view-chip.active::after,
+.hud-segment-switch__btn.active::after,
+.hud-action-btn--primary::after,
+.hud-action-btn--status::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at top left, rgba(108, 196, 255, 0.16), transparent 38%);
+}
+
+.astro-btn--secondary,
+.astro-btn--ghost,
+.btn.btn-secondary,
+.hud-back-btn,
+.btn {
+  border-color: rgba(102, 180, 255, 0.16);
+}
+
+.astro-btn--chip {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+
+.astro-btn--md { min-height: 46px; padding: 0 16px; }
+.astro-btn--sm,
+.btn,
+.btn.btn-secondary,
+.hud-back-btn,
+.hud-segment-switch__btn,
+.raw-page-size-btn,
+.raw-view-chip,
+.raw-switch-btn {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 14px;
+  font-size: 13px;
+}
+
+.astro-btn--xs {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.astro-btn[aria-disabled="true"],
+.astro-btn:disabled,
+.raw-page-size-btn[aria-disabled="true"],
+.hud-segment-switch__btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: .48;
+  pointer-events: none;
+}
+
+.hud-action-btn {
+  min-height: 56px;
+  font-size: 15px;
+}
+
+.hud-action-btn--compact {
+  position: relative;
+  min-height: 88px;
+  padding: 14px 16px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 6px;
+  border-radius: 18px;
+  text-align: left;
+}
+
+.hud-action-btn--compact strong {
+  font-size: 17px;
+  line-height: 1.08;
+  letter-spacing: 0.01em;
+}
+
+.hud-action-btn__kicker {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  line-height: 1.1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(171, 213, 255, 0.66);
+}
+
+.hud-action-btn--compact strong,
+.hud-action-btn--compact span,
+.hud-action-btn--compact small {
+  position: relative;
+  z-index: 1;
+}
+
+.hud-action-btn--status {
+  border-color: rgba(156, 168, 255, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(132, 148, 255, 0.05) inset,
+    0 16px 30px rgba(0,0,0,0.20),
+    inset 3px 0 0 rgba(146, 156, 255, 0.52);
+}
+
+.hud-segment-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.hud-segment-switch--compact {
+  gap: 8px;
+}
+
+.hud-segment-switch__btn {
+  border: 1px solid rgba(102, 180, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(8, 18, 36, 0.96), rgba(8, 15, 28, 0.82)),
+    radial-gradient(circle at top right, rgba(69, 144, 255, 0.10), transparent 26%);
+}
+
+@media (max-width: 640px) {
+  .hud-action-btn {
+    min-height: 52px;
+    font-size: 14px;
+  }
+
+  .hud-action-btn--compact {
+    min-height: 80px;
+    padding: 13px 14px;
+  }
+
+  .hud-action-btn--compact strong {
+    font-size: 15px;
+  }
+}

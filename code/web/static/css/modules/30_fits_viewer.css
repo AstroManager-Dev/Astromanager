@@ -1,0 +1,57 @@
+.raw-file-viewer-toolbar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.raw-file-viewer-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.raw-file-viewer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.raw-file-field {
+  display: grid;
+  gap: 6px;
+}
+
+.raw-file-field--submit {
+  align-content: end;
+}
+
+.raw-file-image--fits {
+  width: 100%;
+  display: block;
+  border-radius: 24px;
+  border: 1px solid rgba(120, 170, 255, 0.14);
+  background: rgba(4, 14, 34, 0.72);
+}
+
+.session-fits-viewer-block {
+  display: grid;
+  gap: 14px;
+}
+
+.session-fits-viewer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .raw-file-viewer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session-fits-viewer-head {
+    flex-direction: column;
+  }
+}
