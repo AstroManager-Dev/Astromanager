@@ -33,6 +33,8 @@
       <button class="bottom-nav-btn" data-tab="targets"><span>Targets</span></button>
 {% if auth_context_global.can_view_overview %}
       <button class="bottom-nav-btn" data-tab="overview"><span>Zentrale</span></button>
+{% else %}
+      <a class="bottom-nav-btn bottom-nav-btn--locked" href="/forbidden"><span>Zentrale <i class="fa-solid fa-lock" aria-hidden="true"></i></span></a>
 {% endif %}
       <button class="bottom-nav-btn bottom-nav-btn--menu" id="open-menu-btn-bottom" aria-label="Menü öffnen" aria-controls="menu-sheet" aria-expanded="false"><span>Menü</span></button>
     </nav>

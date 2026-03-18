@@ -1,0 +1,48 @@
+/* menu sheet buttons aligned to compact action button style */
+.menu-group {
+  display: grid;
+  gap: 10px;
+}
+
+.menu-sheet-btn,
+.menu-sheet-btn:visited,
+.menu-sheet button.menu-sheet-btn {
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 6px;
+  border: 1px solid rgba(102, 180, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(8, 18, 36, 0.96), rgba(8, 15, 28, 0.82)),
+    radial-gradient(circle at top right, rgba(69, 144, 255, 0.10), transparent 26%);
+  color: #eff7ff;
+  text-decoration: none;
+  box-shadow:
+    0 0 0 1px rgba(74, 144, 255, 0.06) inset,
+    0 12px 24px rgba(0,0,0,0.18);
+  text-align: left;
+}
+
+.menu-sheet-btn strong {
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.menu-sheet-btn span {
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(184, 208, 244, 0.82);
+}
+
+.menu-sheet-btn--locked strong i {
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+.menu-sheet-btn--install {
+  cursor: pointer;
+}

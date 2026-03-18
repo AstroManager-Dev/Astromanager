@@ -1,21 +1,56 @@
 <section class="settings-page">
   {% include "pages/settings/_header.html" %}
 
+  {% set active_section = settings_active_section or 'info' %}
+  {% set locked_sections = settings_locked_sections or [] %}
+  {% set can_manage_settings = auth_context_global.can_manage_settings %}
+
   <section class="hud-panel settings-page__switch-shell">
-    <div class="hud-segment-switch" data-switch-group="settings-sections" data-switch-default="devices" aria-label="Einstellungssektionen">
-      <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="devices">Geräte</button>
-      <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="sources">Quellen</button>
-      <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="display">Anzeige</button>
-      <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="system">System</button>
-      <button class="hud-segment-switch__btn" type="button" data-switch-group="settings-sections" data-switch-target="info">Info</button>
+    <div class="hud-segment-switch" aria-label="Einstellungssektionen">
+      {% for key, label in [('devices', 'Geräte'), ('sources', 'Quellen'), ('display', 'Anzeige'), ('system', 'System'), ('info', 'Info')] %}
+        {% set is_locked = key in locked_sections %}
+        <a class="hud-segment-switch__btn{% if key == active_section %} active{% endif %}{% if is_locked %} is-locked{% endif %}" href="/settings?section={{ key }}">
+          <span>{{ label }}</span>
+          {% if is_locked %}<i class="fa-solid fa-lock" aria-hidden="true"></i>{% endif %}
+        </a>
+      {% endfor %}
     </div>
 
+    {% if active_section in locked_sections %}
+    <div class="settings-access-hint">
+      <i class="fa-solid fa-lock" aria-hidden="true"></i>
+      <span>Kein Zugriff auf diese Sektion. Als Gast steht nur der Bereich <strong>Info</strong> zur Verfügung.</span>
+    </div>
+    {% endif %}
+
     <div class="settings-module-stack">
-      {% include "pages/settings/_devices.html" %}
-      {% include "pages/settings/_sources.html" %}
-      {% include "pages/settings/_display.html" %}
-      {% include "pages/settings/_system.html" %}
-      {% include "pages/settings/_info.html" %}
+      {% if active_section == 'devices' %}
+        {% if can_manage_settings %}
+          {% include "pages/settings/_devices.html" %}
+        {% else %}
+          {% set locked_title = 'Geräte' %}{% include "pages/settings/_locked_panel.html" %}
+        {% endif %}
+      {% elif active_section == 'sources' %}
+        {% if can_manage_settings %}
+          {% include "pages/settings/_sources.html" %}
+        {% else %}
+          {% set locked_title = 'Quellen' %}{% include "pages/settings/_locked_panel.html" %}
+        {% endif %}
+      {% elif active_section == 'display' %}
+        {% if can_manage_settings %}
+          {% include "pages/settings/_display.html" %}
+        {% else %}
+          {% set locked_title = 'Anzeige' %}{% include "pages/settings/_locked_panel.html" %}
+        {% endif %}
+      {% elif active_section == 'system' %}
+        {% if can_manage_settings %}
+          {% include "pages/settings/_system.html" %}
+        {% else %}
+          {% set locked_title = 'System' %}{% include "pages/settings/_locked_panel.html" %}
+        {% endif %}
+      {% else %}
+        {% include "pages/settings/_info.html" %}
+      {% endif %}
     </div>
   </section>
 </section>

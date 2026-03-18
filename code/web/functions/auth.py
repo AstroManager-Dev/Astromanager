@@ -20,17 +20,17 @@ ROLE_LABELS = {
 }
 PERMISSIONS_BY_ROLE: dict[str, set[str]] = {
     "guest": {
-        "view_gallery", "view_sessions", "view_targets", "view_atlas", "view_raw_files", "view_fits_viewer", "view_login",
+        "view_gallery", "view_sessions", "view_targets", "view_atlas", "view_raw_files", "view_fits_viewer", "view_login", "view_settings_info",
     },
     "observer": {
-        "view_gallery", "view_sessions", "view_targets", "view_atlas", "view_raw_files", "view_fits_viewer", "view_login",
+        "view_gallery", "view_sessions", "view_targets", "view_atlas", "view_raw_files", "view_fits_viewer", "view_login", "view_settings_info",
     },
     "user": {
-        "view_gallery", "view_sessions", "view_targets", "view_atlas", "view_raw_files", "view_fits_viewer", "view_login",
+        "view_gallery", "view_sessions", "view_targets", "view_atlas", "view_raw_files", "view_fits_viewer", "view_login", "view_settings_info",
         "view_overview", "run_workflows", "view_system_status", "view_logs",
     },
     "admin": {
-        "view_gallery", "view_sessions", "view_targets", "view_atlas", "view_raw_files", "view_fits_viewer", "view_login",
+        "view_gallery", "view_sessions", "view_targets", "view_atlas", "view_raw_files", "view_fits_viewer", "view_login", "view_settings_info",
         "view_overview", "run_workflows", "view_system_status", "view_logs",
         "manage_settings", "manage_users", "view_database", "manage_dev_tools",
     },
@@ -190,6 +190,7 @@ def build_auth_context() -> dict[str, Any]:
         "can_view_system_status": "view_system_status" in permission_set,
         "can_run_workflows": "run_workflows" in permission_set,
         "can_manage_settings": "manage_settings" in permission_set,
+        "can_view_settings_info": "view_settings_info" in permission_set,
         "can_manage_users": "manage_users" in permission_set,
         "can_view_database": "view_database" in permission_set,
         "can_manage_dev_tools": "manage_dev_tools" in permission_set,

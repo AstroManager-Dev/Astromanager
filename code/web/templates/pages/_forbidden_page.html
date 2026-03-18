@@ -1,43 +1,21 @@
-<section class="settings-page forbidden-page">
-  <section class="hud-panel settings-page__header-shell">
-    <div class="section-heading">
-      <span class="section-heading__eyebrow">Zugriff</span>
-      <h1 class="section-heading__title">Kein Zugriff</h1>
-      <p class="section-heading__subtitle">
-        Dieser Bereich ist mit deinem aktuellen Benutzer nicht freigegeben.
-      </p>
-    </div>
+<section class="page-section forbidden-page">
+  <div class="section-heading">
+    <span class="section-heading__eyebrow">Kein Zugriff</span>
+    <h1 class="section-heading__title">Dieser Bereich ist für deinen Benutzer gesperrt</h1>
+    <p class="section-heading__subtitle">Melde dich mit einem Benutzer an, der die benötigten Rechte für diesen Bereich hat.</p>
+  </div>
 
-    <div class="forbidden-page__actions">
-      <a class="astro-btn astro-btn--sm astro-btn--secondary" href="/login">Login / Profil</a>
-      <a class="astro-btn astro-btn--sm astro-btn--secondary" href="/#gallery">Zur Galerie</a>
-    </div>
-  </section>
-
-  <section class="hud-panel settings-page__switch-shell">
-    <article class="hud-card settings-module-card">
-      <div class="settings-info-stack">
-        <article class="hud-mini-card settings-dummy-module">
-          <div class="hud-mini-card__eyebrow">Status</div>
-          <h3 class="hud-mini-card__title">403 · Nicht erlaubt</h3>
-          <p class="hud-mini-card__text">
-            {% if auth_context and auth_context.is_logged_in %}
-            Angemeldet als <strong>{{ auth_context.display_name }}</strong> mit Rolle <strong>{{ auth_context.primary_role_label }}</strong>.
-            {% else %}
-            Du bist aktuell als <strong>Gast</strong> unterwegs.
-            {% endif %}
-          </p>
-        </article>
-
-        <article class="hud-mini-card settings-dummy-module">
-          <div class="hud-mini-card__eyebrow">Hinweis</div>
-          <h3 class="hud-mini-card__title">Benötigte Freigabe</h3>
-          <p class="hud-mini-card__text">
-            Einstellungen, Benutzerverwaltung und weitere geschützte Bereiche sind nur für passende Rollen sichtbar.
-            Melde dich mit einem Benutzer an, der die nötigen Rechte hat.
-          </p>
-        </article>
+  <section class="login-card settings-locked-panel">
+    <div class="settings-locked-state">
+      <div class="settings-locked-state__icon"><i class="fa-solid fa-lock"></i></div>
+      <div class="settings-locked-state__content">
+        <strong>Aktueller Benutzer: {{ auth_context.display_name or 'Gast' }}</strong>
+        <p>Mit der Rolle {{ auth_context.primary_role_label or 'Gast' }} ist dieser Bereich nicht freigeschaltet.</p>
+        <div class="settings-locked-state__actions">
+          <a class="astro-btn astro-btn--sm astro-btn--primary" href="/login">Login / Profil</a>
+          <a class="astro-btn astro-btn--sm" href="/">Zur Galerie</a>
+        </div>
       </div>
-    </article>
+    </div>
   </section>
 </section>

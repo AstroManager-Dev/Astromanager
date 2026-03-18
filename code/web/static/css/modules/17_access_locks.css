@@ -1,0 +1,64 @@
+.hud-segment-switch__btn.is-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-segment-switch__btn.is-locked i,
+.bottom-nav-btn--locked i,
+.sheet-link--locked i {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.access-lock-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.access-lock-panel__icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(108,157,255,.18);
+  background: rgba(6,18,44,.72);
+  color: rgba(232,242,255,.96);
+  font-size: 24px;
+}
+
+.access-lock-panel__title {
+  font-size: 18px;
+  line-height: 1.35;
+  color: rgba(245,248,255,.96);
+}
+
+.access-lock-panel__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(216,228,247,.86);
+}
+
+.access-lock-panel__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bottom-nav-btn--locked {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .bottom-nav-btn--locked span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}

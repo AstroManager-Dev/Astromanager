@@ -1,0 +1,17 @@
+<section class="session-source-panel settings-module-panel active">
+  <article class="hud-card settings-module-card access-lock-panel">
+    <div class="hud-section-head hud-section-head--tight">
+      <div>
+        <div class="eyebrow">Kein Zugriff</div>
+        <h3>{{ locked_title }}</h3>
+      </div>
+    </div>
+    <div class="access-lock-panel__icon"><i class="fa-solid fa-lock"></i></div>
+    <div class="access-lock-panel__title">{{ locked_title }} ist für deinen aktuellen Benutzer gesperrt.</div>
+    <p class="access-lock-panel__text">Als Gast steht nur der Info-Bereich zur Verfügung. Melde dich mit einem berechtigten Benutzer an, um diese Sektion zu öffnen.</p>
+    <div class="access-lock-panel__actions">
+      <a class="astro-btn astro-btn--primary astro-btn--sm" href="/login">Login / Profil</a>
+      <a class="astro-btn astro-btn--ghost astro-btn--sm" href="/settings?section=info">Info öffnen</a>
+    </div>
+  </article>
+</section>

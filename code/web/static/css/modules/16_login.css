@@ -245,3 +245,33 @@
     font-size: 16px;
   }
 }
+
+
+.login-page,
+.login-card,
+.login-form,
+.login-field,
+.login-meta-grid,
+.login-user-card,
+.login-user-card__forms,
+.login-inline-form {
+  min-width: 0;
+}
+
+.login-card,
+.login-input,
+.login-form,
+.login-field,
+.login-meta-card,
+.login-user-card {
+  box-sizing: border-box;
+}
+
+.login-page {
+  overflow-x: hidden;
+}
+
+.login-card {
+  width: 100%;
+  overflow: hidden;
+}

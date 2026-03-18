@@ -190,9 +190,28 @@ def index():
 
 
 @APP.get("/settings")
-@require_permission("manage_settings")
 def settings_page():
-    return render_template("settings_page.html")
+    auth_context = get_auth_context()
+    requested_section = (request.args.get("section") or "").strip().lower()
+    available_sections = ["devices", "sources", "display", "system", "info"]
+    if requested_section not in available_sections:
+        requested_section = "info" if not auth_context.get("can_manage_settings") else "devices"
+
+    locked_sections = set()
+    if not auth_context.get("can_manage_settings"):
+        locked_sections = {"devices", "sources", "display", "system"}
+        if requested_section in locked_sections:
+            active_section = requested_section
+        else:
+            active_section = "info"
+    else:
+        active_section = requested_section
+
+    return render_template(
+        "settings_page.html",
+        settings_active_section=active_section,
+        settings_locked_sections=locked_sections,
+    )
 
 
 def render_login_page(*, error: str = "", message: str = "", status_code: int = 200):
@@ -599,6 +618,11 @@ def api_run(action: str):
     result["recent_runs"] = db_recent_runs()
     return jsonify(result)
 
+
+@APP.get("/forbidden")
+def forbidden_route():
+    auth_context = get_auth_context()
+    return render_template("403.html", auth_context=auth_context), 403
 
 @APP.errorhandler(403)
 def forbidden_page(error):
