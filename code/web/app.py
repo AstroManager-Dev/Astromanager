@@ -1,16 +1,35 @@
 #!/usr/bin/env python3
 import os
+import secrets
 import sqlite3
 import subprocess
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, abort, jsonify, render_template, request, send_file, Response
+from flask import Flask, Response, abort, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from actions import ACTION_HANDLERS
 from progress_runtime import get_live_progress
-from functions.common import ASTROCTL, PROJECT_CORE_ROOT, PROJECT_ROOT, UPLOAD_ROOT
-from functions.auth import action_permission, build_login_info, get_auth_context, has_permission, require_permission
+from functions.common import ASTROCTL, CONFIG_ROOT, PROJECT_CORE_ROOT, PROJECT_ROOT, UPLOAD_ROOT
+from functions.auth import (
+    action_permission,
+    admin_bootstrap_status,
+    admin_set_user_password,
+    admin_toggle_user_active,
+    admin_update_user_role,
+    authenticate_user,
+    bootstrap_admin_password,
+    build_login_info,
+    build_login_page_data,
+    create_user_by_admin,
+    get_auth_context,
+    has_permission,
+    login_user_session,
+    logout_user_session,
+    require_permission,
+    validate_csrf_token,
+)
 from functions.database import (
     build_table_config,
     db_conn,
@@ -37,6 +56,41 @@ from functions.targets import deepsky_targets, load_target_detail, system_target
 
 APP = Flask(__name__)
 
+
+def load_web_secret_key() -> str:
+    secret_file = Path("/runtime/web_secret_key.txt")
+
+    if secret_file.exists():
+        value = secret_file.read_text(encoding="utf-8").strip()
+        if value:
+            return value
+
+    secret_file.parent.mkdir(parents=True, exist_ok=True)
+    value = secrets.token_hex(32)
+    secret_file.write_text(value, encoding="utf-8")
+    return value
+
+    secret_file.parent.mkdir(parents=True, exist_ok=True)
+    value = secrets.token_hex(32)
+    secret_file.write_text(value, encoding="utf-8")
+    return value
+    secret_file.parent.mkdir(parents=True, exist_ok=True)
+    value = secrets.token_urlsafe(48)
+    secret_file.write_text(value, encoding="utf-8")
+    try:
+        os.chmod(secret_file, 0o600)
+    except OSError:
+        pass
+    return value
+
+
+APP.secret_key = load_web_secret_key()
+APP.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=(os.environ.get("ASTROMANAGER_SECURE_COOKIE", "0") == "1"),
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+)
 
 
 def discover_css_modules() -> list[str]:
@@ -141,10 +195,88 @@ def settings_page():
     return render_template("settings_page.html")
 
 
+def render_login_page(*, error: str = "", message: str = "", status_code: int = 200):
+    auth_context = get_auth_context()
+    page_data = build_login_page_data(auth_context, error=error, message=message)
+    return render_template("login_page.html", **page_data), status_code
+
+
 @APP.get("/login")
 def login_page():
+    return render_login_page()
+
+
+@APP.post("/login")
+def login_page_post():
+    action = (request.form.get("action") or "login").strip().lower()
+    if not validate_csrf_token(request.form.get("csrf_token")):
+        return render_login_page(error="Die Sitzung ist abgelaufen oder das Formular ist ungültig.", status_code=400)
+
     auth_context = get_auth_context()
-    return render_template("login_page.html", login_info=build_login_info(auth_context), auth_context=auth_context)
+
+    if action == "bootstrap_admin":
+        bootstrap = admin_bootstrap_status()
+        if not bootstrap.get("bootstrap_needed"):
+            return render_login_page(error="Der Admin-Login ist bereits initialisiert.", status_code=400)
+        ok, message = bootstrap_admin_password(
+            request.form.get("password") or "",
+            request.form.get("password_confirm") or "",
+        )
+        if ok:
+            return render_login_page(message=message)
+        return render_login_page(error=message, status_code=400)
+
+    if action == "login":
+        ok, message, user = authenticate_user(
+            request.form.get("username") or "",
+            request.form.get("password") or "",
+            request.remote_addr or "",
+        )
+        if ok and user is not None:
+            login_user_session(user)
+            return redirect(url_for("login_page"))
+        return render_login_page(error=message, status_code=400)
+
+    if action == "logout":
+        logout_user_session()
+        return redirect(url_for("login_page"))
+
+    if action == "create_user":
+        if not auth_context.get("can_manage_users"):
+            abort(403)
+        ok, message = create_user_by_admin(
+            request.form.get("username") or "",
+            request.form.get("display_name") or "",
+            request.form.get("role") or "observer",
+            request.form.get("password") or "",
+            request.form.get("password_confirm") or "",
+            str(auth_context.get("display_name") or "admin"),
+        )
+        return render_login_page(message=message) if ok else render_login_page(error=message, status_code=400)
+
+    if action == "set_user_role":
+        if not auth_context.get("can_manage_users"):
+            abort(403)
+        user_id = int(request.form.get("user_id") or "0")
+        ok, message = admin_update_user_role(user_id, request.form.get("role") or "observer", str(auth_context.get("display_name") or "admin"))
+        return render_login_page(message=message) if ok else render_login_page(error=message, status_code=400)
+
+    if action == "set_user_password":
+        if not auth_context.get("can_manage_users"):
+            abort(403)
+        user_id = int(request.form.get("user_id") or "0")
+        ok, message = admin_set_user_password(user_id, request.form.get("password") or "", request.form.get("password_confirm") or "")
+        return render_login_page(message=message) if ok else render_login_page(error=message, status_code=400)
+
+    if action == "toggle_user_active":
+        if not auth_context.get("can_manage_users"):
+            abort(403)
+        user_id = int(request.form.get("user_id") or "0")
+        target_active = (request.form.get("target_active") or "1") == "1"
+        ok, message = admin_toggle_user_active(user_id, target_active)
+        return render_login_page(message=message) if ok else render_login_page(error=message, status_code=400)
+
+    return render_login_page(error="Unbekannte Login-Aktion.", status_code=400)
 
 
 @APP.get("/sessions/<int:session_id>")

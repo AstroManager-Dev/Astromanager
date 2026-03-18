@@ -1,3 +1,4 @@
+0.4.031 | 2026-03-18 11:03:48 | Web-Secret-Key auf /runtime umgestellt, sicherer Login mit Admin-Bootstrap ergänzt und Release-Skripte auf zentrales backup.sh vereinheitlicht
 0.4.030 | 2026-03-18 09:44:08 | Test Python Release Tool
 0.4.029 | 2026-03-18 09:19:56 | Benutzerverwaltung und Rollenbasis eingeführt, Login-Bereich vorbereitet und Header-Nutzeranzeige verschlankt
 0.4.028 | 2026-03-18 08:45:03 | Login-Bereich eingeführt, kompakte Topbar-Nutzeranzeige ergänzt und Font Awesome Icons vorbereitet
