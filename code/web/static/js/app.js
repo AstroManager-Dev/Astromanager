@@ -256,6 +256,36 @@ ${name}`)) {
 
   initFitsPresetControls();
 
+
+  function initGeolocationFill() {
+    document.querySelectorAll('[data-geo-fill]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const form = btn.closest('form');
+        if (!form) return;
+        const status = form.querySelector('[data-geo-status]');
+        if (!navigator.geolocation) {
+          if (status) status.textContent = 'Browser-Geolocation ist auf diesem Gerät nicht verfügbar.';
+          return;
+        }
+        if (status) status.textContent = 'Standort wird abgefragt …';
+        navigator.geolocation.getCurrentPosition((pos) => {
+          const coords = pos.coords || {};
+          const lat = form.querySelector('[data-geo-field="latitude"]');
+          const lon = form.querySelector('[data-geo-field="longitude"]');
+          const ele = form.querySelector('[data-geo-field="elevation"]');
+          if (lat) lat.value = Number(coords.latitude || 0).toFixed(6);
+          if (lon) lon.value = Number(coords.longitude || 0).toFixed(6);
+          if (ele && Number.isFinite(coords.altitude)) ele.value = Number(coords.altitude).toFixed(1);
+          if (status) status.textContent = `Position übernommen · Genauigkeit ca. ${Math.round(coords.accuracy || 0)} m`;
+        }, (err) => {
+          if (status) status.textContent = `Standort konnte nicht gelesen werden: ${err.message || err}`;
+        }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+      });
+    });
+  }
+
+  initGeolocationFill();
+
   const installAppBtn = document.getElementById("install-app-btn");
   let deferredInstallPrompt = null;
 

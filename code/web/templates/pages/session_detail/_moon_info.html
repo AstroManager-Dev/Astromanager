@@ -1,0 +1,15 @@
+{% if session.category == 'moon' %}
+<section class="hud-info-shell session-meta-shell">
+  <div class="session-meta-shell__head-inline">
+    <div>
+      <div class="eyebrow">Mond zum Aufnahmezeitpunkt</div>
+      <div class="hud-run-entry__meta">{{ session.moon_info_source_label or 'geozentrisch' }}{% if session.effective_site_label and session.site_assignment_mode != 'none' %} · {{ session.effective_site_label }}{% endif %}</div>
+    </div>
+  </div>
+  <div class="session-meta-grid session-meta-grid--compact">
+    {% for meta in session.moon_info_items %}
+      {% include "pages/session_detail/_meta_item.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

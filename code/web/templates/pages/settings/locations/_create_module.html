@@ -1,0 +1,35 @@
+<article class="hud-mini-card settings-location-module">
+  <h4>Neuen Standort anlegen</h4>
+  <form class="settings-location-form" method="post" action="/settings/locations">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>
+      <span>Name</span>
+      <input type="text" name="name" placeholder="z. B. Zuhause" required>
+    </label>
+    <label>
+      <span>Breitengrad</span>
+      <input type="number" step="0.000001" name="latitude_deg" data-geo-field="latitude" required>
+    </label>
+    <label>
+      <span>Längengrad</span>
+      <input type="number" step="0.000001" name="longitude_deg" data-geo-field="longitude" required>
+    </label>
+    <label>
+      <span>Höhe (m)</span>
+      <input type="number" step="0.1" name="elevation_m" data-geo-field="elevation" placeholder="optional">
+    </label>
+    <label>
+      <span>Zeitzone</span>
+      <input type="text" name="timezone_name" placeholder="z. B. Europe/Berlin">
+    </label>
+    <label class="settings-location-form__check">
+      <input type="checkbox" name="set_default" value="1">
+      <span>Als Standard-Standort speichern</span>
+    </label>
+    <div class="settings-location-form__actions">
+      <button class="astro-btn astro-btn--secondary astro-btn--sm" type="button" data-geo-fill>Aktuelle Position übernehmen</button>
+      <button class="astro-btn astro-btn--primary astro-btn--sm" type="submit">Standort speichern</button>
+    </div>
+    <div class="hud-run-entry__meta" data-geo-status>Browser-Standort kann optional das Formular mit der Handy-Position füllen.</div>
+  </form>
+</article>

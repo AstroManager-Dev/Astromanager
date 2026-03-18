@@ -28,6 +28,7 @@ from functions.auth import (
     login_user_session,
     logout_user_session,
     require_permission,
+    issue_csrf_token,
     validate_csrf_token,
 )
 from functions.database import (
@@ -50,6 +51,8 @@ from functions.gallery import (
     load_session_raw_list,
 )
 from functions.fits_viewer import enrich_raw_file_viewer_context, render_raw_file_fits_preview
+from functions.ephemeris import load_session_ephemeris_context
+from functions.observing import assign_session_observing_site, create_observing_site, delete_observing_site, list_observing_sites, set_default_observing_site
 from functions.program_info import load_program_info
 from functions.status import append_web_log, dev_assets, latest_web_log, resolve_download, summarize_service_state
 from functions.targets import deepsky_targets, load_target_detail, system_targets
@@ -193,13 +196,13 @@ def index():
 def settings_page():
     auth_context = get_auth_context()
     requested_section = (request.args.get("section") or "").strip().lower()
-    available_sections = ["devices", "sources", "display", "system", "info"]
+    available_sections = ["devices", "sources", "display", "locations", "system", "info"]
     if requested_section not in available_sections:
         requested_section = "info" if not auth_context.get("can_manage_settings") else "devices"
 
     locked_sections = set()
     if not auth_context.get("can_manage_settings"):
-        locked_sections = {"devices", "sources", "display", "system"}
+        locked_sections = {"devices", "sources", "display", "locations", "system"}
         if requested_section in locked_sections:
             active_section = requested_section
         else:
@@ -211,6 +214,8 @@ def settings_page():
         "settings_page.html",
         settings_active_section=active_section,
         settings_locked_sections=locked_sections,
+        observing_sites=list_observing_sites(),
+        csrf_token=issue_csrf_token(),
     )
 
 
@@ -314,8 +319,55 @@ def session_detail_page(session_id: int):
         session["back_href"] = "/#gallery"
         session["back_label"] = "Zurück zur Galerie"
 
-    return render_template("session_detail.html", session=session)
+    session.update(load_session_ephemeris_context(session))
+    return render_template("session_detail.html", session=session, csrf_token=issue_csrf_token())
 
+
+
+@APP.post("/settings/locations")
+@require_permission("manage_settings")
+def settings_locations_create():
+    if not validate_csrf_token(request.form.get("csrf_token")):
+        return redirect("/settings?section=locations")
+    name = (request.form.get("name") or "").strip()
+    timezone_name = (request.form.get("timezone_name") or "").strip()
+    set_default = (request.form.get("set_default") or "") == "1"
+    try:
+        latitude_deg = float((request.form.get("latitude_deg") or "").strip())
+        longitude_deg = float((request.form.get("longitude_deg") or "").strip())
+        elevation_raw = (request.form.get("elevation_m") or "").strip()
+        elevation_m = float(elevation_raw) if elevation_raw else None
+    except ValueError:
+        return redirect("/settings?section=locations")
+    create_observing_site(name, latitude_deg, longitude_deg, elevation_m, timezone_name, set_default=set_default)
+    return redirect("/settings?section=locations")
+
+
+@APP.post("/settings/locations/<int:site_id>/default")
+@require_permission("manage_settings")
+def settings_locations_default(site_id: int):
+    if validate_csrf_token(request.form.get("csrf_token")):
+        set_default_observing_site(site_id)
+    return redirect("/settings?section=locations")
+
+
+@APP.post("/settings/locations/<int:site_id>/delete")
+@require_permission("manage_settings")
+def settings_locations_delete(site_id: int):
+    if validate_csrf_token(request.form.get("csrf_token")):
+        delete_observing_site(site_id)
+    return redirect("/settings?section=locations")
+
+
+@APP.post("/sessions/<int:session_id>/site")
+def session_site_assign(session_id: int):
+    if not get_auth_context().get("can_manage_settings"):
+        abort(403)
+    if not validate_csrf_token(request.form.get("csrf_token")):
+        return redirect(f"/sessions/{session_id}")
+    raw_site_id = (request.form.get("observing_site_id") or "").strip()
+    assign_session_observing_site(session_id, int(raw_site_id) if raw_site_id.isdigit() else None)
+    return redirect(f"/sessions/{session_id}")
 
 
 @APP.get("/targets/<int:target_id>")

@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-flask \
     python3-pil \
     python3-opencv \
+    build-essential \
+    python3-dev \
     lftp \
     rsync \
     curl \
@@ -28,6 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rpm2cpio \
     astrometry.net \
     astrometry-data-tycho2 \
+ && pip3 install --break-system-packages --no-cache-dir pyswisseph \
  && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app /raw /data /runtime /logs /work /tmp /cache /config /opt/astrometry-extra /tmp/astrometry-rpms

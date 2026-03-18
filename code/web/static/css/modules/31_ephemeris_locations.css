@@ -1,0 +1,88 @@
+.settings-locations-grid,
+.session-site-form {
+  display: grid;
+  gap: 12px;
+}
+.settings-location-list,
+.settings-location-form,
+.session-site-summary {
+  display: grid;
+  gap: 10px;
+}
+.settings-location-item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(120, 180, 255, 0.18);
+  border-radius: 16px;
+  background: rgba(6, 18, 45, 0.55);
+}
+.settings-location-item__actions,
+.settings-location-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.settings-location-form label,
+.session-site-form label {
+  display: grid;
+  gap: 6px;
+}
+.settings-location-form input,
+.session-site-form select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(130, 190, 255, 0.22);
+  background: rgba(5, 15, 38, 0.84);
+  color: #edf6ff;
+  padding: 10px 12px;
+}
+.settings-location-form__check {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+.settings-location-form__check input {
+  width: auto;
+}
+.session-meta-shell__head-inline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.session-site-collapse {
+  margin-top: 2px;
+}
+.session-site-collapse__summary-meta {
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(186, 211, 236, 0.78);
+  font-weight: 500;
+  text-align: right;
+}
+
+
+.session-admin-meta-collapse {
+  margin-top: 2px;
+}
+
+.session-meta-grid--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.session-meta-grid--compact .session-meta-item {
+  min-height: 76px;
+}
+
+@media (max-width: 640px) {
+  .session-meta-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .session-meta-grid--compact .session-meta-item__value {
+    font-size: 13px;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+}

@@ -1,0 +1,45 @@
+{% if session.category in ['moon', 'sun'] %}
+<details class="hud-collapse session-site-collapse" {% if session.site_assignment_mode != 'assigned' %}open{% endif %}>
+  <summary class="hud-collapse__summary">
+    <span>Standort</span>
+    <span class="session-site-collapse__summary-meta">
+      {% if session.site_assignment_mode == 'assigned' %}
+        {{ session.effective_site_label }}
+      {% elif session.site_assignment_mode == 'default' %}
+        Default · {{ session.effective_site_label }}
+      {% else %}
+        Standort fehlt
+      {% endif %}
+    </span>
+  </summary>
+  <div class="hud-collapse__body">
+    <div class="session-site-summary">
+      <div><strong>Aktiv:</strong> {{ session.effective_site_label }}</div>
+      <div class="hud-run-entry__meta">
+        {% if session.site_assignment_mode == 'assigned' %}
+          Direkt an diese Session gebunden.
+        {% elif session.site_assignment_mode == 'default' %}
+          Kein Session-Standort gesetzt, Standard-Standort wird verwendet.
+        {% else %}
+          Noch kein Standort vorhanden. Dann werden nur standortunabhängige Werte angezeigt.
+        {% endif %}
+      </div>
+    </div>
+    {% if auth_context_global.can_manage_settings %}
+    <form class="session-site-form" method="post" action="/sessions/{{ session.id }}/site">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>
+        <span>Standort zuweisen</span>
+        <select name="observing_site_id">
+          <option value="">Standard / kein fester Session-Bezug</option>
+          {% for site in session.available_sites %}
+            <option value="{{ site.id }}" {% if session.assigned_site and session.assigned_site.id == site.id %}selected{% endif %}>{{ site.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="astro-btn astro-btn--secondary astro-btn--sm" type="submit">Session-Standort speichern</button>
+    </form>
+    {% endif %}
+  </div>
+</details>
+{% endif %}

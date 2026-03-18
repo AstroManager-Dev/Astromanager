@@ -1,3 +1,19 @@
+{% set is_solar_session = session.category in ['moon', 'sun'] %}
+{% if is_solar_session %}
+<details class="hud-collapse session-admin-meta-collapse">
+  <summary class="hud-collapse__summary">
+    <span>AstroManager-Metadaten</span>
+    <span class="session-site-collapse__summary-meta">{{ session.astromanager_meta_items|length }} Einträge</span>
+  </summary>
+  <div class="hud-collapse__body">
+    <div class="session-meta-grid session-meta-grid--compact">
+      {% for meta in session.astromanager_meta_items %}
+        {% include "pages/session_detail/_meta_item.html" %}
+      {% endfor %}
+    </div>
+  </div>
+</details>
+{% else %}
 <section class="hud-info-shell session-meta-shell">
   <div class="eyebrow">AstroManager-Metadaten</div>
   <div class="session-meta-grid">
@@ -6,3 +22,4 @@
     {% endfor %}
   </div>
 </section>
+{% endif %}

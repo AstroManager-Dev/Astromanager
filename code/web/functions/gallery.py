@@ -6,6 +6,28 @@ from .fits_viewer import enrich_raw_file_viewer_context
 from .formatters import _format_exposure_duration_label, _format_session_datetime_label, _format_session_group_label, _format_session_month_label
 
 
+
+
+def _normalize_session_target_names(category_value: str, names: list[str], fallback_target: str) -> list[str]:
+    category = str(category_value or '').strip().lower()
+    generic_solar_names = {'sun', 'moon', 'sonne', 'mond', 'solarsystem', 'systemziel'}
+    normalized: list[str] = []
+    for name in names:
+        value = str(name or '').strip()
+        if not value:
+            continue
+        if category in {'sun', 'moon'} and value.strip().lower() in generic_solar_names:
+            continue
+        if value not in normalized:
+            normalized.append(value)
+    fallback = str(fallback_target or '').strip()
+    if not normalized and fallback:
+        if not (category in {'sun', 'moon'} and fallback.lower() in generic_solar_names):
+            normalized.append(fallback)
+    if not normalized and category in {'sun', 'moon'}:
+        normalized.append('Solarsystem')
+    return normalized
+
 def _load_gallery_sessions() -> list[dict[str, Any]]:
     conn = db_conn()
     try:
@@ -129,10 +151,7 @@ def _load_gallery_sessions() -> list[dict[str, Any]]:
                         names.append(name)
             fallback_target = str(item.get("target") or "").strip()
             category_value = str(item.get("category") or "").strip().lower()
-            if not names and fallback_target:
-                names.append(fallback_target)
-            if not names and category_value in ("sun", "moon"):
-                names.append("Solarsystem")
+            names = _normalize_session_target_names(category_value, names, fallback_target)
             item["session_target_names_list"] = names
             item["session_target_names_label"] = " · ".join(names) if names else "Kein Session-Target"
             preview_id = item.get("dwarf_preview_raw_file_id")
@@ -243,13 +262,20 @@ def _load_session_detail(session_id: int) -> dict[str, Any] | None:
                     })
 
         fallback_target = str(item.get("target") or "").strip()
-        if not names and fallback_target:
-            names.append(fallback_target)
+        category_value = str(item.get("category") or "").strip().lower()
+        names = _normalize_session_target_names(category_value, names, fallback_target)
 
         item["session_target_names_list"] = names
         item["session_target_names_label"] = " · ".join(names) if names else "Kein Session-Target"
-        item["display_target_name"] = names[0] if names else "Unbenanntes Target"
-        item["display_target_aliases"] = names[1:]
+        if category_value == "sun":
+            item["display_target_name"] = "Sun"
+            item["display_target_aliases"] = [] if names == ["Solarsystem"] else names
+        elif category_value == "moon":
+            item["display_target_name"] = "Moon"
+            item["display_target_aliases"] = [] if names == ["Solarsystem"] else names
+        else:
+            item["display_target_name"] = names[0] if names else "Unbenanntes Target"
+            item["display_target_aliases"] = names[1:]
         item["detected_targets"] = detected_targets
 
         exp_value = item.get("exp")

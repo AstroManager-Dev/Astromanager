@@ -7,7 +7,7 @@
 
   <section class="hud-panel settings-page__switch-shell">
     <div class="hud-segment-switch" aria-label="Einstellungssektionen">
-      {% for key, label in [('devices', 'Geräte'), ('sources', 'Quellen'), ('display', 'Anzeige'), ('system', 'System'), ('info', 'Info')] %}
+      {% for key, label in [('devices', 'Geräte'), ('sources', 'Quellen'), ('display', 'Anzeige'), ('locations', 'Standorte'), ('system', 'System'), ('info', 'Info')] %}
         {% set is_locked = key in locked_sections %}
         <a class="hud-segment-switch__btn{% if key == active_section %} active{% endif %}{% if is_locked %} is-locked{% endif %}" href="/settings?section={{ key }}">
           <span>{{ label }}</span>
@@ -41,6 +41,12 @@
           {% include "pages/settings/_display.html" %}
         {% else %}
           {% set locked_title = 'Anzeige' %}{% include "pages/settings/_locked_panel.html" %}
+        {% endif %}
+      {% elif active_section == 'locations' %}
+        {% if can_manage_settings %}
+          {% include "pages/settings/_locations.html" %}
+        {% else %}
+          {% set locked_title = 'Standorte' %}{% include "pages/settings/_locked_panel.html" %}
         {% endif %}
       {% elif active_section == 'system' %}
         {% if can_manage_settings %}
