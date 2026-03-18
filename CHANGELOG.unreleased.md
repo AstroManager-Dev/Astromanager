@@ -1,3 +1,4 @@
+0.4.034 | 2026-03-18 15:39:18 | Bottom-Navigation per Grid-Wrapper stabilisiert und Button-Set-Anbindung korrigiert
 0.4.033 | 2026-03-18 13:30:57 | Settings-Inhalte repariert, Lock-Hinweise ergänzt sowie Menü-, Bottom-Navigation- und Login-UI bereinigt
 0.4.032 | 2026-03-18 11:47:39 | Login-Seite mobil bereinigt und 403-Zugriffsseite für gesperrte Bereiche ergänzt
 0.4.031 | 2026-03-18 11:03:48 | Web-Secret-Key auf /runtime umgestellt, sicherer Login mit Admin-Bootstrap ergänzt und Release-Skripte auf zentrales backup.sh vereinheitlicht
