@@ -1,0 +1,247 @@
+.login-page {
+  display: grid;
+  gap: 18px;
+}
+
+.login-card {
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(98, 146, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(7, 20, 52, 0.88), rgba(4, 11, 32, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 14px 30px rgba(0,0,0,0.24);
+}
+
+.login-card--intro {
+  padding-bottom: 16px;
+}
+
+.login-card--message {
+  color: rgba(231, 241, 255, 0.96);
+  font-size: 14px;
+}
+
+.login-card--error {
+  border-color: rgba(255, 126, 126, 0.28);
+}
+
+.login-card__head {
+  display: grid;
+  gap: 8px;
+}
+
+.login-card__head--split {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.login-card__head-action,
+.login-card__head-form {
+  align-self: start;
+}
+
+.login-card__eyebrow {
+  margin-bottom: 2px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(173, 204, 255, 0.62);
+}
+
+.login-card__title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  color: rgba(245, 248, 255, 0.98);
+}
+
+.login-card__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(216, 228, 247, 0.88);
+}
+
+.login-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.login-form--single-column {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.login-form--admin-create {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.login-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.login-field--full {
+  grid-column: 1 / -1;
+}
+
+.login-field--compact {
+  gap: 6px;
+}
+
+.login-field__label {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(173, 204, 255, 0.62);
+}
+
+.login-input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(108, 157, 255, 0.18);
+  background: rgba(6, 18, 44, 0.96);
+  color: rgba(245, 248, 255, 0.98);
+  font-size: 17px;
+  line-height: 1.2;
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 0 0 1px rgba(67, 114, 214, 0.05);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.login-input::placeholder {
+  color: rgba(180, 196, 224, 0.45);
+}
+
+.login-input:focus {
+  border-color: rgba(118, 171, 255, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 0 0 2px rgba(85, 141, 255, 0.18),
+    0 12px 24px rgba(0,0,0,0.18);
+}
+
+.login-input[readonly] {
+  color: rgba(216, 228, 247, 0.72);
+  background: rgba(12, 22, 48, 0.88);
+}
+
+.login-form__actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
+.login-form__actions--full {
+  grid-column: 1 / -1;
+}
+
+.login-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.login-meta-card {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(96, 146, 255, 0.12);
+  background: rgba(6, 17, 42, 0.7);
+  color: rgba(241, 246, 255, 0.96);
+}
+
+.login-meta-card--full {
+  grid-column: 1 / -1;
+}
+
+.login-users-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.login-user-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(96, 146, 255, 0.12);
+  background: rgba(6, 17, 42, 0.74);
+}
+
+.login-user-card__title {
+  margin: 0;
+  font-size: 18px;
+  color: rgba(245, 248, 255, 0.98);
+}
+
+.login-user-card__meta {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(216, 228, 247, 0.82);
+}
+
+.login-user-card__forms {
+  display: grid;
+  gap: 12px;
+}
+
+.login-inline-form {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(110, 152, 240, 0.1);
+}
+
+.login-inline-form--toggle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@media (max-width: 720px) {
+  .login-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .login-card__head--split,
+  .login-form--admin-create,
+  .login-meta-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .login-card__head-action,
+  .login-card__head-form {
+    width: 100%;
+  }
+
+  .login-card__head-action .astro-btn,
+  .login-card__head-form .astro-btn {
+    width: 100%;
+  }
+
+  .login-card__title,
+  .login-user-card__title {
+    font-size: 18px;
+  }
+
+  .login-input {
+    min-height: 50px;
+    font-size: 16px;
+  }
+}

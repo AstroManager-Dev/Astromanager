@@ -1,3 +1,4 @@
+0.4.032 | 2026-03-18 11:47:39 | Login-Seite mobil bereinigt und 403-Zugriffsseite für gesperrte Bereiche ergänzt
 0.4.031 | 2026-03-18 11:03:48 | Web-Secret-Key auf /runtime umgestellt, sicherer Login mit Admin-Bootstrap ergänzt und Release-Skripte auf zentrales backup.sh vereinheitlicht
 0.4.030 | 2026-03-18 09:44:08 | Test Python Release Tool
 0.4.029 | 2026-03-18 09:19:56 | Benutzerverwaltung und Rollenbasis eingeführt, Login-Bereich vorbereitet und Header-Nutzeranzeige verschlankt

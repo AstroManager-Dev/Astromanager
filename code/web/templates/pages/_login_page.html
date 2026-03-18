@@ -1,209 +1,221 @@
-<section class="settings-page login-page">
-  <section class="hud-panel settings-page__header-shell login-page__header-shell">
-    <div class="hud-section-head hud-section-head--tight">
+<section class="login-page">
+  <section class="login-card login-card--intro">
+    <div class="login-card__head login-card__head--split">
       <div>
-        <div class="eyebrow">Login</div>
-        <h2>Zugang und Benutzerstatus</h2>
-        <p class="muted">Keine Selbstregistrierung. Benutzer und Rollen werden ausschließlich durch Admins verwaltet. Beim ersten Start muss das eingebaute Adminkonto einmalig ein Passwort setzen.</p>
+        <div class="login-card__eyebrow">Login</div>
+        <h2 class="login-card__title">Zugang und Benutzerstatus</h2>
+        <p class="login-card__text">
+          Keine Selbstregistrierung. Benutzer und Rollen werden ausschließlich durch Admins verwaltet.
+          Beim ersten Start muss das eingebaute Adminkonto einmalig ein Passwort setzen.
+        </p>
       </div>
       {% if auth_context.can_manage_settings %}
-      <a class="astro-btn astro-btn--sm astro-btn--secondary" href="/settings">Einstellungen</a>
+      <a class="astro-btn astro-btn--sm astro-btn--secondary login-card__head-action" href="/settings">Einstellungen</a>
       {% endif %}
     </div>
   </section>
 
   {% if error %}
-  <section class="hud-panel login-page__message-shell">
-    <article class="hud-card settings-module-card login-page__message-card login-page__message-card--error">
-      <div class="eyebrow">Fehler</div>
-      <strong>{{ error }}</strong>
-    </article>
+  <section class="login-card login-card--message login-card--error">
+    <div class="login-card__eyebrow">Fehler</div>
+    <strong>{{ error }}</strong>
   </section>
   {% endif %}
 
   {% if message %}
-  <section class="hud-panel login-page__message-shell">
-    <article class="hud-card settings-module-card login-page__message-card">
-      <div class="eyebrow">Hinweis</div>
-      <strong>{{ message }}</strong>
-    </article>
+  <section class="login-card login-card--message">
+    <div class="login-card__eyebrow">Hinweis</div>
+    <strong>{{ message }}</strong>
   </section>
   {% endif %}
 
   {% if bootstrap_needed and not auth_context.is_logged_in %}
-  <section class="hud-panel settings-page__switch-shell login-page__panel-shell">
-    <article class="hud-card settings-module-card login-page__status-card">
-      <div class="hud-section-head hud-section-head--tight">
-        <div>
-          <div class="eyebrow">Ersteinrichtung</div>
-          <h3>Admin-Passwort setzen</h3>
-          <p class="muted">Benutzer <strong>{{ bootstrap_admin_username }}</strong> ist vorbereitet. Bevor sich weitere Benutzer anmelden können, muss einmalig ein sicheres Passwort gesetzt werden.</p>
-        </div>
+  <section class="login-card">
+    <div class="login-card__head">
+      <div class="login-card__eyebrow">Ersteinrichtung</div>
+      <h3 class="login-card__title">Admin-Passwort setzen</h3>
+      <p class="login-card__text">
+        Benutzer <strong>{{ bootstrap_admin_username }}</strong> ist vorbereitet. Bevor sich weitere Benutzer
+        anmelden können, muss einmalig ein sicheres Passwort gesetzt werden.
+      </p>
+    </div>
+
+    <form method="post" class="login-form login-form--single-column">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="bootstrap_admin">
+
+      <label class="login-field login-field--full">
+        <span class="login-field__label">Admin-Benutzer</span>
+        <input class="login-input" type="text" value="{{ bootstrap_admin_username }}" readonly>
+      </label>
+
+      <label class="login-field login-field--full">
+        <span class="login-field__label">Passwort</span>
+        <input class="login-input" type="password" name="password" autocomplete="new-password" required>
+      </label>
+
+      <label class="login-field login-field--full">
+        <span class="login-field__label">Passwort wiederholen</span>
+        <input class="login-input" type="password" name="password_confirm" autocomplete="new-password" required>
+      </label>
+
+      <div class="login-form__actions">
+        <button type="submit" class="astro-btn astro-btn--primary astro-btn--sm">Admin initialisieren</button>
       </div>
-      <form method="post" class="settings-module-grid login-page__form-grid">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="hidden" name="action" value="bootstrap_admin">
-        <label class="settings-field login-page__full-row">
-          <span>Admin-Benutzer</span>
-          <input type="text" value="{{ bootstrap_admin_username }}" readonly>
-        </label>
-        <label class="settings-field">
-          <span>Passwort</span>
-          <input type="password" name="password" autocomplete="new-password" required>
-        </label>
-        <label class="settings-field">
-          <span>Passwort wiederholen</span>
-          <input type="password" name="password_confirm" autocomplete="new-password" required>
-        </label>
-        <div class="login-page__full-row login-page__actions-row">
-          <button type="submit" class="astro-btn astro-btn--sm">Admin initialisieren</button>
-        </div>
-      </form>
-    </article>
+    </form>
   </section>
   {% elif not auth_context.is_logged_in %}
-  <section class="hud-panel settings-page__switch-shell login-page__panel-shell">
-    <article class="hud-card settings-module-card login-page__status-card">
-      <div class="hud-section-head hud-section-head--tight">
-        <div>
-          <div class="eyebrow">Anmeldung</div>
-          <h3>Mit bestehendem Konto einloggen</h3>
-          <p class="muted">Es gibt keine offene Registrierung. Neue Konten werden ausschließlich von einem Admin erstellt.</p>
-        </div>
+  <section class="login-card">
+    <div class="login-card__head">
+      <div class="login-card__eyebrow">Anmeldung</div>
+      <h3 class="login-card__title">Mit bestehendem Konto einloggen</h3>
+      <p class="login-card__text">
+        Es gibt keine offene Registrierung. Neue Konten werden ausschließlich von einem Admin erstellt.
+      </p>
+    </div>
+
+    <form method="post" class="login-form login-form--single-column">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="login">
+
+      <label class="login-field login-field--full">
+        <span class="login-field__label">Benutzername</span>
+        <input class="login-input" type="text" name="username" autocomplete="username" required>
+      </label>
+
+      <label class="login-field login-field--full">
+        <span class="login-field__label">Passwort</span>
+        <input class="login-input" type="password" name="password" autocomplete="current-password" required>
+      </label>
+
+      <div class="login-form__actions">
+        <button type="submit" class="astro-btn astro-btn--primary astro-btn--sm">Login</button>
       </div>
-      <form method="post" class="settings-module-grid login-page__form-grid">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="hidden" name="action" value="login">
-        <label class="settings-field">
-          <span>Benutzername</span>
-          <input type="text" name="username" autocomplete="username" required>
-        </label>
-        <label class="settings-field">
-          <span>Passwort</span>
-          <input type="password" name="password" autocomplete="current-password" required>
-        </label>
-        <div class="login-page__full-row login-page__actions-row">
-          <button type="submit" class="astro-btn astro-btn--sm">Login</button>
-        </div>
-      </form>
-    </article>
+    </form>
   </section>
   {% else %}
-  <section class="hud-panel settings-page__switch-shell login-page__panel-shell">
-    <article class="hud-card settings-module-card login-page__status-card">
-      <div class="hud-section-head hud-section-head--tight">
-        <div>
-          <div class="eyebrow">Aktiver Benutzer</div>
-          <h3>{{ login_info.user_label }}</h3>
-          <p class="muted">{{ login_info.status_label }} · {{ login_info.role_label }}</p>
-        </div>
-        <form method="post">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <input type="hidden" name="action" value="logout">
-          <button type="submit" class="astro-btn astro-btn--sm astro-btn--secondary">Logout</button>
-        </form>
+  <section class="login-card">
+    <div class="login-card__head login-card__head--split">
+      <div>
+        <div class="login-card__eyebrow">Aktiver Benutzer</div>
+        <h3 class="login-card__title">{{ login_info.user_label }}</h3>
+        <p class="login-card__text">{{ login_info.status_label }} · {{ login_info.role_label }}</p>
       </div>
-      <div class="hud-card-grid settings-module-grid login-page__grid">
-        <div class="session-meta-card">
-          <div class="eyebrow">Rolle</div>
-          <strong>{{ login_info.role_label }}</strong>
-        </div>
-        <div class="session-meta-card login-page__full-row">
-          <div class="eyebrow">Aktive Rechte</div>
-          <span>{{ login_info.permissions | join(', ') if login_info.permissions else 'keine zusätzlichen Rechte' }}</span>
-        </div>
+      <form method="post" class="login-card__head-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="action" value="logout">
+        <button type="submit" class="astro-btn astro-btn--sm astro-btn--secondary">Logout</button>
+      </form>
+    </div>
+
+    <div class="login-meta-grid">
+      <div class="login-meta-card">
+        <div class="login-card__eyebrow">Rolle</div>
+        <strong>{{ login_info.role_label }}</strong>
       </div>
-    </article>
+      <div class="login-meta-card login-meta-card--full">
+        <div class="login-card__eyebrow">Aktive Rechte</div>
+        <span>{{ login_info.permissions | join(', ') if login_info.permissions else 'keine zusätzlichen Rechte' }}</span>
+      </div>
+    </div>
   </section>
   {% endif %}
 
   {% if auth_context.can_manage_users %}
-  <section class="hud-panel settings-page__switch-shell login-page__panel-shell">
-    <article class="hud-card settings-module-card login-page__status-card">
-      <div class="hud-section-head hud-section-head--tight">
-        <div>
-          <div class="eyebrow">Admin</div>
-          <h3>Benutzerverwaltung</h3>
-          <p class="muted">Nur Admins dürfen Benutzer anlegen, Rollen ändern und Passwörter zurücksetzen.</p>
-        </div>
+  <section class="login-card">
+    <div class="login-card__head">
+      <div class="login-card__eyebrow">Admin</div>
+      <h3 class="login-card__title">Benutzerverwaltung</h3>
+      <p class="login-card__text">Nur Admins dürfen Benutzer anlegen, Rollen ändern und Passwörter zurücksetzen.</p>
+    </div>
+
+    <form method="post" class="login-form login-form--admin-create">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="create_user">
+
+      <label class="login-field">
+        <span class="login-field__label">Benutzername</span>
+        <input class="login-input" type="text" name="username" required>
+      </label>
+      <label class="login-field">
+        <span class="login-field__label">Anzeigename</span>
+        <input class="login-input" type="text" name="display_name" required>
+      </label>
+      <label class="login-field">
+        <span class="login-field__label">Rolle</span>
+        <select class="login-input" name="role">
+          {% for role_code, role_label in role_choices %}
+          <option value="{{ role_code }}">{{ role_label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="login-field">
+        <span class="login-field__label">Startpasswort</span>
+        <input class="login-input" type="password" name="password" autocomplete="new-password" required>
+      </label>
+      <label class="login-field login-field--full">
+        <span class="login-field__label">Passwort wiederholen</span>
+        <input class="login-input" type="password" name="password_confirm" autocomplete="new-password" required>
+      </label>
+
+      <div class="login-form__actions login-form__actions--full">
+        <button type="submit" class="astro-btn astro-btn--primary astro-btn--sm">Benutzer anlegen</button>
       </div>
+    </form>
 
-      <form method="post" class="settings-module-grid login-page__form-grid login-page__create-user-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="hidden" name="action" value="create_user">
-        <label class="settings-field">
-          <span>Benutzername</span>
-          <input type="text" name="username" required>
-        </label>
-        <label class="settings-field">
-          <span>Anzeigename</span>
-          <input type="text" name="display_name" required>
-        </label>
-        <label class="settings-field">
-          <span>Rolle</span>
-          <select name="role">
-            {% for role_code, role_label in role_choices %}
-            <option value="{{ role_code }}">{{ role_label }}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <label class="settings-field">
-          <span>Startpasswort</span>
-          <input type="password" name="password" autocomplete="new-password" required>
-        </label>
-        <label class="settings-field">
-          <span>Passwort wiederholen</span>
-          <input type="password" name="password_confirm" autocomplete="new-password" required>
-        </label>
-        <div class="login-page__full-row login-page__actions-row">
-          <button type="submit" class="astro-btn astro-btn--sm">Benutzer anlegen</button>
-        </div>
-      </form>
-
-      <div class="login-page__users-list">
-        {% for user in manageable_users %}
-        <div class="hud-card session-card login-page__user-card">
-          <div class="hud-section-head hud-section-head--tight">
-            <div>
-              <div class="eyebrow">{{ user.username }}</div>
-              <h3>{{ user.display_name }}</h3>
-              <p class="muted">{{ user.primary_role_label }} · {{ 'aktiv' if user.is_active else 'deaktiviert' }}{% if user.last_login_at %} · letzter Login {{ user.last_login_at }}{% endif %}</p>
-            </div>
+    <div class="login-users-list">
+      {% for user in manageable_users %}
+      <article class="login-user-card">
+        <div class="login-user-card__head">
+          <div>
+            <div class="login-card__eyebrow">{{ user.username }}</div>
+            <h4 class="login-user-card__title">{{ user.display_name }}</h4>
+            <p class="login-user-card__meta">{{ user.primary_role_label }} · {{ 'aktiv' if user.is_active else 'deaktiviert' }}{% if user.last_login_at %} · letzter Login {{ user.last_login_at }}{% endif %}</p>
           </div>
-          <div class="login-page__user-actions">
-            <form method="post" class="login-page__inline-form">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <input type="hidden" name="action" value="set_user_role">
-              <input type="hidden" name="user_id" value="{{ user.id }}">
-              <select name="role">
+        </div>
+
+        <div class="login-user-card__forms">
+          <form method="post" class="login-inline-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="set_user_role">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <label class="login-field login-field--compact login-field--full">
+              <span class="login-field__label">Rolle</span>
+              <select class="login-input" name="role">
                 {% for role_code, role_label in role_choices %}
                 <option value="{{ role_code }}" {% if role_code == user.primary_role %}selected{% endif %}>{{ role_label }}</option>
                 {% endfor %}
               </select>
-              <button type="submit" class="astro-btn astro-btn--xs astro-btn--secondary">Rolle setzen</button>
-            </form>
+            </label>
+            <button type="submit" class="astro-btn astro-btn--xs astro-btn--secondary">Rolle setzen</button>
+          </form>
 
-            <form method="post" class="login-page__inline-form login-page__inline-form--password">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <input type="hidden" name="action" value="set_user_password">
-              <input type="hidden" name="user_id" value="{{ user.id }}">
-              <input type="password" name="password" placeholder="Neues Passwort" autocomplete="new-password" required>
-              <input type="password" name="password_confirm" placeholder="Wiederholen" autocomplete="new-password" required>
-              <button type="submit" class="astro-btn astro-btn--xs">Passwort setzen</button>
-            </form>
+          <form method="post" class="login-inline-form login-inline-form--password">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="set_user_password">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <label class="login-field login-field--compact login-field--full">
+              <span class="login-field__label">Neues Passwort</span>
+              <input class="login-input" type="password" name="password" autocomplete="new-password" required>
+            </label>
+            <label class="login-field login-field--compact login-field--full">
+              <span class="login-field__label">Passwort wiederholen</span>
+              <input class="login-input" type="password" name="password_confirm" autocomplete="new-password" required>
+            </label>
+            <button type="submit" class="astro-btn astro-btn--xs">Passwort setzen</button>
+          </form>
 
-            <form method="post" class="login-page__inline-form">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <input type="hidden" name="action" value="toggle_user_active">
-              <input type="hidden" name="user_id" value="{{ user.id }}">
-              <input type="hidden" name="target_active" value="{{ '0' if user.is_active else '1' }}">
-              <button type="submit" class="astro-btn astro-btn--xs astro-btn--secondary">{{ 'Deaktivieren' if user.is_active else 'Aktivieren' }}</button>
-            </form>
-          </div>
+          <form method="post" class="login-inline-form login-inline-form--toggle">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="toggle_user_active">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <input type="hidden" name="target_active" value="{{ '0' if user.is_active else '1' }}">
+            <button type="submit" class="astro-btn astro-btn--xs astro-btn--secondary">{{ 'Deaktivieren' if user.is_active else 'Aktivieren' }}</button>
+          </form>
         </div>
-        {% endfor %}
-      </div>
-    </article>
+      </article>
+      {% endfor %}
+    </div>
   </section>
   {% endif %}
 </section>
