@@ -37,6 +37,26 @@ from functions.targets import deepsky_targets, load_target_detail, system_target
 APP = Flask(__name__)
 
 
+def load_login_info() -> dict[str, Any]:
+    user_name = (os.environ.get("ASTROMANAGER_LOGIN_USER") or "").strip()
+    profile_href = (os.environ.get("ASTROMANAGER_LOGIN_HREF") or "/login").strip() or "/login"
+    if user_name:
+        return {
+            "is_logged_in": True,
+            "user_label": user_name,
+            "status_label": "Eingeloggt",
+            "action_label": "Profil",
+            "action_href": profile_href,
+        }
+    return {
+        "is_logged_in": False,
+        "user_label": "Gast",
+        "status_label": "Nicht angemeldet",
+        "action_label": "Login",
+        "action_href": profile_href,
+    }
+
+
 def discover_css_modules() -> list[str]:
     candidate_roots = [
         Path(APP.static_folder or "") / "css" / "modules",
@@ -61,9 +81,10 @@ def inject_global_ui_context() -> dict[str, Any]:
         return {
             "program_info_global": load_program_info(),
             "css_module_files": discover_css_modules(),
+            "login_info_global": load_login_info(),
         }
     except Exception:
-        return {"program_info_global": None, "css_module_files": discover_css_modules()}
+        return {"program_info_global": None, "css_module_files": discover_css_modules(), "login_info_global": load_login_info()}
 
 
 @APP.get("/")
@@ -124,6 +145,11 @@ def index():
 @APP.get("/settings")
 def settings_page():
     return render_template("settings_page.html")
+
+
+@APP.get("/login")
+def login_page():
+    return render_template("login_page.html", login_info=load_login_info())
 
 
 @APP.get("/sessions/<int:session_id>")

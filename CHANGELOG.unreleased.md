@@ -1,3 +1,4 @@
+0.4.028 | 2026-03-18 08:45:03 | Login-Bereich eingeführt, kompakte Topbar-Nutzeranzeige ergänzt und Font Awesome Icons vorbereitet
 0.4.027 | 2026-03-18 08:00:51 | Test Release-Skript mit backup.sh
 0.4.026 | 2026-03-18 07:51:07 | Test neuer Backup-Aufruf
 0.4.025 | 2026-03-18 07:21:56 | Button-System in eigenes CSS-Modul ausgelagert und kompakte Hauptaktionsbuttons angeglichen

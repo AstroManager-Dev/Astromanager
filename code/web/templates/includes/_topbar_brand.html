@@ -4,6 +4,7 @@
       <div class="hud-topbar__logo-rail">
         <img class="hud-topbar__logo" src="/static/logo.jpg" alt="AstroManager Logo">
       </div>
+
       <div class="hud-topbar__copy">
         <div class="hud-topbar__title">DeepSky Sessions</div>
         {% if program_info_global and program_info_global["version"] %}
@@ -12,8 +13,19 @@
       </div>
     </div>
 
-    <a class="hud-topbar__settings" href="/settings" aria-label="Einstellungen">
-      <span aria-hidden="true">⚙</span>
-    </a>
+    <div class="hud-topbar__actions">
+      <div class="hud-topbar__action-row">
+        <a class="hud-topbar__icon-btn" href="{{ login_href or '/login' }}" aria-label="Login">
+          <i class="fa-solid fa-user"></i>
+        </a>
+        <a class="hud-topbar__icon-btn" href="/settings" aria-label="Einstellungen">
+          <i class="fa-solid fa-gear"></i>
+        </a>
+      </div>
+
+      <div class="hud-topbar__userline">
+        <div class="hud-topbar__user-name">{{ login_user or "Gast" }}</div>
+      </div>
+    </div>
   </div>
 </header>

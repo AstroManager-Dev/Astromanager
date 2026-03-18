@@ -1,0 +1,38 @@
+<section class="settings-page login-page">
+  <section class="hud-panel settings-page__header-shell login-page__header-shell">
+    <div class="hud-section-head hud-section-head--tight">
+      <div>
+        <div class="eyebrow">Login</div>
+        <h2>Zugang und Benutzerstatus</h2>
+        <p class="muted">Der Kopfbereich zeigt immer direkt an, ob aktuell ein Gastmodus aktiv ist oder ein Benutzer hinterlegt wurde.</p>
+      </div>
+      <a class="astro-btn astro-btn--sm astro-btn--secondary" href="/settings">Einstellungen</a>
+    </div>
+  </section>
+
+  <section class="hud-panel settings-page__switch-shell login-page__panel-shell">
+    <article class="hud-card settings-module-card login-page__status-card">
+      <div class="hud-section-head hud-section-head--tight">
+        <div>
+          <div class="eyebrow">Benutzer</div>
+          <h3>{{ login_info.user_label }}</h3>
+          <p class="muted">{{ login_info.status_label }}</p>
+        </div>
+      </div>
+      <div class="hud-card-grid settings-module-grid login-page__grid">
+        <div class="session-meta-card">
+          <div class="eyebrow">Status</div>
+          <strong>{{ "Eingeloggt" if login_info.is_logged_in else "Gastmodus" }}</strong>
+        </div>
+        <div class="session-meta-card">
+          <div class="eyebrow">Aktion</div>
+          <strong>{{ login_info.action_label }}</strong>
+        </div>
+        <div class="session-meta-card login-page__full-row">
+          <div class="eyebrow">Hinweis</div>
+          <span>Der Login-Bereich ist vorbereitet. Später können hier echte Auth-Provider, Tailscale-Login oder ein lokaler Benutzerfluss angeschlossen werden.</span>
+        </div>
+      </div>
+    </article>
+  </section>
+</section>
