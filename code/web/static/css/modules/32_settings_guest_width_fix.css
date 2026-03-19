@@ -1,0 +1,27 @@
+.hud-segment-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.hud-segment-switch__btn {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hud-segment-switch__btn span {
+  min-width: 0;
+}
+
+.hud-segment-switch__btn.is-locked i {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .hud-segment-switch__btn {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
