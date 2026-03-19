@@ -1,9 +1,30 @@
 .settings-device-grid {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.settings-module-card--split {
+  gap: 18px;
+}
+
+.settings-device-module {
+  border: 1px solid rgba(112, 176, 255, 0.14);
+  background: rgba(3, 10, 28, 0.34);
+}
+
+.settings-device-module--compact {
+  padding-bottom: 12px;
 }
 
 .settings-device-module--wide {
   grid-column: 1 / -1;
+}
+
+.settings-device-module__head-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
 }
 
 .settings-device-module__intro {
@@ -11,9 +32,19 @@
   opacity: 0.82;
 }
 
+.settings-device-toggle-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(112, 176, 255, 0.12);
+}
+
 .settings-collapsible-list {
   display: grid;
   gap: 12px;
+}
+
+.settings-collapsible-list--compact {
+  gap: 10px;
 }
 
 .settings-collapsible-item {
@@ -21,6 +52,15 @@
   border-radius: 18px;
   background: rgba(3, 10, 28, 0.42);
   overflow: hidden;
+}
+
+.settings-collapsible-item--compact summary {
+  padding-block: 12px;
+}
+
+.settings-collapsible-item.is-highlighted {
+  border-color: rgba(125, 174, 255, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(125, 174, 255, 0.12);
 }
 
 .settings-collapsible-item summary {
@@ -49,6 +89,26 @@
   display: grid;
   gap: 4px;
   font-size: 0.95rem;
+}
+
+.settings-device-instance-meta--compact {
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(112, 176, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.settings-device-inline-actions,
+.settings-device-form__checks,
+.settings-device-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.settings-device-inline-actions {
+  justify-content: space-between;
 }
 
 .settings-device-form {
@@ -85,14 +145,6 @@
   gap: 12px;
 }
 
-.settings-device-form__checks,
-.settings-device-form__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-}
-
 .settings-device-check {
   display: inline-flex !important;
   align-items: center;
@@ -109,9 +161,15 @@
   justify-content: flex-end;
 }
 
+.settings-device-delete-form--inline {
+  justify-content: flex-start;
+}
+
 @media (max-width: 640px) {
+  .settings-device-module__head-row,
   .settings-device-form__cols,
-  .settings-collapsible-item summary {
+  .settings-collapsible-item summary,
+  .settings-device-inline-actions {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: flex-start;

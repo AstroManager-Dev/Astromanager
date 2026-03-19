@@ -1,14 +1,14 @@
-<article class="hud-mini-card settings-device-module">
-  <div class="hud-section-head hud-section-head--tight">
+<article class="hud-mini-card settings-device-module settings-device-module--compact">
+  <div class="hud-section-head hud-section-head--tight settings-device-module__head-row">
     <div>
       <h4>Verfügbare Device-Sources</h4>
-      <p class="settings-device-module__intro">Reiner Info-Bereich zu den im System verfügbaren Templates. Die eigentliche Gerätekonfiguration erfolgt darunter über Geräteinstanzen.</p>
+      <p class="settings-device-module__intro">Reiner Info-Bereich zu den im System verfügbaren Templates. Die eigentliche Gerätekonfiguration erfolgt über Geräteinstanzen.</p>
     </div>
   </div>
   {% if device_sources_settings %}
-    <div class="settings-collapsible-list">
+    <div class="settings-collapsible-list settings-collapsible-list--compact">
       {% for source in device_sources_settings %}
-        <details class="settings-collapsible-item">
+        <details class="settings-collapsible-item settings-collapsible-item--compact">
           <summary>
             <span>{{ source.vendor }} {{ source.model }}</span>
             <span class="settings-collapsible-item__meta">{{ source.source_key }}</span>

@@ -1,9 +1,10 @@
-0.4.041 | 2026-03-19 11:43:11 | geräte konfiguration der Teleskope in die UI hinzugefügt
+0.4.042 | 2026-03-19 12:51:58 | Settings Seite angepasst
+0.4.041 | 2026-03-19 11:43:11 | Gerätekonfiguration der Teleskope in die UI hinzugefügt
 0.4.040 | 2026-03-19 10:08:33 | Settings mobile: Sektionsbuttons bei Gast/Admin auf 3er-Grid im Mobile-Breakpoint angepasst
 0.4.039 | 2026-03-19 09:52:08 | RAW-Sync auf device_instances umgestellt, PNG/JPEG/TIFF/JSON Sync aktiviert, Settings Quellen stabilisiert und Container-User auf 1000:1000 gesetzt
 0.4.038 | 2026-03-19 09:15:39 | RAW-Sync auf device_instances umgestellt, DB-Extensions/Overrides aktiv und Workflow 0030/0040/9999 repariert
 0.4.037 | 2026-03-19 08:52:10 | Settings Quellen: device_sources Defaults + device_instances DB/UI vorbereitet, Web-500 in settings behoben
-0.4.036 | 2026-03-19 08:43:20 | db erweiterung
+0.4.036 | 2026-03-19 08:43:20 | Datenbankerweiterung Vorbereitung 
 0.4.035 | 2026-03-18 18:49:02 | Moon/Sun-Infos, Standorte, Session-Detail-UI kompakter
 0.4.034 | 2026-03-18 15:39:18 | Bottom-Navigation per Grid-Wrapper stabilisiert und Button-Set-Anbindung korrigiert
 0.4.033 | 2026-03-18 13:30:57 | Settings-Inhalte repariert, Lock-Hinweise ergänzt sowie Menü-, Bottom-Navigation- und Login-UI bereinigt

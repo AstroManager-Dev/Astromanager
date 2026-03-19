@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 try:
@@ -12,6 +13,30 @@ except ModuleNotFoundError:
 from .database import db_conn, db_table_columns, db_table_exists, row_to_dict
 
 ALLOWED_AUTH_MODES = {"anonymous", "login"}
+
+
+def _slugify_instance_key(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "_", (value or "").strip().lower())
+    slug = re.sub(r"_+", "_", slug).strip("_")
+    return slug
+
+
+def _build_unique_instance_key(conn: Any, seed: str, exclude_id: int | None = None) -> str:
+    base = _slugify_instance_key(seed) or "device_instance"
+    candidate = base
+    suffix = 2
+    while True:
+        params = [candidate]
+        sql = 'SELECT id FROM device_instances WHERE lower(instance_key) = lower(?)'
+        if exclude_id is not None:
+            sql += ' AND id <> ?'
+            params.append(exclude_id)
+        sql += ' LIMIT 1'
+        row = conn.execute(sql, tuple(params)).fetchone()
+        if row is None:
+            return candidate
+        candidate = f"{base}_{suffix}"
+        suffix += 1
 
 
 def list_device_sources_settings() -> list[dict[str, Any]]:
@@ -80,7 +105,7 @@ def _clean_instance_payload(form: Any) -> dict[str, Any]:
     auth_mode = (form.get('auth_mode') or 'anonymous').strip().lower()
     if auth_mode not in ALLOWED_AUTH_MODES:
         auth_mode = 'anonymous'
-    instance_key = (form.get('instance_key') or '').strip().lower().replace(' ', '_')
+    instance_key = _slugify_instance_key(form.get('instance_key') or '')
     display_name = (form.get('display_name') or '').strip()
     source_id = _normalize_int(form.get('source_id'), 0, 0, 10_000_000)
     port = _normalize_int(form.get('port'), 21, 1, 65535)
@@ -109,8 +134,6 @@ def _clean_instance_payload(form: Any) -> dict[str, Any]:
         'is_active': _normalize_bool(form.get('is_active')),
         'is_default': _normalize_bool(form.get('is_default')),
     }
-    if not payload['instance_key']:
-        raise ValueError('Instance-Key fehlt.')
     if not payload['display_name']:
         raise ValueError('Anzeigename fehlt.')
     if payload['source_id'] <= 0:
@@ -144,9 +167,7 @@ def create_device_instance(form: Any) -> tuple[bool, str]:
         source = conn.execute('SELECT id FROM device_sources WHERE id = ? LIMIT 1', (payload['source_id'],)).fetchone()
         if source is None:
             return False, 'Gewählte Source existiert nicht.'
-        exists = conn.execute('SELECT id FROM device_instances WHERE lower(instance_key) = lower(?) LIMIT 1', (payload['instance_key'],)).fetchone()
-        if exists is not None:
-            return False, 'Instance-Key existiert bereits.'
+        payload['instance_key'] = _build_unique_instance_key(conn, payload['instance_key'] or payload['display_name'])
         if payload['is_default']:
             conn.execute("UPDATE device_instances SET is_default = 0 WHERE COALESCE(is_default, 0) = 1")
         conn.execute(
@@ -183,18 +204,13 @@ def update_device_instance(instance_id: int, form: Any) -> tuple[bool, str]:
     try:
         if not db_table_exists(conn, 'device_instances'):
             return False, 'Device-Instances-Tabelle fehlt.'
-        existing = conn.execute('SELECT id, display_name, password_enc, password_text FROM device_instances WHERE id = ? LIMIT 1', (instance_id,)).fetchone()
+        existing = conn.execute('SELECT id, display_name, instance_key, password_enc, password_text FROM device_instances WHERE id = ? LIMIT 1', (instance_id,)).fetchone()
         if existing is None:
             return False, 'Geräteinstanz nicht gefunden.'
         source = conn.execute('SELECT id FROM device_sources WHERE id = ? LIMIT 1', (payload['source_id'],)).fetchone()
         if source is None:
             return False, 'Gewählte Source existiert nicht.'
-        duplicate = conn.execute(
-            'SELECT id FROM device_instances WHERE lower(instance_key) = lower(?) AND id <> ? LIMIT 1',
-            (payload['instance_key'], instance_id),
-        ).fetchone()
-        if duplicate is not None:
-            return False, 'Instance-Key existiert bereits.'
+        payload['instance_key'] = _build_unique_instance_key(conn, payload['instance_key'] or existing['instance_key'], exclude_id=instance_id)
         password_enc = payload['password_enc']
         if not password_enc:
             password_enc = existing['password_enc'] if 'password_enc' in existing.keys() else ''
