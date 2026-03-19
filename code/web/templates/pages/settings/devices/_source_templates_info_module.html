@@ -1,26 +1,30 @@
-<article class="hud-mini-card settings-device-module settings-device-module--compact">
+<article class="hud-mini-card settings-device-module settings-device-module--section settings-device-module--compact">
   <div class="hud-section-head hud-section-head--tight settings-device-module__head-row">
     <div>
       <h4>Verfügbare Device-Sources</h4>
-      <p class="settings-device-module__intro">Reiner Info-Bereich zu den im System verfügbaren Templates. Die eigentliche Gerätekonfiguration erfolgt über Geräteinstanzen.</p>
+      <p class="settings-device-module__intro">Kompakte Übersicht der im System verfügbaren Templates.</p>
     </div>
   </div>
   {% if device_sources_settings %}
-    <div class="settings-collapsible-list settings-collapsible-list--compact">
+    <div class="settings-device-card-grid settings-device-card-grid--sources">
       {% for source in device_sources_settings %}
-        <details class="settings-collapsible-item settings-collapsible-item--compact">
-          <summary>
-            <span>{{ source.vendor }} {{ source.model }}</span>
-            <span class="settings-collapsible-item__meta">{{ source.source_key }}</span>
+        <details class="settings-device-card settings-device-card--source">
+          <summary class="settings-device-card__summary">
+            <div class="settings-device-card__title-row">
+              <strong>{{ source.vendor }} {{ source.model }}</strong>
+            </div>
+            <div class="settings-device-card__meta-row">
+              <span>{{ source.source_key }}</span>
+              <span>{{ 'aktiv' if source.is_active else 'inaktiv' }}</span>
+            </div>
           </summary>
-          <div class="settings-collapsible-item__body">
-            <div>Familie: {{ source.family or '—' }}</div>
-            <div>Protokoll: {{ source.protocol or '—' }}</div>
-            <div>Remote-Root: {{ source.remote_base_dir or '—' }}</div>
-            <div>Pattern: {{ source.root_pattern or '—' }}</div>
-            <div>Extensions: {{ source.allowed_extensions or '—' }}</div>
-            <div>Status: {{ 'aktiv' if source.is_active else 'inaktiv' }}</div>
-            {% if source.notes %}<div>Hinweis: {{ source.notes }}</div>{% endif %}
+          <div class="settings-device-card__body settings-device-card__body--compact">
+            <div class="settings-device-kv-grid settings-device-kv-grid--single">
+              <div><span>Protokoll</span><strong>{{ source.protocol or '—' }}</strong></div>
+              <div><span>Root</span><strong>{{ source.remote_base_dir or '—' }}</strong></div>
+              <div><span>Pattern</span><strong>{{ source.root_pattern or '—' }}</strong></div>
+              <div><span>Extensions</span><strong>{{ source.allowed_extensions or '—' }}</strong></div>
+            </div>
           </div>
         </details>
       {% endfor %}

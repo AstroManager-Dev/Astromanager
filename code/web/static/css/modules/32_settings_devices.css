@@ -1,23 +1,29 @@
-.settings-device-grid {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-}
-
 .settings-module-card--split {
   gap: 18px;
 }
 
+.settings-device-page-head {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(112, 176, 255, 0.1);
+}
+
+.settings-device-stack {
+  display: grid;
+  gap: 18px;
+}
+
 .settings-device-module {
-  border: 1px solid rgba(112, 176, 255, 0.14);
-  background: rgba(3, 10, 28, 0.34);
+  border: 1px solid rgba(112, 176, 255, 0.16);
+  background: linear-gradient(180deg, rgba(5, 14, 36, 0.48), rgba(3, 10, 28, 0.34));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.settings-device-module--section {
+  padding: 14px;
 }
 
 .settings-device-module--compact {
-  padding-bottom: 12px;
-}
-
-.settings-device-module--wide {
-  grid-column: 1 / -1;
+  padding-bottom: 14px;
 }
 
 .settings-device-module__head-row {
@@ -35,67 +41,106 @@
 .settings-device-toggle-panel {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid rgba(112, 176, 255, 0.12);
+  border-top: 1px solid rgba(112, 176, 255, 0.1);
 }
 
-.settings-collapsible-list {
+.settings-device-card-grid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  margin-top: 12px;
 }
 
-.settings-collapsible-list--compact {
-  gap: 10px;
-}
-
-.settings-collapsible-item {
-  border: 1px solid rgba(112, 176, 255, 0.18);
+.settings-device-card {
+  border: 1px solid rgba(112, 176, 255, 0.16);
   border-radius: 18px;
-  background: rgba(3, 10, 28, 0.42);
+  background: rgba(4, 11, 30, 0.46);
   overflow: hidden;
 }
 
-.settings-collapsible-item--compact summary {
-  padding-block: 12px;
-}
-
-.settings-collapsible-item.is-highlighted {
+.settings-device-card.is-highlighted {
   border-color: rgba(125, 174, 255, 0.34);
   box-shadow: inset 0 0 0 1px rgba(125, 174, 255, 0.12);
 }
 
-.settings-collapsible-item summary {
+.settings-device-card__summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.settings-device-card__summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-device-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-device-card__title-row strong {
+  font-size: 1.02rem;
+}
+
+.settings-device-card__meta-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  cursor: pointer;
-  font-weight: 700;
+  gap: 10px;
+  opacity: 0.74;
+  font-size: 0.92rem;
 }
 
-.settings-collapsible-item__meta {
-  opacity: 0.72;
-  font-weight: 500;
-  text-align: right;
+.settings-device-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(123, 173, 255, 0.12);
+  border: 1px solid rgba(123, 173, 255, 0.18);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.settings-collapsible-item__body {
+.settings-device-card__body {
   display: grid;
   gap: 12px;
   padding: 0 16px 16px;
-  opacity: 0.92;
 }
 
-.settings-device-instance-meta {
+.settings-device-card__body--compact {
+  gap: 10px;
+}
+
+.settings-device-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-device-kv-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.settings-device-kv-grid > div {
   display: grid;
   gap: 4px;
-  font-size: 0.95rem;
-}
-
-.settings-device-instance-meta--compact {
   padding: 10px 12px;
   border-radius: 14px;
-  border: 1px solid rgba(112, 176, 255, 0.1);
+  border: 1px solid rgba(112, 176, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
+}
+
+.settings-device-kv-grid span {
+  opacity: 0.68;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .settings-device-inline-actions,
@@ -107,7 +152,7 @@
   align-items: center;
 }
 
-.settings-device-inline-actions {
+.settings-device-inline-actions--compact {
   justify-content: space-between;
 }
 
@@ -165,17 +210,17 @@
   justify-content: flex-start;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .settings-device-module__head-row,
-  .settings-device-form__cols,
-  .settings-collapsible-item summary,
-  .settings-device-inline-actions {
-    grid-template-columns: 1fr;
+  .settings-device-inline-actions,
+  .settings-device-card__meta-row {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .settings-collapsible-item__meta {
-    text-align: left;
+  .settings-device-card-grid,
+  .settings-device-kv-grid,
+  .settings-device-form__cols {
+    grid-template-columns: 1fr;
   }
 }
