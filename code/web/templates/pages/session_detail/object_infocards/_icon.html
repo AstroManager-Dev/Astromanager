@@ -1,0 +1,48 @@
+{% set icon_key = '' %}
+{% if meta.icon_key is defined and meta.icon_key %}
+  {% set icon_key = meta.icon_key|lower %}
+{% elif meta.icon is defined and meta.icon %}
+  {% set icon_key = meta.icon|lower %}
+{% elif meta.label is defined and meta.label %}
+  {% set icon_key = meta.label|lower %}
+{% endif %}
+
+{% if 'phase' in icon_key or 'mond' in icon_key or 'moon' in icon_key %}
+  <svg viewBox="0 0 24 24" class="session-object-card__meta-svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 14.2A8.5 8.5 0 1 1 9.8 4 6.7 6.7 0 0 0 20 14.2Z"/>
+  </svg>
+{% elif 'alter' in icon_key or 'hourglass' in icon_key or 'sand' in icon_key or 'zeit' in icon_key or 'age' in icon_key %}
+  <svg viewBox="0 0 24 24" class="session-object-card__meta-svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 3h10"/>
+    <path d="M7 21h10"/>
+    <path d="M8 4c0 3.1 1.8 4.7 4 6 2.2-1.3 4-2.9 4-6"/>
+    <path d="M8 20c0-3.1 1.8-4.7 4-6 2.2 1.3 4 2.9 4 6"/>
+    <path d="M9.5 15.5h5"/>
+  </svg>
+{% elif 'dist' in icon_key or 'range' in icon_key or 'orbit' in icon_key or 'abstand' in icon_key or 'distance' in icon_key %}
+  <svg viewBox="0 0 24 24" class="session-object-card__meta-svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7" cy="12" r="2"/>
+    <circle cx="17" cy="12" r="2"/>
+    <path d="M9.5 12h5"/>
+    <path d="M12 7c3.8 0 6.9 2.2 8 5-1.1 2.8-4.2 5-8 5" opacity=".72"/>
+  </svg>
+{% elif 'sun' in icon_key or 'sonne' in icon_key %}
+  <svg viewBox="0 0 24 24" class="session-object-card__meta-svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2.5v2.2M12 19.3v2.2M4.7 4.7l1.6 1.6M17.7 17.7l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.7 19.3l1.6-1.6M17.7 6.3l1.6-1.6"/>
+  </svg>
+{% elif 'planet' in icon_key %}
+  <svg viewBox="0 0 24 24" class="session-object-card__meta-svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4.5"/>
+    <ellipse cx="12" cy="12" rx="8.5" ry="3.1" transform="rotate(-18 12 12)"/>
+  </svg>
+{% elif 'sky' in icon_key or 'deep' in icon_key or 'target' in icon_key or 'objekt' in icon_key %}
+  <svg viewBox="0 0 24 24" class="session-object-card__meta-svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="6.5"/>
+    <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>
+  </svg>
+{% else %}
+  <svg viewBox="0 0 24 24" class="session-object-card__meta-svg" fill="currentColor">
+    <circle cx="12" cy="12" r="3.2" opacity=".95"/>
+  </svg>
+{% endif %}

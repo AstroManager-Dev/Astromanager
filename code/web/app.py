@@ -52,6 +52,7 @@ from functions.gallery import (
 )
 from functions.fits_viewer import enrich_raw_file_viewer_context, render_raw_file_fits_preview
 from functions.ephemeris import load_session_ephemeris_context
+from functions.session_detail import build_session_object_infocard_context
 from functions.observing import assign_session_observing_site, create_observing_site, delete_observing_site, list_observing_sites, set_default_observing_site
 from functions.settings_devices import (
     create_device_instance,
@@ -359,6 +360,7 @@ def session_detail_page(session_id: int):
         session["back_label"] = "Zurück zur Galerie"
 
     session.update(load_session_ephemeris_context(session))
+    session.update(build_session_object_infocard_context(session))
     return render_template("session_detail.html", session=session, csrf_token=issue_csrf_token())
 
 

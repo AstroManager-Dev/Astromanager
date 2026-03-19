@@ -1,0 +1,18 @@
+<section class="session-object-card session-object-card--{{ session.object_info_card.theme }}">
+  <div class="session-object-card__meta-panel">
+    <div class="eyebrow">{{ session.object_info_card.eyebrow }}</div>
+    <div class="session-object-card__meta-list">
+      {% for meta in session.object_info_card["items"] %}
+        {% include "pages/session_detail/object_infocards/_item.html" %}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="session-object-card__graphic-panel">
+    <div class="session-object-card__graphic-label">{{ session.object_info_card.graphic_label }}</div>
+    <div class="session-object-card__orb session-object-card__orb--sun">
+      <div class="session-object-card__orb-core">
+        <span class="session-object-card__orb-value">{{ session.object_info_card.primary_value }}</span>
+      </div>
+    </div>
+  </div>
+</section>
