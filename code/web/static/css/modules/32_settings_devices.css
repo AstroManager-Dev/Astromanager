@@ -1,3 +1,9 @@
+
+.settings-device-stack {
+  display: grid;
+  gap: 18px;
+}
+
 .settings-device-grid {
   grid-template-columns: minmax(0, 1fr);
   gap: 20px;
@@ -10,10 +16,11 @@
 .settings-device-module {
   border: 1px solid rgba(112, 176, 255, 0.14);
   background: rgba(3, 10, 28, 0.34);
+  border-radius: 22px;
 }
 
 .settings-device-module--section {
-  padding-top: 14px;
+  padding: 18px;
 }
 
 .settings-device-module--compact {
@@ -162,11 +169,7 @@
   gap: 12px;
 }
 
-.settings-source-grid > :last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-}
-
-.settings-source-card {
+.settings-source-details {
   border: 1px solid rgba(112, 176, 255, 0.18);
   border-radius: 18px;
   background: rgba(3, 10, 28, 0.42);
@@ -174,15 +177,19 @@
   overflow: hidden;
 }
 
-.settings-source-card summary {
+.settings-source-details:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.settings-source-details summary {
+  list-style: none;
   display: grid;
   gap: 4px;
   padding: 14px 16px;
   cursor: pointer;
-  list-style: none;
 }
 
-.settings-source-card summary::-webkit-details-marker {
+.settings-source-details summary::-webkit-details-marker {
   display: none;
 }
 
@@ -198,21 +205,17 @@
   font-weight: 500;
 }
 
-.settings-source-card__body {
+.settings-source-details__body {
   display: grid;
-  gap: 6px;
-  padding: 0 16px 14px;
+  gap: 8px;
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(112, 176, 255, 0.12);
   font-size: 0.82rem;
-  opacity: 0.88;
-  border-top: 1px solid rgba(112, 176, 255, 0.1);
+  opacity: 0.9;
 }
 
-.settings-source-card__body strong {
-  font-weight: 700;
-}
-
-.settings-source-card.is-inactive {
-  opacity: 0.7;
+.settings-source-details.is-inactive {
+  opacity: 0.72;
 }
 
 @media (max-width: 640px) {
@@ -221,18 +224,18 @@
     align-items: flex-start;
   }
 
-  .settings-device-form__cols,
+  .settings-device-form__cols:not(.settings-device-form__cols--host-port):not(.settings-device-form__cols--auth-timeout),
   .settings-collapsible-list--instances {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 420px) {
   .settings-source-grid {
     grid-template-columns: 1fr;
   }
 
-  .settings-source-grid > :last-child:nth-child(odd) {
+  .settings-source-details:last-child:nth-child(odd) {
     grid-column: auto;
   }
 }
@@ -254,4 +257,63 @@
 
 .settings-device-toggle-panel--details {
   margin-top: 14px;
+}
+
+
+.settings-device-section-details {
+  display: block;
+}
+
+.settings-device-section-summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-device-section-summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-device-section-summary::after {
+  content: "▾";
+  font-size: 0.9rem;
+  opacity: 0.72;
+}
+
+.settings-device-section-details[open] > .settings-device-section-summary::after {
+  transform: rotate(180deg);
+}
+
+.settings-device-section-body {
+  margin-top: 14px;
+}
+
+
+.settings-device-form__cols--host-port {
+  grid-template-columns: minmax(0, 3fr) minmax(88px, 1fr);
+}
+
+.settings-device-form__cols--auth-timeout {
+  grid-template-columns: minmax(0, 3fr) minmax(88px, 1fr);
+}
+
+@media (max-width: 420px) {
+  .settings-device-form__cols--host-port,
+  .settings-device-form__cols--auth-timeout {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+@media (max-width: 640px) {
+  .settings-device-stack {
+    gap: 16px;
+  }
+
+  .settings-device-module--section {
+    padding: 16px;
+  }
 }

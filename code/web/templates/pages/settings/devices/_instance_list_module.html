@@ -36,27 +36,29 @@
                     {% endfor %}
                   </select>
                 </label>
-                <label>
-                  <span>Host / IP</span>
-                  <input type="text" name="host" value="{{ item.host }}" required>
-                </label>
-                <div class="settings-device-form__cols">
+                <div class="settings-device-form__cols settings-device-form__cols--host-port">
+                  <label>
+                    <span>Host / IP</span>
+                    <input type="text" name="host" value="{{ item.host }}" required>
+                  </label>
                   <label>
                     <span>Port</span>
                     <input type="number" name="port" value="{{ item.port or 21 }}" min="1" max="65535">
+                  </label>
+                </div>
+                <div class="settings-device-form__cols settings-device-form__cols--auth-timeout">
+                  <label>
+                    <span>Authentifizierung</span>
+                    <select name="auth_mode" data-auth-mode-select>
+                      <option value="anonymous"{% if not item.is_login %} selected{% endif %}>Anonymous</option>
+                      <option value="login"{% if item.is_login %} selected{% endif %}>Login mit User/Pass</option>
+                    </select>
                   </label>
                   <label>
                     <span>Timeout (s)</span>
                     <input type="number" name="timeout_seconds" value="{{ item.timeout_seconds or 15 }}" min="1" max="600">
                   </label>
                 </div>
-                <label>
-                  <span>Authentifizierung</span>
-                  <select name="auth_mode" data-auth-mode-select>
-                    <option value="anonymous"{% if not item.is_login %} selected{% endif %}>Anonymous</option>
-                    <option value="login"{% if item.is_login %} selected{% endif %}>Login mit User/Pass</option>
-                  </select>
-                </label>
                 <div class="settings-device-auth-fields" data-auth-mode-fields {% if not item.is_login %}hidden{% endif %}>
                   <label>
                     <span>Benutzername</span>

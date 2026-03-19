@@ -23,27 +23,29 @@
             {% endfor %}
           </select>
         </label>
-        <label>
-          <span>Host / IP</span>
-          <input type="text" name="host" placeholder="192.168.x.x oder Hostname" required>
-        </label>
-        <div class="settings-device-form__cols">
+        <div class="settings-device-form__cols settings-device-form__cols--host-port">
+          <label>
+            <span>Host / IP</span>
+            <input type="text" name="host" placeholder="192.168.x.x oder Hostname" required>
+          </label>
           <label>
             <span>Port</span>
             <input type="number" name="port" value="21" min="1" max="65535">
+          </label>
+        </div>
+        <div class="settings-device-form__cols settings-device-form__cols--auth-timeout">
+          <label>
+            <span>Authentifizierung</span>
+            <select name="auth_mode" data-auth-mode-select>
+              <option value="anonymous">Anonymous</option>
+              <option value="login">Login mit User/Pass</option>
+            </select>
           </label>
           <label>
             <span>Timeout (s)</span>
             <input type="number" name="timeout_seconds" value="15" min="1" max="600">
           </label>
         </div>
-        <label>
-          <span>Authentifizierung</span>
-          <select name="auth_mode" data-auth-mode-select>
-            <option value="anonymous">Anonymous</option>
-            <option value="login">Login mit User/Pass</option>
-          </select>
-        </label>
         <div class="settings-device-auth-fields" data-auth-mode-fields hidden>
           <label>
             <span>Benutzername</span>
