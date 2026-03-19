@@ -87,15 +87,16 @@ db_seed_device_sources() {
 db_seed_device_instances() {
   db_exec "
     INSERT INTO device_instances (
-      id, instance_key, display_name, source_id, connection_kind, host, port,
+      instance_key, display_name, source_id, connection_kind, host, port,
       auth_mode, username, password_text, timeout_seconds, is_active, is_default,
       created_at, updated_at
     )
-    VALUES (
-      1, 'dwarflab_dwarf3', 'DWARF 3', 1, 'ftp', '192.168.2.163', 21,
+    SELECT
+      'dwarflab_dwarf3', 'DWARF 3', ds.id, 'ftp', '192.168.2.163', 21,
       'anonymous', 'anonymous', '', 15, 1, 1,
       datetime('now'), datetime('now')
-    )
+    FROM device_sources ds
+    WHERE ds.source_key = 'dwarflab_dwarf3'
     ON CONFLICT(instance_key) DO UPDATE SET
       display_name=excluded.display_name,
       source_id=excluded.source_id,
@@ -104,6 +105,7 @@ db_seed_device_instances() {
       port=excluded.port,
       auth_mode=excluded.auth_mode,
       username=excluded.username,
+      password_text=excluded.password_text,
       timeout_seconds=excluded.timeout_seconds,
       is_active=excluded.is_active,
       is_default=excluded.is_default,

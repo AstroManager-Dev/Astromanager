@@ -1,0 +1,7 @@
+RAW-Sync nutzt jetzt aktive device_instances nacheinander.
+
+Offener Ausbau danach:
+- gezielte Einzelwahl per instance_key oder ID
+- UI-Formulare fuer Device-Instances
+- Verbindungstest pro Device-Instance
+- optional getrennte Sync-Profile pro Instanz

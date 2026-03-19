@@ -4,6 +4,7 @@
 RAW_SOURCE_KEY_DEFAULT = "dwarflab_dwarf3"
 RAW_REMOTE_BASE_DIR = "/Astronomy"
 RAW_FITS_EXTENSIONS = (".fits", ".fit", ".fts")
+RAW_DEFAULT_ALLOWED_EXTENSIONS = RAW_FITS_EXTENSIONS
 RAW_PLAN_DOWNLOAD_NEW = "download_new"
 RAW_PLAN_SKIP_SAME = "skip_same"
 RAW_PLAN_RESTORE_MISSING_LOCAL = "restore_missing_local"

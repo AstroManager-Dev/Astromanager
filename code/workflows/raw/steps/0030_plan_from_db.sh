@@ -7,7 +7,7 @@ step_run() {
 
   [[ -f "$inventory_json" ]] || die "missing remote inventory: $inventory_json"
 
-  python3 -m astromanager.raw.plan_sync \
+  PYTHONPATH="$ROOT/lib/py${PYTHONPATH:+:$PYTHONPATH}" python3 -m astromanager.raw.plan_sync \
     --db-path "$DB_PATH" \
     --source-key "$RAW_SYNC_SOURCE_KEY" \
     --inventory-json "$inventory_json" \

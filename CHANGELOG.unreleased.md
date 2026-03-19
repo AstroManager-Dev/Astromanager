@@ -1,3 +1,4 @@
+0.4.038 | 2026-03-19 09:15:39 | RAW-Sync auf device_instances umgestellt, DB-Extensions/Overrides aktiv und Workflow 0030/0040/9999 repariert
 0.4.037 | 2026-03-19 08:52:10 | Settings Quellen: device_sources Defaults + device_instances DB/UI vorbereitet, Web-500 in settings behoben
 0.4.036 | 2026-03-19 08:43:20 | db erweiterung
 0.4.035 | 2026-03-18 18:49:02 | Moon/Sun-Infos, Standorte, Session-Detail-UI kompakter

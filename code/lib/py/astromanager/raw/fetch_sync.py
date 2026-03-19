@@ -17,7 +17,7 @@ from .constants import (
     RAW_PLAN_RESTORE_MISSING_LOCAL,
     RAW_SOURCE_KEY_DEFAULT,
 )
-from .device_source import load_device_source
+from .device_instance import load_device_instance
 
 DOWNLOAD_ACTIONS = {
     RAW_PLAN_DOWNLOAD_NEW,
@@ -27,9 +27,9 @@ DOWNLOAD_ACTIONS = {
 }
 
 
-def _connect(host: str, user: str, password: str, timeout: int) -> FTP:
+def _connect(host: str, port: int, user: str, password: str, timeout: int) -> FTP:
     ftp = FTP()
-    ftp.connect(host=host, port=21, timeout=timeout)
+    ftp.connect(host=host, port=port, timeout=timeout)
     ftp.login(user=user, passwd=password)
     ftp.set_pasv(True)
     return ftp
@@ -38,10 +38,7 @@ def _connect(host: str, user: str, password: str, timeout: int) -> FTP:
 def _sha256_of_file(path: str) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as fh:
-        while True:
-            chunk = fh.read(1024 * 1024)
-            if not chunk:
-                break
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
 
@@ -84,16 +81,12 @@ def _emit_progress(
 
 def execute_plan(
     db_path: str,
-    source_key: str,
-    host: str,
-    user: str,
-    password: str,
-    timeout: int,
+    instance_key: str,
     plan_json: str,
     result_json: str,
     dry_run: bool,
 ) -> dict:
-    _ = load_device_source(db_path, source_key)
+    instance = load_device_instance(db_path, instance_key)
 
     with open(plan_json, "r", encoding="utf-8") as fh:
         payload = json.load(fh)
@@ -106,7 +99,7 @@ def execute_plan(
 
     _emit_progress(planned_total, processed, counters["downloaded"], counters["skipped"], counters["errors"])
 
-    ftp = None if dry_run else _connect(host, user, password, timeout)
+    ftp = None if dry_run else _connect(instance.host, instance.port, instance.username, instance.password_text, instance.timeout_seconds)
 
     try:
         for item in items:
@@ -120,6 +113,7 @@ def execute_plan(
                 continue
 
             if dry_run:
+                counters["skipped"] += 1
                 processed += 1
                 results.append({"action": action, "result": "dry_run", "rel_path": item["rel_path"]})
                 _emit_progress(planned_total, processed, counters["downloaded"], counters["skipped"], counters["errors"])
@@ -178,7 +172,7 @@ def execute_plan(
             except Exception:
                 pass
 
-    result_payload = {"counters": counters, "items": results}
+    result_payload = {"instance_key": instance.instance_key, "counters": counters, "items": results}
 
     with open(result_json, "w", encoding="utf-8") as fh:
         json.dump(result_payload, fh, ensure_ascii=False, separators=(",", ":"))
@@ -190,11 +184,8 @@ def execute_plan(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Execute RAW sync download plan")
     parser.add_argument("--db-path", required=True)
+    parser.add_argument("--instance-key", required=True)
     parser.add_argument("--source-key", default=RAW_SOURCE_KEY_DEFAULT)
-    parser.add_argument("--host", required=True)
-    parser.add_argument("--user", default="anonymous")
-    parser.add_argument("--password", default="")
-    parser.add_argument("--timeout", type=int, default=20)
     parser.add_argument("--plan-json", required=True)
     parser.add_argument("--result-json", required=True)
     parser.add_argument("--dry-run", action="store_true")
@@ -202,11 +193,7 @@ def main(argv: list[str] | None = None) -> int:
 
     result = execute_plan(
         args.db_path,
-        args.source_key,
-        args.host,
-        args.user,
-        args.password,
-        args.timeout,
+        args.instance_key,
         args.plan_json,
         args.result_json,
         args.dry_run,

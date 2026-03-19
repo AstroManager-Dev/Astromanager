@@ -14,8 +14,8 @@ from dataclasses import asdict, dataclass
 from ftplib import FTP, error_perm
 from typing import Iterator
 
-from .constants import RAW_FITS_EXTENSIONS, RAW_REMOTE_BASE_DIR, RAW_SOURCE_KEY_DEFAULT
-from .device_source import DeviceSource, load_device_source
+from .constants import RAW_SOURCE_KEY_DEFAULT
+from .device_instance import DeviceInstance, load_device_instance
 
 
 class RawFtpError(RuntimeError):
@@ -34,14 +34,14 @@ class RemoteFile:
     mtime_epoch: int
 
 
-def _connect(host: str, user: str, password: str, timeout: int) -> FTP:
+def _connect(host: str, port: int, user: str, password: str, timeout: int) -> FTP:
     ftp = FTP()
     try:
-        ftp.connect(host=host, port=21, timeout=timeout)
+        ftp.connect(host=host, port=port, timeout=timeout)
     except socket.gaierror as exc:
         raise RawFtpError("ftp_host_unreachable", f"ftp host unreachable host={host}: {exc}") from exc
     except ConnectionRefusedError as exc:
-        raise RawFtpError("ftp_port_closed", f"ftp port 21 closed host={host}: {exc}") from exc
+        raise RawFtpError("ftp_port_closed", f"ftp port {port} closed host={host}: {exc}") from exc
     except TimeoutError as exc:
         raise RawFtpError("ftp_timeout", f"ftp timeout host={host} timeout={timeout}: {exc}") from exc
     except socket.timeout as exc:
@@ -51,7 +51,7 @@ def _connect(host: str, user: str, password: str, timeout: int) -> FTP:
         if "no route to host" in msg or "network is unreachable" in msg or "name or service not known" in msg:
             raise RawFtpError("ftp_host_unreachable", f"ftp host unreachable host={host}: {exc}") from exc
         if "connection refused" in msg:
-            raise RawFtpError("ftp_port_closed", f"ftp port 21 closed host={host}: {exc}") from exc
+            raise RawFtpError("ftp_port_closed", f"ftp port {port} closed host={host}: {exc}") from exc
         if "timed out" in msg:
             raise RawFtpError("ftp_timeout", f"ftp timeout host={host} timeout={timeout}: {exc}") from exc
         raise RawFtpError("ftp_connect_failed", f"ftp connect failed host={host}: {exc}") from exc
@@ -102,20 +102,20 @@ def _list_dir_entries(ftp: FTP, base_dir: str) -> list[tuple[str, dict]]:
         return entries
 
 
-def _iter_remote_files(ftp: FTP, base_dir: str) -> Iterator[RemoteFile]:
+def _iter_remote_files(ftp: FTP, base_dir: str, allowed_extensions: tuple[str, ...]) -> Iterator[RemoteFile]:
     for name, facts in _list_dir_entries(ftp, base_dir):
         child = facts.get("path") or posixpath.join(base_dir, name)
         kind = (facts.get("type") or "").lower()
 
         if kind == "dir":
-            yield from _iter_remote_files(ftp, child)
+            yield from _iter_remote_files(ftp, child, allowed_extensions)
             continue
 
         if kind not in ("", "file"):
             continue
 
         file_name = posixpath.basename(child)
-        if not file_name.lower().endswith(RAW_FITS_EXTENSIONS):
+        if not file_name.lower().endswith(allowed_extensions):
             continue
 
         yield RemoteFile(
@@ -127,9 +127,9 @@ def _iter_remote_files(ftp: FTP, base_dir: str) -> Iterator[RemoteFile]:
         )
 
 
-def _iter_matching_roots(ftp: FTP, source: DeviceSource) -> Iterator[str]:
-    patterns = source.root_names
-    for name, facts in _list_dir_entries(ftp, RAW_REMOTE_BASE_DIR):
+def _iter_matching_roots(ftp: FTP, instance: DeviceInstance) -> Iterator[str]:
+    patterns = instance.root_names
+    for name, facts in _list_dir_entries(ftp, instance.remote_base_dir):
         kind = (facts.get("type") or "").lower()
         if kind != "dir":
             continue
@@ -137,23 +137,23 @@ def _iter_matching_roots(ftp: FTP, source: DeviceSource) -> Iterator[str]:
         if not dir_name:
             continue
         if any(fnmatch.fnmatchcase(dir_name, pattern) for pattern in patterns):
-            yield facts.get("path") or posixpath.join(RAW_REMOTE_BASE_DIR, dir_name)
+            yield facts.get("path") or posixpath.join(instance.remote_base_dir, dir_name)
 
 
-def build_inventory(source: DeviceSource, host: str, user: str, password: str, timeout: int) -> dict:
-    if source.protocol.lower() != "ftp":
-        raise RuntimeError(f"unsupported protocol for initial RAW sync: {source.protocol}")
+def build_inventory(instance: DeviceInstance) -> dict:
+    if instance.protocol.lower() != "ftp":
+        raise RuntimeError(f"unsupported protocol for initial RAW sync: {instance.protocol}")
 
-    ftp = _connect(host, user, password, timeout)
+    ftp = _connect(instance.host, instance.port, instance.username, instance.password_text, instance.timeout_seconds)
     try:
         items: list[dict] = []
-        for remote_root in _iter_matching_roots(ftp, source):
+        for remote_root in _iter_matching_roots(ftp, instance):
             try:
                 ftp.cwd(remote_root)
                 ftp.cwd("/")
             except error_perm:
                 continue
-            for entry in _iter_remote_files(ftp, remote_root):
+            for entry in _iter_remote_files(ftp, remote_root, instance.allowed_extensions):
                 items.append(asdict(entry))
     finally:
         try:
@@ -161,23 +161,25 @@ def build_inventory(source: DeviceSource, host: str, user: str, password: str, t
         except Exception:
             pass
 
-    return {"source_key": source.source_key, "host": host, "items": items}
+    return {
+        "instance_key": instance.instance_key,
+        "source_key": instance.source_key,
+        "host": instance.host,
+        "items": items,
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build RAW remote inventory for AstroManager")
     parser.add_argument("--db-path", required=True)
+    parser.add_argument("--instance-key", required=True)
     parser.add_argument("--source-key", default=RAW_SOURCE_KEY_DEFAULT)
-    parser.add_argument("--host", required=True)
-    parser.add_argument("--user", default="anonymous")
-    parser.add_argument("--password", default="")
-    parser.add_argument("--timeout", type=int, default=15)
     parser.add_argument("--output-json", required=True)
     args = parser.parse_args(argv)
 
     try:
-        source = load_device_source(args.db_path, args.source_key)
-        payload = build_inventory(source, args.host, args.user, args.password, args.timeout)
+        instance = load_device_instance(args.db_path, args.instance_key)
+        payload = build_inventory(instance)
     except RawFtpError as exc:
         print(f"raw_sync_error_code={exc.code}")
         print(f"raw_sync_error_message={exc.message}")
