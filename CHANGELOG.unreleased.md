@@ -1,3 +1,4 @@
+0.4.047 | 2026-03-19 17:12:06 | Standorte finalisiert
 0.4.046 | 2026-03-19 15:56:18 | Settings Geräte finalisiert: Geräteverwaltung in eigenständige Cards aufgeteilt, Instanzansicht kompakt überarbeitet, Device-Sources als Collapsible integriert und Mobile-Layout für Formulare und Abstände bereinigt
 0.4.045 | 2026-03-19 14:08:02 | Settings Seite layout verbessert
 0.4.044 | 2026-03-19 13:52:04 | Settings Seite layout verbessert

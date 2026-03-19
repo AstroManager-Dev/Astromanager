@@ -1,28 +1,38 @@
-<article class="hud-mini-card settings-location-module">
-  <h4>Gespeicherte Standorte</h4>
+<article class="hud-card settings-location-card settings-location-card--list">
+  <div class="hud-section-head hud-section-head--tight">
+    <div>
+      <h3>Gespeicherte Standorte</h3>
+    </div>
+  </div>
+
   {% if observing_sites %}
-    <div class="settings-location-list">
+    <div class="settings-location-list settings-location-list--grid">
       {% for site in observing_sites %}
-        <div class="settings-location-item">
-          <div class="settings-location-item__meta">
-            <strong>{{ site.name }}</strong>
-            <div>{{ '%.5f'|format(site.latitude_deg) }} / {{ '%.5f'|format(site.longitude_deg) }}</div>
-            <div>{{ site.elevation_m if site.elevation_m is not none else '—' }} m · {{ site.timezone_name or 'ohne Zeitzone' }}</div>
-            <div>{{ site.session_count }} Sessions{% if site.is_default %} · Standard{% endif %}</div>
+        <details class="settings-location-item settings-location-item--collapse{% if site.is_default %} is-default{% endif %}">
+          <summary>
+            <span class="settings-location-item__title">{{ site.name }}</span>
+            <span class="settings-location-item__summary-meta">{% if site.is_default %}Standard{% else %}{{ site.session_count }} Sessions{% endif %}</span>
+          </summary>
+          <div class="settings-location-item__body">
+            <div class="settings-location-item__meta">
+              <div>{{ '%.5f'|format(site.latitude_deg) }} / {{ '%.5f'|format(site.longitude_deg) }}</div>
+              <div>{{ site.elevation_m if site.elevation_m is not none else '—' }} m · {{ site.timezone_name or 'ohne Zeitzone' }}</div>
+              <div>{{ site.session_count }} Sessions{% if site.is_default %} · Standard{% endif %}</div>
+            </div>
+            <div class="settings-location-item__actions">
+              {% if not site.is_default %}
+              <form method="post" action="/settings/locations/{{ site.id }}/default">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="astro-btn astro-btn--secondary astro-btn--sm" type="submit">Als Standard</button>
+              </form>
+              {% endif %}
+              <form method="post" action="/settings/locations/{{ site.id }}/delete" onsubmit="return confirm('Standort wirklich löschen?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="astro-btn astro-btn--ghost astro-btn--sm" type="submit" {% if site.session_count %}disabled aria-disabled="true"{% endif %}>Löschen</button>
+              </form>
+            </div>
           </div>
-          <div class="settings-location-item__actions">
-            {% if not site.is_default %}
-            <form method="post" action="/settings/locations/{{ site.id }}/default">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button class="astro-btn astro-btn--secondary astro-btn--sm" type="submit">Als Standard</button>
-            </form>
-            {% endif %}
-            <form method="post" action="/settings/locations/{{ site.id }}/delete" onsubmit="return confirm('Standort wirklich löschen?');">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button class="astro-btn astro-btn--ghost astro-btn--sm" type="submit" {% if site.session_count %}disabled aria-disabled="true"{% endif %}>Löschen</button>
-            </form>
-          </div>
-        </div>
+        </details>
       {% endfor %}
     </div>
   {% else %}

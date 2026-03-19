@@ -1,14 +1,15 @@
 <section class="session-source-panel settings-module-panel active" data-switch-panel="settings-sections" data-switch-value="locations">
-  <article class="hud-card settings-module-card">
-    <div class="hud-section-head hud-section-head--tight">
+  <div class="settings-locations-shell">
+    <div class="hud-section-head hud-section-head--tight settings-locations-shell__head">
       <div>
         <div class="eyebrow">Standorte</div>
         <h3>Beobachtungsorte für Sonnen- und Mondberechnung</h3>
       </div>
     </div>
-    <div class="hud-card-grid settings-module-grid settings-locations-grid">
+
+    <div class="settings-locations-stack">
       {% include "pages/settings/locations/_list_module.html" %}
       {% include "pages/settings/locations/_create_module.html" %}
     </div>
-  </article>
+  </div>
 </section>
