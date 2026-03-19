@@ -7,9 +7,16 @@
   {% if device_sources_settings %}
     <div class="settings-source-grid">
       {% for source in device_sources_settings %}
-        <div class="settings-source-card{% if source.is_active %} is-active{% else %} is-inactive{% endif %}">
-          <div class="settings-source-card__title">{{ source.vendor }} {{ source.model }}</div>
-        </div>
+        <details class="settings-source-card settings-source-card--collapsible{% if source.is_active %} is-active{% else %} is-inactive{% endif %}">
+          <summary>
+            <span class="settings-source-card__title">{{ source.vendor }} {{ source.model }}</span>
+            {% if source.is_active %}<span class="settings-source-card__meta">aktiv</span>{% endif %}
+          </summary>
+          <div class="settings-source-card__body">
+            <div><strong>Key:</strong> {{ source.source_key }}</div>
+            <div><strong>Protokoll:</strong> {{ source.protocol }}</div>
+          </div>
+        </details>
       {% endfor %}
     </div>
   {% else %}
