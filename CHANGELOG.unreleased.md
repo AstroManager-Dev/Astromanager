@@ -1,3 +1,4 @@
+0.4.052 | 2026-03-19 23:35:47 | Mond Beleuchtung grafische Darstellung umgesetzt
 0.4.051 | 2026-03-19 21:57:48 | Aufbau der Mond Infocard.
 0.4.050 | 2026-03-19 18:03:26 | Template Ordner aufgeräumt
 0.4.049 | 2026-03-19 17:48:21 | Settings-Info bereinigt: äußeren Programm-Infos-Bereich vereinheitlicht, doppelte Info-Eyebrow entfernt und Kartenstruktur der Settings-Sektionen weiter konsolidiert

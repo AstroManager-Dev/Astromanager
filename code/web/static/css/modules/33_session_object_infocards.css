@@ -1,0 +1,204 @@
+.session-object-card--moon-progress {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 230px);
+  gap: 18px;
+  align-items: center;
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(96, 158, 255, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(102, 178, 255, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(6, 16, 35, 0.92), rgba(4, 12, 28, 0.84));
+  box-shadow:
+    inset 0 0 0 1px rgba(96, 158, 255, 0.05),
+    0 16px 34px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.session-object-card--moon-progress::after {
+  content: "";
+  position: absolute;
+  inset: auto 10% 0 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(83, 169, 255, 0.42), transparent);
+  pointer-events: none;
+}
+
+.session-object-card__meta-panel--moon,
+.session-object-card__graphic-panel--moon {
+  min-width: 0;
+}
+
+.session-object-card__meta-list--moon {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.session-object-card__meta-row--moon {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.session-object-card__meta-icon--moon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(111, 181, 255, 0.16);
+  background: linear-gradient(180deg, rgba(11, 27, 58, 0.88), rgba(6, 17, 37, 0.95));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  color: rgba(232, 241, 255, 0.92);
+}
+
+.session-object-card__meta-row--moon .session-object-card__meta-label {
+  display: block;
+  margin-bottom: 3px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  color: rgba(198, 217, 245, 0.72);
+}
+
+.session-object-card__meta-row--moon .session-object-card__meta-value {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #f4f8ff;
+}
+
+.session-object-card__graphic-panel--moon {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.session-object-card__graphic-panel--moon .session-object-card__graphic-label {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  color: rgba(198, 217, 245, 0.72);
+}
+
+.session-object-card__gauge--moon {
+  --gauge-size: 176px;
+  --gauge-circumference: 326.7256;
+  position: relative;
+  width: var(--gauge-size);
+  height: var(--gauge-size);
+  display: grid;
+  place-items: center;
+}
+
+.session-object-card__gauge-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+  filter: drop-shadow(0 0 12px rgba(69, 173, 255, 0.18));
+}
+
+.session-object-card__gauge-track,
+.session-object-card__gauge-progress {
+  fill: none;
+  stroke-width: 9;
+}
+
+.session-object-card__gauge-track {
+  stroke: rgba(102, 140, 188, 0.18);
+}
+
+.session-object-card__gauge-progress {
+  stroke: url(#moonGaugeGradient);
+  stroke: #6ed6ff;
+  stroke-linecap: round;
+  stroke-dasharray: var(--gauge-circumference);
+  stroke-dashoffset: calc(var(--gauge-circumference) - (var(--gauge-circumference) * var(--moon-progress) / 100));
+  transition: stroke-dashoffset 220ms ease;
+}
+
+.session-object-card__gauge--moon::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, rgba(13, 30, 64, 0.96), rgba(5, 14, 31, 0.94));
+  box-shadow:
+    inset 0 0 0 1px rgba(113, 181, 255, 0.08),
+    0 0 30px rgba(44, 118, 222, 0.18);
+}
+
+.session-object-card__gauge-core--moon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+}
+
+.session-object-card__gauge-value-wrap--moon {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 1;
+  color: #f5f9ff;
+}
+
+.session-object-card__gauge--moon .session-object-card__gauge-value {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 18px rgba(55, 153, 255, 0.12);
+}
+
+.session-object-card__gauge--moon .session-object-card__gauge-suffix {
+  position: relative;
+  margin-left: -0.04em;
+  transform: translate(-0.05em, 0.15em);
+  font-size: clamp(0.95rem, 2.2vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: rgba(233, 243, 255, 0.94);
+}
+
+@media (max-width: 720px) {
+  .session-object-card--moon-progress {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .session-object-card__graphic-panel--moon {
+    order: -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .session-object-card--moon-progress {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .session-object-card__gauge--moon {
+    --gauge-size: 154px;
+  }
+
+  .session-object-card__meta-row--moon {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .session-object-card__meta-icon--moon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  .session-object-card__meta-row--moon .session-object-card__meta-value {
+    font-size: 0.96rem;
+  }
+}

@@ -1,21 +1,76 @@
-<section class="session-object-card session-object-card--{{ session.object_info_card.theme }}">
-  <div class="session-object-card__meta-panel">
-    <div class="eyebrow">{{ session.object_info_card.eyebrow }}</div>
-    <div class="session-object-card__meta-list">
-      {% for meta in session.object_info_card["items"] %}
-        {% include "pages/session_detail/object_infocards/_item.html" %}
-      {% endfor %}
+{% set ns = namespace(phase='—', age='—', distance='—', illumination='0') %}
+{% for meta in session.object_info_card["items"] %}
+  {% set label = (meta.label|string)|lower %}
+  {% if 'phase' in label %}
+    {% set ns.phase = meta.value %}
+  {% elif 'alter' in label or 'age' in label %}
+    {% set ns.age = meta.value %}
+  {% elif 'dist' in label or 'abstand' in label or 'range' in label %}
+    {% set ns.distance = meta.value %}
+  {% elif 'beleuchtung' in label or 'illum' in label or 'light' in label %}
+    {% set ns.illumination = meta.value %}
+  {% endif %}
+{% endfor %}
+
+{% set progress_raw = (ns.illumination|string)|replace('%', '')|replace(',', '.')|trim %}
+{% set progress_value = progress_raw|float %}
+{% if progress_value < 0 %}
+  {% set progress_value = 0 %}
+{% elif progress_value > 100 %}
+  {% set progress_value = 100 %}
+{% endif %}
+{% set progress_display = '%.1f'|format(progress_value) %}
+
+<section class="session-object-card session-object-card--moon session-object-card--moon-progress" style="--moon-progress: {{ '%.3f'|format(progress_value) }};">
+  <div class="session-object-card__meta-panel session-object-card__meta-panel--moon">
+    <div class="eyebrow">Mondstatus</div>
+    <div class="session-object-card__meta-list session-object-card__meta-list--moon">
+      <div class="session-object-card__meta-row session-object-card__meta-row--moon">
+        <span class="session-object-card__meta-icon session-object-card__meta-icon--moon">
+          {% set meta = {'label': 'Phase', 'icon_key': 'phase'} %}
+          {% include "pages/session_detail/object_infocards/_icon.html" %}
+        </span>
+        <div class="session-object-card__meta-copy">
+          <span class="session-object-card__meta-label">Phase</span>
+          <span class="session-object-card__meta-value">{{ ns.phase }}</span>
+        </div>
+      </div>
+
+      <div class="session-object-card__meta-row session-object-card__meta-row--moon">
+        <span class="session-object-card__meta-icon session-object-card__meta-icon--moon">
+          {% set meta = {'label': 'Mondalter', 'icon_key': 'hourglass'} %}
+          {% include "pages/session_detail/object_infocards/_icon.html" %}
+        </span>
+        <div class="session-object-card__meta-copy">
+          <span class="session-object-card__meta-label">Mondalter</span>
+          <span class="session-object-card__meta-value">{{ ns.age }}</span>
+        </div>
+      </div>
+
+      <div class="session-object-card__meta-row session-object-card__meta-row--moon">
+        <span class="session-object-card__meta-icon session-object-card__meta-icon--moon">
+          {% set meta = {'label': 'Distanz', 'icon_key': 'distance'} %}
+          {% include "pages/session_detail/object_infocards/_icon.html" %}
+        </span>
+        <div class="session-object-card__meta-copy">
+          <span class="session-object-card__meta-label">Distanz</span>
+          <span class="session-object-card__meta-value">{{ ns.distance }}</span>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="session-object-card__graphic-panel">
-    <div class="session-object-card__graphic-label">{{ session.object_info_card.graphic_label }}</div>
-    <div class="session-object-card__gauge" style="--object-progress: {{ session.object_info_card.progress_value or 0 }};">
-      <div class="session-object-card__gauge-core">
-        <div class="session-object-card__gauge-value-wrap">
-          <span class="session-object-card__gauge-value">{{ session.object_info_card.progress_display_value }}</span>
-          {% if session.object_info_card.progress_display_suffix %}
-            <span class="session-object-card__gauge-suffix">{{ session.object_info_card.progress_display_suffix }}</span>
-          {% endif %}
+
+  <div class="session-object-card__graphic-panel session-object-card__graphic-panel--moon">
+    <div class="session-object-card__graphic-label">Beleuchtung</div>
+    <div class="session-object-card__gauge session-object-card__gauge--moon" aria-label="Beleuchtung {{ progress_display }} Prozent">
+      <svg viewBox="0 0 140 140" class="session-object-card__gauge-svg" role="img" aria-hidden="true">
+        <circle class="session-object-card__gauge-track" cx="70" cy="70" r="52"></circle>
+        <circle class="session-object-card__gauge-progress" cx="70" cy="70" r="52"></circle>
+      </svg>
+      <div class="session-object-card__gauge-core session-object-card__gauge-core--moon">
+        <div class="session-object-card__gauge-value-wrap session-object-card__gauge-value-wrap--moon">
+          <span class="session-object-card__gauge-value">{{ progress_display }}</span>
+          <span class="session-object-card__gauge-suffix">%</span>
         </div>
       </div>
     </div>
