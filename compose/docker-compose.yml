@@ -1,5 +1,6 @@
 services:
   astromanager-runner:
+    user: "1000:1000"
     profiles: ["astromanager"]
     container_name: astromanager-runner
     build:
@@ -47,6 +48,7 @@ services:
     restart: unless-stopped
 
   astromanager-web:
+    user: "1000:1000"
     profiles: ["astromanager"]
     container_name: astromanager-web
     build:

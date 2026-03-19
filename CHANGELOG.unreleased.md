@@ -1,3 +1,4 @@
+0.4.039 | 2026-03-19 09:52:08 | RAW-Sync auf device_instances umgestellt, PNG/JPEG/TIFF/JSON Sync aktiviert, Settings Quellen stabilisiert und Container-User auf 1000:1000 gesetzt
 0.4.038 | 2026-03-19 09:15:39 | RAW-Sync auf device_instances umgestellt, DB-Extensions/Overrides aktiv und Workflow 0030/0040/9999 repariert
 0.4.037 | 2026-03-19 08:52:10 | Settings Quellen: device_sources Defaults + device_instances DB/UI vorbereitet, Web-500 in settings behoben
 0.4.036 | 2026-03-19 08:43:20 | db erweiterung
