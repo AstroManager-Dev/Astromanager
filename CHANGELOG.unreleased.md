@@ -1,3 +1,4 @@
+0.4.036 | 2026-03-19 08:43:20 | db erweiterung
 0.4.035 | 2026-03-18 18:49:02 | Moon/Sun-Infos, Standorte, Session-Detail-UI kompakter
 0.4.034 | 2026-03-18 15:39:18 | Bottom-Navigation per Grid-Wrapper stabilisiert und Button-Set-Anbindung korrigiert
 0.4.033 | 2026-03-18 13:30:57 | Settings-Inhalte repariert, Lock-Hinweise ergänzt sowie Menü-, Bottom-Navigation- und Login-UI bereinigt

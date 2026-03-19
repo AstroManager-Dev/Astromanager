@@ -1,0 +1,23 @@
+<article class="hud-mini-card settings-dummy-module">
+  <h4>Device-Instances</h4>
+  <p>Vorbereitung für spätere UI-Anlage von echten Geräten mit Host, Login und Sync-Defaults.</p>
+  {% if device_instances_settings %}
+    <div class="settings-location-list">
+      {% for item in device_instances_settings %}
+        <div class="settings-location-item">
+          <div class="settings-location-item__meta">
+            <strong>{{ item.display_name }}</strong>
+            <div>Instance: {{ item.instance_key }}</div>
+            <div>Template: {{ item.vendor }} {{ item.model }} · {{ item.source_key }}</div>
+            <div>Host: {{ item.host or '—' }}:{{ item.port or 21 }} · Login: {{ item.username or 'anonymous' }}</div>
+            <div>Auth: {{ item.auth_mode or 'anonymous' }} · Timeout: {{ item.timeout_seconds or 15 }} s</div>
+            <div>Overrides: Root {{ item.remote_base_dir_override or '—' }} · Extensions {{ item.allowed_extensions_override or '—' }}</div>
+            <div>Status: {{ 'aktiv' if item.is_active else 'inaktiv' }}{% if item.is_default %} · Standard{% endif %}</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Noch keine Device-Instance vorhanden.</p>
+  {% endif %}
+</article>

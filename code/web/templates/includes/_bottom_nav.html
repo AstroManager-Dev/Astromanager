@@ -1,0 +1,15 @@
+<nav class="am-bottom-nav astro-glow-soft" aria-label="Hauptnavigation">
+  <div class="am-bottom-nav__frame">
+    <div class="am-bottom-nav__grid">
+      <button class="am-bottom-nav__button astro-btn astro-btn--sm astro-btn--primary" data-tab="gallery" aria-current="page"><span>Galerie</span></button>
+      <button class="am-bottom-nav__button astro-btn astro-btn--sm" data-tab="atlas"><span>Atlas</span></button>
+      <button class="am-bottom-nav__button astro-btn astro-btn--sm" data-tab="targets"><span>Targets</span></button>
+{% if auth_context_global.can_view_overview %}
+      <button class="am-bottom-nav__button astro-btn astro-btn--sm" data-tab="overview"><span>Zentrale</span></button>
+{% else %}
+      <a class="am-bottom-nav__button am-bottom-nav__button--locked astro-btn astro-btn--sm" href="/forbidden"><span>Zentrale <i class="fa-solid fa-lock" aria-hidden="true"></i></span></a>
+{% endif %}
+      <button class="am-bottom-nav__button am-bottom-nav__button--menu astro-btn astro-btn--sm" id="open-menu-btn-bottom" aria-label="Menü öffnen" aria-controls="menu-sheet" aria-expanded="false"><span>Menü</span></button>
+    </div>
+  </div>
+</nav>

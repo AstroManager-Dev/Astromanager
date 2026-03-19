@@ -1,0 +1,43 @@
+# Changelog
+
+## 2026-03-18  Version: 0.4.035
+- Backup-Stand erzeugt
+- Projektversion: 0.4.035
+- Schema-Version: 4
+- Backup-Label: patch
+- SQLite-Quelle: /opt/astro/runtime/pipeline.db
+- Moon/Sun-Infos, Standorte, Session-Detail-UI kompakter
+- Bottom-Navigation per Grid-Wrapper stabilisiert und Button-Set-Anbindung korrigiert
+- Settings-Inhalte repariert, Lock-Hinweise ergänzt sowie Menü-, Bottom-Navigation- und Login-UI bereinigt
+- Login-Seite mobil bereinigt und 403-Zugriffsseite für gesperrte Bereiche ergänzt
+- Web-Secret-Key auf /runtime umgestellt, sicherer Login mit Admin-Bootstrap ergänzt und Release-Skripte auf zentrales backup.sh vereinheitlicht
+- Test Python Release Tool
+- Benutzerverwaltung und Rollenbasis eingeführt, Login-Bereich vorbereitet und Header-Nutzeranzeige verschlankt
+- Login-Bereich eingeführt, kompakte Topbar-Nutzeranzeige ergänzt und Font Awesome Icons vorbereitet
+- Test Release-Skript mit backup.sh
+- Test neuer Backup-Aufruf
+- Button-System in eigenes CSS-Modul ausgelagert und kompakte Hauptaktionsbuttons angeglichen
+- FITS-Viewer: DB-Presets, Slider-Steuerung, WebP-Previews und Preset-Sync im RAW-Detail repariert
+- feat: CSS-Modul-Loader integriert und RAW-Listen-CSS modular eingebunden
+- Settings Info als eigenen Tab ergänzt und Minor-Log im Info-Bereich eingebunden
+- Target-Detail Resolver-Modul kompakter als adaptives Grid aufgebaut
+- RAW-Dateiliste und RAW-Datei-Detailseite weiter integriert, FITS-Viewer-Vorstufe mit Debayer-Metadaten eingebunden und RAW-Zugriff pro Session ausgebaut; Light-Zählung und FITS-Preview-Rendering werden im nächsten Patch fertiggestellt.
+- RAW-Dateiliste und RAW-Datei-Detailseite für Sessions angebunden, Download pro RAW-Datei ergänzt, FITS-Viewer-Grundlage mit Debayer-Vorbereitung und Metadatenanzeige eingebaut; Light-Zählung und Vorschau-Layout werden im nächsten Schritt nachgezogen.
+- Session-Seite um RAW-Verlinkung ergänzt: Lights-Bereich mit Einstieg in die RAW-Dateiliste aufgebaut, Light-Erkennung über source_subtype korrigiert, RAW-Dateiliste mit Verlinkung auf einzelne RAW-Datei-Seiten und Download-Möglichkeit ergänzt.
+- Target-Detailseite neu geordnet: Name vor Bild, Meta unter dem Bild und Bottom-Navigation auf Targets korrigiert. Session-Detailseite modularisiert und Session-Struktur mit Session-Bild, Session-Metadaten sowie Teleskop-/AstroManager-Modulen ausgebaut.
+- Targets-Layout finalisiert: Deep-Sky-CTA neben Distanz gesetzt, Solar-System-Targets ohne RA/DEC/NASA bereinigt und zusätzlicher Bottom-Safe-Space gegen abgeschnittenen letzten Eintrag ergänzt
+- Web-Refactor vorbereitet: app.py verschlankt und Kernfunktionen in code/web/functions in kleine Fachmodule für Programm-Info, Datenbank, Status, Targets und Galerie ausgelagert; Header-Version und Programm-Info-Templates zusätzlich bereinigt
+- Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
+- Header-Version ergänzt: Unter DeepSky Sessions wird die Projektversion klein und dezent als V. x.x.x aus VERSION eingeblendet; Header als Include-Modul angebunden und Styling für die Versionszeile ergänzt
+- Galerie mit echten Sessions aus der DB verbunden: Monatsgruppen, Session-Targets, Preview-Fallback und Session-Unterseite /sessions/<id> ergänzt
+- Galerie- und Session-Templates wie bei Targets modularisiert: Monatsblöcke, Session-Karten, Bild- und Metablöcke in eigene Include-Dateien ausgelagert
+- Bottom-Navigation auf Target-Unterseiten vollständig repariert: Tab-Buttons führen zur Hauptseite zurück und auf /targets/<id> wird Targets als aktiver Navigationspunkt markiert
+- Target-Detailseite bereinigt: Titelblock vereinfacht, Session-Anzahl unter die Header-Card verschoben und Session-Preview-Fallback ergänzt
+- Target-Detailseite repariert: Session-Gruppierung auf session_items umgestellt und Session-Preview mit nopic-Fallback ergänzt
+- Target-Detailseite repariert: Session-Gruppierung in Jinja auf session_items umgestellt und 500-Fehler auf /targets/<id> behoben
+- Target-Detailseite repariert, Header-Card und Session-Buttons modularisiert sowie Dwarf-Preview, EXP, Gain und Gesamtbelichtungsdauer je Session ergänzt
+- Targets-Templates modularisiert: Deep-Sky- und Solarsystem-Blöcke ausgelagert, gemeinsame Target-Karte eingeführt und Bildblock als eigenes Include im pages/targets-Unterordner getrennt
+- Targets-Ansicht bereinigt, Introbereich entfernt und Sun & Moon in Solarsystem-Targets umbenannt
+- Legacy-Survey-Resolver ergänzt, SkyView-No-Data-Prüfung eingebaut, Bild-Fachlogik zentralisiert und Target-Bildfallback auf Session → Legacy → SkyView → NASA umgestellt
+- SkyView-Fallback verifizieren, Resolver-Struktur erweitern, Target-Bildlogik härten
+- Dev-Bereich für Core-Backup/Restore und ZIP-Import erweitert: Kern-Backups für code/scripts/Versionsdateien, Archiv mit Download/Restore, letztes Backup zurückspielen und ZIP einspielen mit Überschreiben.

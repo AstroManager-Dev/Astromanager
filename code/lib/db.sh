@@ -47,20 +47,66 @@ db_apply_migrations() {
 
 db_seed_device_sources() {
   db_exec "
-    INSERT INTO device_sources (id, source_key, vendor, model, family, protocol, root_pattern, notes, is_active, created_at, updated_at)
+    INSERT INTO device_sources (
+      id, source_key, vendor, model, family, protocol, root_pattern,
+      remote_base_dir, allowed_extensions, notes, is_active, created_at, updated_at
+    )
     VALUES
-      (1, 'dwarflab_dwarf3', 'Dwarflab', 'DWARF3', 'smart_telescope', 'ftp', 'DWARF_RAW_TELE*|DWARF_DARK|CALI_FRAME', 'default current source', 1, datetime('now'), datetime('now')),
-      (2, 'dwarflab_dwarf2', 'Dwarflab', 'DWARF2', 'smart_telescope', 'ftp', '', '', 1, datetime('now'), datetime('now')),
-      (3, 'dwarflab_dwarf_mini', 'Dwarflab', 'DWARF Mini', 'smart_telescope', 'ftp', '', '', 1, datetime('now'), datetime('now')),
-      (4, 'zwo_seestar_s50', 'ZWO', 'Seestar S50', 'smart_telescope', 'ftp', '', '', 1, datetime('now'), datetime('now'))
+      (
+        1, 'dwarflab_dwarf3', 'Dwarflab', 'DWARF3', 'smart_telescope', 'ftp',
+        'DWARF_RAW_TELE*|DWARF_DARK|CALI_FRAME', '/Astronomy',
+        '.fits,.fit,.fts,.jpg,.jpeg,.png,.json,.tif,.tiff',
+        'default current source', 1, datetime('now'), datetime('now')
+      ),
+      (
+        2, 'dwarflab_dwarf2', 'Dwarflab', 'DWARF2', 'smart_telescope', 'ftp',
+        '', '/Astronomy', '.fits,.fit,.fts', '', 1, datetime('now'), datetime('now')
+      ),
+      (
+        3, 'dwarflab_dwarf_mini', 'Dwarflab', 'DWARF Mini', 'smart_telescope', 'ftp',
+        '', '/Astronomy', '.fits,.fit,.fts', '', 1, datetime('now'), datetime('now')
+      ),
+      (
+        4, 'zwo_seestar_s50', 'ZWO', 'Seestar S50', 'smart_telescope', 'ftp',
+        '', '/Astronomy', '.fits,.fit,.fts,.jpg,.jpeg,.png,.json', '', 1, datetime('now'), datetime('now')
+      )
     ON CONFLICT(source_key) DO UPDATE SET
       vendor=excluded.vendor,
       model=excluded.model,
       family=excluded.family,
       protocol=excluded.protocol,
       root_pattern=excluded.root_pattern,
+      remote_base_dir=excluded.remote_base_dir,
+      allowed_extensions=excluded.allowed_extensions,
       notes=excluded.notes,
       is_active=excluded.is_active,
+      updated_at=datetime('now','localtime');
+  "
+}
+
+db_seed_device_instances() {
+  db_exec "
+    INSERT INTO device_instances (
+      id, instance_key, display_name, source_id, connection_kind, host, port,
+      auth_mode, username, password_text, timeout_seconds, is_active, is_default,
+      created_at, updated_at
+    )
+    VALUES (
+      1, 'dwarflab_dwarf3', 'DWARF 3', 1, 'ftp', '192.168.2.163', 21,
+      'anonymous', 'anonymous', '', 15, 1, 1,
+      datetime('now'), datetime('now')
+    )
+    ON CONFLICT(instance_key) DO UPDATE SET
+      display_name=excluded.display_name,
+      source_id=excluded.source_id,
+      connection_kind=excluded.connection_kind,
+      host=excluded.host,
+      port=excluded.port,
+      auth_mode=excluded.auth_mode,
+      username=excluded.username,
+      timeout_seconds=excluded.timeout_seconds,
+      is_active=excluded.is_active,
+      is_default=excluded.is_default,
       updated_at=datetime('now','localtime');
   "
 }
@@ -89,6 +135,7 @@ db_init() {
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );"
+
 
   db_exec "CREATE TABLE IF NOT EXISTS targets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -335,6 +382,7 @@ db_exec "CREATE TABLE IF NOT EXISTS capture_profiles (
   db_exec "CREATE INDEX IF NOT EXISTS idx_cal_assets_source_id ON calibration_assets(source_id);"
 
   db_seed_device_sources
+  db_seed_device_instances
 }
 
 db_get_source_id() {

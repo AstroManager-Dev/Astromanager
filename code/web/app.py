@@ -192,6 +192,49 @@ def index():
     )
 
 
+
+
+def list_device_sources_settings() -> list[dict[str, Any]]:
+    columns = set(db_table_columns('device_sources'))
+    remote_base_expr = "COALESCE(remote_base_dir, '/Astronomy')" if 'remote_base_dir' in columns else "'/Astronomy'"
+    allowed_ext_expr = "COALESCE(allowed_extensions, '')" if 'allowed_extensions' in columns else "''"
+    with db_conn() as conn:
+        rows = conn.execute(
+            f"""
+            SELECT id, source_key, vendor, model, family, protocol, root_pattern,
+                   {remote_base_expr} AS remote_base_dir,
+                   {allowed_ext_expr} AS allowed_extensions,
+                   notes, is_active
+            FROM device_sources
+            ORDER BY vendor, model, id
+            """
+        ).fetchall()
+    return [row_to_dict(row) for row in rows]
+
+
+def list_device_instances_settings() -> list[dict[str, Any]]:
+    if not db_table_exists('device_instances'):
+        return []
+    columns = set(db_table_columns('device_instances'))
+    remote_root_expr = "COALESCE(di.remote_base_dir_override, '')" if 'remote_base_dir_override' in columns else "''"
+    allowed_ext_expr = "COALESCE(di.allowed_extensions_override, '')" if 'allowed_extensions_override' in columns else "''"
+    notes_expr = "COALESCE(di.notes, '')" if 'notes' in columns else "''"
+    with db_conn() as conn:
+        rows = conn.execute(
+            f"""
+            SELECT di.id, di.instance_key, di.display_name, di.connection_kind, di.host, di.port,
+                   di.auth_mode, di.username, di.timeout_seconds, di.is_active, di.is_default,
+                   {remote_root_expr} AS remote_base_dir_override,
+                   {allowed_ext_expr} AS allowed_extensions_override,
+                   {notes_expr} AS notes,
+                   ds.source_key, ds.vendor, ds.model
+            FROM device_instances di
+            JOIN device_sources ds ON ds.id = di.source_id
+            ORDER BY di.is_default DESC, di.is_active DESC, di.display_name, di.id
+            """
+        ).fetchall()
+    return [row_to_dict(row) for row in rows]
+
 @APP.get("/settings")
 def settings_page():
     auth_context = get_auth_context()
@@ -215,6 +258,8 @@ def settings_page():
         settings_active_section=active_section,
         settings_locked_sections=locked_sections,
         observing_sites=list_observing_sites(),
+        device_sources_settings=list_device_sources_settings(),
+        device_instances_settings=list_device_instances_settings(),
         csrf_token=issue_csrf_token(),
     )
 
