@@ -195,10 +195,10 @@ def index():
 
 
 def list_device_sources_settings() -> list[dict[str, Any]]:
-    columns = set(db_table_columns('device_sources'))
-    remote_base_expr = "COALESCE(remote_base_dir, '/Astronomy')" if 'remote_base_dir' in columns else "'/Astronomy'"
-    allowed_ext_expr = "COALESCE(allowed_extensions, '')" if 'allowed_extensions' in columns else "''"
     with db_conn() as conn:
+        columns = set(db_table_columns(conn, 'device_sources'))
+        remote_base_expr = "COALESCE(remote_base_dir, '/Astronomy')" if 'remote_base_dir' in columns else "'/Astronomy'"
+        allowed_ext_expr = "COALESCE(allowed_extensions, '')" if 'allowed_extensions' in columns else "''"
         rows = conn.execute(
             f"""
             SELECT id, source_key, vendor, model, family, protocol, root_pattern,
@@ -213,13 +213,13 @@ def list_device_sources_settings() -> list[dict[str, Any]]:
 
 
 def list_device_instances_settings() -> list[dict[str, Any]]:
-    if not db_table_exists('device_instances'):
-        return []
-    columns = set(db_table_columns('device_instances'))
-    remote_root_expr = "COALESCE(di.remote_base_dir_override, '')" if 'remote_base_dir_override' in columns else "''"
-    allowed_ext_expr = "COALESCE(di.allowed_extensions_override, '')" if 'allowed_extensions_override' in columns else "''"
-    notes_expr = "COALESCE(di.notes, '')" if 'notes' in columns else "''"
     with db_conn() as conn:
+        if not db_table_exists(conn, 'device_instances'):
+            return []
+        columns = set(db_table_columns(conn, 'device_instances'))
+        remote_root_expr = "COALESCE(di.remote_base_dir_override, '')" if 'remote_base_dir_override' in columns else "''"
+        allowed_ext_expr = "COALESCE(di.allowed_extensions_override, '')" if 'allowed_extensions_override' in columns else "''"
+        notes_expr = "COALESCE(di.notes, '')" if 'notes' in columns else "''"
         rows = conn.execute(
             f"""
             SELECT di.id, di.instance_key, di.display_name, di.connection_kind, di.host, di.port,
