@@ -1,7 +1,8 @@
 .session-object-card--moon-progress {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 230px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-areas: "meta graphic";
   gap: 18px;
   align-items: center;
   padding: 18px;
@@ -25,9 +26,18 @@
   pointer-events: none;
 }
 
-.session-object-card__meta-panel--moon,
-.session-object-card__graphic-panel--moon {
+.session-object-card__meta-panel--moon {
+  grid-area: meta;
   min-width: 0;
+}
+
+.session-object-card__graphic-panel--moon {
+  grid-area: graphic;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  gap: 10px;
 }
 
 .session-object-card__meta-list--moon {
@@ -53,7 +63,8 @@
   color: rgba(232, 241, 255, 0.92);
 }
 
-.session-object-card__meta-row--moon .session-object-card__meta-label {
+.session-object-card__meta-row--moon .session-object-card__meta-label,
+.session-object-card__graphic-panel--moon .session-object-card__graphic-label {
   display: block;
   margin-bottom: 3px;
   letter-spacing: 0.12em;
@@ -68,19 +79,6 @@
   line-height: 1.2;
   font-weight: 700;
   color: #f4f8ff;
-}
-
-.session-object-card__graphic-panel--moon {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-}
-
-.session-object-card__graphic-panel--moon .session-object-card__graphic-label {
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 0.74rem;
-  color: rgba(198, 217, 245, 0.72);
 }
 
 .session-object-card__gauge--moon {
@@ -114,7 +112,6 @@
 }
 
 .session-object-card__gauge-progress {
-  stroke: url(#moonGaugeGradient);
   stroke: #6ed6ff;
   stroke-linecap: round;
   stroke-dasharray: var(--gauge-circumference);
@@ -166,20 +163,12 @@
   color: rgba(233, 243, 255, 0.94);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 360px) {
   .session-object-card--moon-progress {
     grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
-  }
-
-  .session-object-card__graphic-panel--moon {
-    order: -1;
-  }
-}
-
-@media (max-width: 480px) {
-  .session-object-card--moon-progress {
-    padding: 16px;
+    grid-template-areas:
+      "graphic"
+      "meta";
     gap: 16px;
   }
 
