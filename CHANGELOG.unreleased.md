@@ -1,3 +1,4 @@
+0.4.050 | 2026-03-19 18:03:26 | Template Ordner aufgeräumt
 0.4.049 | 2026-03-19 17:48:21 | Settings-Info bereinigt: äußeren Programm-Infos-Bereich vereinheitlicht, doppelte Info-Eyebrow entfernt und Kartenstruktur der Settings-Sektionen weiter konsolidiert
 0.4.048 | 2026-03-19 17:34:56 | Templateanpassungen im Bereich Programminfos
 0.4.047 | 2026-03-19 17:12:06 | Standorte finalisiert
