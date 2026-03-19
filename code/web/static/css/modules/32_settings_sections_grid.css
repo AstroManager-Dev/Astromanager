@@ -33,3 +33,28 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+
+.settings-info-card {
+  border: 1px solid rgba(112, 176, 255, 0.14);
+  background: rgba(3, 10, 28, 0.34);
+  border-radius: 22px;
+}
+
+.settings-info-card--section {
+  padding: 18px;
+}
+
+.settings-info-stack {
+  display: grid;
+  gap: 14px;
+}
+
+
+.settings-page__eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
