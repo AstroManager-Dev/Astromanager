@@ -1,159 +1,101 @@
+.settings-device-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
 .settings-module-card--split {
-  gap: 18px;
-}
-
-.settings-device-page-head {
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(112, 176, 255, 0.1);
-}
-
-.settings-device-stack {
-  display: grid;
-  gap: 18px;
+  gap: 20px;
 }
 
 .settings-device-module {
-  border: 1px solid rgba(112, 176, 255, 0.16);
-  background: linear-gradient(180deg, rgba(5, 14, 36, 0.48), rgba(3, 10, 28, 0.34));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(112, 176, 255, 0.14);
+  background: rgba(3, 10, 28, 0.34);
 }
 
 .settings-device-module--section {
-  padding: 14px;
+  padding-top: 14px;
 }
 
 .settings-device-module--compact {
-  padding-bottom: 14px;
+  padding-bottom: 12px;
+}
+
+.settings-device-module--wide {
+  grid-column: 1 / -1;
 }
 
 .settings-device-module__head-row {
   display: flex;
   justify-content: space-between;
   gap: 14px;
-  align-items: flex-start;
-}
-
-.settings-device-module__intro {
-  margin: 6px 0 0;
-  opacity: 0.82;
+  align-items: center;
 }
 
 .settings-device-toggle-panel {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(112, 176, 255, 0.1);
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(112, 176, 255, 0.12);
 }
 
-.settings-device-card-grid {
+.settings-collapsible-list {
   display: grid;
+  gap: 14px;
+}
+
+.settings-collapsible-list--instances {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 12px;
 }
 
-.settings-device-card {
-  border: 1px solid rgba(112, 176, 255, 0.16);
+.settings-collapsible-item {
+  border: 1px solid rgba(112, 176, 255, 0.18);
   border-radius: 18px;
-  background: rgba(4, 11, 30, 0.46);
+  background: rgba(3, 10, 28, 0.42);
   overflow: hidden;
+  min-width: 0;
 }
 
-.settings-device-card.is-highlighted {
-  border-color: rgba(125, 174, 255, 0.34);
-  box-shadow: inset 0 0 0 1px rgba(125, 174, 255, 0.12);
-}
-
-.settings-device-card__summary {
-  list-style: none;
-  cursor: pointer;
+.settings-collapsible-item summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 14px 16px;
-  display: grid;
-  gap: 6px;
+  cursor: pointer;
+  list-style: none;
 }
 
-.settings-device-card__summary::-webkit-details-marker {
+.settings-collapsible-item summary::-webkit-details-marker {
   display: none;
 }
 
-.settings-device-card__title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+.settings-collapsible-item__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
-.settings-device-card__title-row strong {
-  font-size: 1.02rem;
+.settings-collapsible-item__meta {
+  min-height: 1em;
+  font-size: 0.8rem;
+  opacity: 0.72;
+  font-weight: 500;
 }
 
-.settings-device-card__meta-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  opacity: 0.74;
-  font-size: 0.92rem;
-}
-
-.settings-device-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(123, 173, 255, 0.12);
-  border: 1px solid rgba(123, 173, 255, 0.18);
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.settings-device-card__body {
+.settings-collapsible-item__body {
   display: grid;
   gap: 12px;
   padding: 0 16px 16px;
+  opacity: 0.92;
 }
 
-.settings-device-card__body--compact {
-  gap: 10px;
-}
-
-.settings-device-kv-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.settings-device-kv-grid--single {
-  grid-template-columns: 1fr;
-}
-
-.settings-device-kv-grid > div {
-  display: grid;
-  gap: 4px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(112, 176, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.settings-device-kv-grid span {
-  opacity: 0.68;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.settings-device-inline-actions,
-.settings-device-form__checks,
-.settings-device-form__actions {
+.settings-device-inline-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
-.settings-device-inline-actions--compact {
-  justify-content: space-between;
+.settings-device-inline-actions--stacked {
+  align-items: flex-start;
 }
 
 .settings-device-form {
@@ -190,6 +132,14 @@
   gap: 12px;
 }
 
+.settings-device-form__checks,
+.settings-device-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
 .settings-device-check {
   display: inline-flex !important;
   align-items: center;
@@ -206,21 +156,58 @@
   justify-content: flex-end;
 }
 
-.settings-device-delete-form--inline {
-  justify-content: flex-start;
+.settings-source-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-@media (max-width: 760px) {
-  .settings-device-module__head-row,
-  .settings-device-inline-actions,
-  .settings-device-card__meta-row {
+.settings-source-card {
+  border: 1px solid rgba(112, 176, 255, 0.18);
+  border-radius: 18px;
+  background: rgba(3, 10, 28, 0.42);
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.settings-source-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.settings-source-card.is-inactive {
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .settings-device-module__head-row {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .settings-device-card-grid,
-  .settings-device-kv-grid,
-  .settings-device-form__cols {
+  .settings-device-form__cols,
+  .settings-collapsible-list--instances,
+  .settings-source-grid {
     grid-template-columns: 1fr;
   }
+}
+
+
+.settings-device-create-details {
+  margin-top: 14px;
+}
+
+.settings-device-create-details summary {
+  list-style: none;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.settings-device-create-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-device-toggle-panel--details {
+  margin-top: 14px;
 }

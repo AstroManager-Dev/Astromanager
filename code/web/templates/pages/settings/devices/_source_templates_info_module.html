@@ -1,32 +1,15 @@
-<article class="hud-mini-card settings-device-module settings-device-module--section settings-device-module--compact">
-  <div class="hud-section-head hud-section-head--tight settings-device-module__head-row">
+<article class="hud-mini-card settings-device-module settings-device-module--compact settings-device-module--section">
+  <div class="hud-section-head hud-section-head--tight">
     <div>
       <h4>Verfügbare Device-Sources</h4>
-      <p class="settings-device-module__intro">Kompakte Übersicht der im System verfügbaren Templates.</p>
     </div>
   </div>
   {% if device_sources_settings %}
-    <div class="settings-device-card-grid settings-device-card-grid--sources">
+    <div class="settings-source-grid">
       {% for source in device_sources_settings %}
-        <details class="settings-device-card settings-device-card--source">
-          <summary class="settings-device-card__summary">
-            <div class="settings-device-card__title-row">
-              <strong>{{ source.vendor }} {{ source.model }}</strong>
-            </div>
-            <div class="settings-device-card__meta-row">
-              <span>{{ source.source_key }}</span>
-              <span>{{ 'aktiv' if source.is_active else 'inaktiv' }}</span>
-            </div>
-          </summary>
-          <div class="settings-device-card__body settings-device-card__body--compact">
-            <div class="settings-device-kv-grid settings-device-kv-grid--single">
-              <div><span>Protokoll</span><strong>{{ source.protocol or '—' }}</strong></div>
-              <div><span>Root</span><strong>{{ source.remote_base_dir or '—' }}</strong></div>
-              <div><span>Pattern</span><strong>{{ source.root_pattern or '—' }}</strong></div>
-              <div><span>Extensions</span><strong>{{ source.allowed_extensions or '—' }}</strong></div>
-            </div>
-          </div>
-        </details>
+        <div class="settings-source-card{% if source.is_active %} is-active{% else %} is-inactive{% endif %}">
+          <div class="settings-source-card__title">{{ source.vendor }} {{ source.model }}</div>
+        </div>
       {% endfor %}
     </div>
   {% else %}

@@ -1,16 +1,15 @@
-<article class="hud-mini-card settings-device-module settings-device-module--section settings-device-module--compact">
+<article class="hud-mini-card settings-device-module settings-device-module--compact settings-device-module--section">
   <div class="hud-section-head hud-section-head--tight settings-device-module__head-row">
     <div>
       <h4>Neue Geräteinstanz anlegen</h4>
-      <p class="settings-device-module__intro">Nur bei Bedarf öffnen. Der Instance-Key wird automatisch aus dem Anzeigenamen erzeugt.</p>
     </div>
-    <button class="astro-btn astro-btn--primary astro-btn--sm" type="button" data-toggle-target="create-device-instance-form" data-toggle-label-open="Formular schließen" data-toggle-label-closed="Neue Instanz hinzufügen" aria-expanded="false">Neue Instanz hinzufügen</button>
   </div>
-  <div id="create-device-instance-form" class="settings-device-toggle-panel" hidden>
-    <form class="settings-device-form" method="post" action="/settings/device-instances">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <input type="hidden" name="instance_key" value="">
-      <div class="settings-device-form__cols">
+  <details class="settings-device-create-details">
+    <summary class="astro-btn astro-btn--primary astro-btn--sm">Neue Instanz hinzufügen</summary>
+    <div class="settings-device-toggle-panel settings-device-toggle-panel--details">
+      <form class="settings-device-form" method="post" action="/settings/device-instances">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="instance_key" value="">
         <label>
           <span>Anzeigename</span>
           <input type="text" name="display_name" placeholder="z. B. DWARF 3 Balkon" required>
@@ -19,27 +18,25 @@
           <span>Source</span>
           <select name="source_id" required>
             <option value="">Bitte wählen</option>
-            {% for source in device_sources_settings %}
-              <option value="{{ source.id }}">{{ source.vendor }} {{ source.model }} · {{ source.source_key }}</option>
+            {% for source in device_sources_settings if source.is_active %}
+              <option value="{{ source.id }}">{{ source.vendor }} {{ source.model }}</option>
             {% endfor %}
           </select>
         </label>
-      </div>
-      <div class="settings-device-form__cols">
         <label>
           <span>Host / IP</span>
           <input type="text" name="host" placeholder="192.168.x.x oder Hostname" required>
         </label>
-        <label>
-          <span>Port</span>
-          <input type="number" name="port" value="21" min="1" max="65535">
-        </label>
-      </div>
-      <div class="settings-device-form__cols">
-        <label>
-          <span>Timeout (s)</span>
-          <input type="number" name="timeout_seconds" value="15" min="1" max="600">
-        </label>
+        <div class="settings-device-form__cols">
+          <label>
+            <span>Port</span>
+            <input type="number" name="port" value="21" min="1" max="65535">
+          </label>
+          <label>
+            <span>Timeout (s)</span>
+            <input type="number" name="timeout_seconds" value="15" min="1" max="600">
+          </label>
+        </div>
         <label>
           <span>Authentifizierung</span>
           <select name="auth_mode" data-auth-mode-select>
@@ -47,40 +44,38 @@
             <option value="login">Login mit User/Pass</option>
           </select>
         </label>
-      </div>
-      <div class="settings-device-auth-fields" data-auth-mode-fields>
-        <div class="settings-device-form__cols">
+        <div class="settings-device-auth-fields" data-auth-mode-fields hidden>
           <label>
             <span>Benutzername</span>
             <input type="text" name="username" placeholder="ftp-user">
           </label>
           <label>
             <span>Passwort</span>
-            <input type="password" name="password" placeholder="wird verschlüsselt gespeichert">
+            <input type="password" name="password" placeholder="••••••••">
           </label>
         </div>
-      </div>
-      <div class="settings-device-form__cols">
+        <div class="settings-device-form__cols">
+          <label>
+            <span>Remote-Root Override</span>
+            <input type="text" name="remote_base_dir_override" placeholder="optional">
+          </label>
+          <label>
+            <span>Extensions Override</span>
+            <input type="text" name="allowed_extensions_override" placeholder="optional">
+          </label>
+        </div>
         <label>
-          <span>Remote-Root Override</span>
-          <input type="text" name="remote_base_dir_override" placeholder="optional">
+          <span>Notiz</span>
+          <textarea name="notes" rows="3" placeholder="optional"></textarea>
         </label>
-        <label>
-          <span>Extensions Override</span>
-          <input type="text" name="allowed_extensions_override" placeholder="optional">
-        </label>
-      </div>
-      <label>
-        <span>Notiz</span>
-        <textarea name="notes" rows="3" placeholder="optional"></textarea>
-      </label>
-      <div class="settings-device-form__checks">
-        <label class="settings-device-check"><input type="checkbox" name="is_active" value="1" checked> <span>Aktiv</span></label>
-        <label class="settings-device-check"><input type="checkbox" name="is_default" value="1"> <span>Als Standard verwenden</span></label>
-      </div>
-      <div class="settings-device-form__actions">
-        <button class="astro-btn astro-btn--primary astro-btn--sm" type="submit">Geräteinstanz speichern</button>
-      </div>
-    </form>
-  </div>
+        <div class="settings-device-form__checks">
+          <label class="settings-device-check"><input type="checkbox" name="is_active" value="1" checked> <span>Aktiv</span></label>
+          <label class="settings-device-check"><input type="checkbox" name="is_default" value="1"> <span>Als Standard verwenden</span></label>
+        </div>
+        <div class="settings-device-form__actions">
+          <button class="astro-btn astro-btn--primary astro-btn--sm" type="submit">Geräteinstanz speichern</button>
+        </div>
+      </form>
+    </div>
+  </details>
 </article>

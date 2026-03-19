@@ -102,24 +102,6 @@ APP.config.update(
     PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
 )
 
-def _build_settings_page_context() -> dict[str, Any]:
-    allowed_sections = {"devices", "sources", "display", "locations", "system", "info"}
-    requested_section = (request.args.get("section") or "devices").strip().lower()
-    auth_context = get_auth_context()
-    locked_sections = [] if auth_context.get("can_manage_settings") else ["devices", "sources", "display", "locations", "system"]
-    active_section = requested_section if requested_section in allowed_sections else "devices"
-    if active_section in locked_sections:
-        active_section = "info"
-    return {
-        "settings_active_section": active_section,
-        "settings_locked_sections": locked_sections,
-        "device_sources_settings": list_device_sources_settings(),
-        "device_instances_settings": list_device_instances_settings(),
-        "observing_sites": list_observing_sites(),
-        "csrf_token": issue_csrf_token(),
-    }
-
-
 
 def discover_css_modules() -> list[str]:
     candidate_roots = [
@@ -221,10 +203,32 @@ def index():
 
 
 
+def build_settings_page_context() -> dict[str, Any]:
+    active_section = (request.args.get("section") or "info").strip().lower()
+    valid_sections = {"devices", "sources", "display", "locations", "system", "info"}
+    if active_section not in valid_sections:
+        active_section = "info"
+
+    auth_context = get_auth_context()
+    can_manage_settings = bool(auth_context.get("can_manage_settings"))
+    locked_sections = [] if can_manage_settings else ["devices", "sources", "display", "locations", "system"]
+    if active_section in locked_sections:
+        active_section = "info"
+
+    return {
+        "settings_active_section": active_section,
+        "settings_locked_sections": locked_sections,
+        "device_sources_settings": list_device_sources_settings(),
+        "device_instances_settings": list_device_instances_settings(),
+        "observing_sites": list_observing_sites(),
+        "csrf_token": issue_csrf_token(),
+    }
+
 
 @APP.get("/settings")
 def settings_page():
-    return render_template("settings_page.html", **_build_settings_page_context())
+    return render_template("settings_page.html", **build_settings_page_context())
+
 
 
 def render_login_page(*, error: str = "", message: str = "", status_code: int = 200):

@@ -1,3 +1,4 @@
+0.4.044 | 2026-03-19 13:52:04 | Settings Seite layout verbessert
 0.4.043 | 2026-03-19 13:29:10 | Settings Seite layout verbessert
 0.4.042 | 2026-03-19 12:51:58 | Settings Seite angepasst
 0.4.041 | 2026-03-19 11:43:11 | Gerätekonfiguration der Teleskope in die UI hinzugefügt

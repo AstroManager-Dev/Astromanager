@@ -51,7 +51,7 @@ def list_device_sources_settings() -> list[dict[str, Any]]:
                    {allowed_ext_expr} AS allowed_extensions,
                    notes, is_active
             FROM device_sources
-            ORDER BY vendor, model, id
+            ORDER BY COALESCE(is_active, 0) DESC, vendor, model, id
             """
         ).fetchall()
     return [row_to_dict(row) for row in rows]

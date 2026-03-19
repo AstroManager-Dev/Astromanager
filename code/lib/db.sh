@@ -60,15 +60,15 @@ db_seed_device_sources() {
       ),
       (
         2, 'dwarflab_dwarf2', 'Dwarflab', 'DWARF2', 'smart_telescope', 'ftp',
-        '', '/Astronomy', '.fits,.fit,.fts', '', 1, datetime('now'), datetime('now')
+        '', '/Astronomy', '.fits,.fit,.fts', '', 0, datetime('now'), datetime('now')
       ),
       (
         3, 'dwarflab_dwarf_mini', 'Dwarflab', 'DWARF Mini', 'smart_telescope', 'ftp',
-        '', '/Astronomy', '.fits,.fit,.fts', '', 1, datetime('now'), datetime('now')
+        '', '/Astronomy', '.fits,.fit,.fts', '', 0, datetime('now'), datetime('now')
       ),
       (
         4, 'zwo_seestar_s50', 'ZWO', 'Seestar S50', 'smart_telescope', 'ftp',
-        '', '/Astronomy', '.fits,.fit,.fts,.jpg,.jpeg,.png,.json', '', 1, datetime('now'), datetime('now')
+        '', '/Astronomy', '.fits,.fit,.fts,.jpg,.jpeg,.png,.json', '', 0, datetime('now'), datetime('now')
       )
     ON CONFLICT(source_key) DO UPDATE SET
       vendor=excluded.vendor,
