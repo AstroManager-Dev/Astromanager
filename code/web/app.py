@@ -53,6 +53,13 @@ from functions.gallery import (
 from functions.fits_viewer import enrich_raw_file_viewer_context, render_raw_file_fits_preview
 from functions.ephemeris import load_session_ephemeris_context
 from functions.observing import assign_session_observing_site, create_observing_site, delete_observing_site, list_observing_sites, set_default_observing_site
+from functions.settings_devices import (
+    create_device_instance,
+    delete_device_instance,
+    list_device_instances_settings,
+    list_device_sources_settings,
+    update_device_instance,
+)
 from functions.program_info import load_program_info
 from functions.status import append_web_log, dev_assets, latest_web_log, resolve_download, summarize_service_state
 from functions.targets import deepsky_targets, load_target_detail, system_targets
@@ -194,74 +201,34 @@ def index():
 
 
 
-def list_device_sources_settings() -> list[dict[str, Any]]:
-    with db_conn() as conn:
-        columns = set(db_table_columns(conn, 'device_sources'))
-        remote_base_expr = "COALESCE(remote_base_dir, '/Astronomy')" if 'remote_base_dir' in columns else "'/Astronomy'"
-        allowed_ext_expr = "COALESCE(allowed_extensions, '')" if 'allowed_extensions' in columns else "''"
-        rows = conn.execute(
-            f"""
-            SELECT id, source_key, vendor, model, family, protocol, root_pattern,
-                   {remote_base_expr} AS remote_base_dir,
-                   {allowed_ext_expr} AS allowed_extensions,
-                   notes, is_active
-            FROM device_sources
-            ORDER BY vendor, model, id
-            """
-        ).fetchall()
-    return [row_to_dict(row) for row in rows]
 
 
-def list_device_instances_settings() -> list[dict[str, Any]]:
-    with db_conn() as conn:
-        if not db_table_exists(conn, 'device_instances'):
-            return []
-        columns = set(db_table_columns(conn, 'device_instances'))
-        remote_root_expr = "COALESCE(di.remote_base_dir_override, '')" if 'remote_base_dir_override' in columns else "''"
-        allowed_ext_expr = "COALESCE(di.allowed_extensions_override, '')" if 'allowed_extensions_override' in columns else "''"
-        notes_expr = "COALESCE(di.notes, '')" if 'notes' in columns else "''"
-        rows = conn.execute(
-            f"""
-            SELECT di.id, di.instance_key, di.display_name, di.connection_kind, di.host, di.port,
-                   di.auth_mode, di.username, di.timeout_seconds, di.is_active, di.is_default,
-                   {remote_root_expr} AS remote_base_dir_override,
-                   {allowed_ext_expr} AS allowed_extensions_override,
-                   {notes_expr} AS notes,
-                   ds.source_key, ds.vendor, ds.model
-            FROM device_instances di
-            JOIN device_sources ds ON ds.id = di.source_id
-            ORDER BY di.is_default DESC, di.is_active DESC, di.display_name, di.id
-            """
-        ).fetchall()
-    return [row_to_dict(row) for row in rows]
+def build_settings_page_context() -> dict[str, Any]:
+    active_section = (request.args.get("section") or "info").strip().lower()
+    valid_sections = {"devices", "sources", "display", "locations", "system", "info"}
+    if active_section not in valid_sections:
+        active_section = "info"
+
+    auth_context = get_auth_context()
+    can_manage_settings = bool(auth_context.get("can_manage_settings"))
+    locked_sections = [] if can_manage_settings else ["devices", "sources", "display", "locations", "system"]
+    if active_section in locked_sections:
+        active_section = "info"
+
+    return {
+        "settings_active_section": active_section,
+        "settings_locked_sections": locked_sections,
+        "device_sources_settings": list_device_sources_settings(),
+        "device_instances_settings": list_device_instances_settings(),
+        "observing_sites": list_observing_sites(),
+        "csrf_token": issue_csrf_token(),
+    }
+
 
 @APP.get("/settings")
 def settings_page():
-    auth_context = get_auth_context()
-    requested_section = (request.args.get("section") or "").strip().lower()
-    available_sections = ["devices", "sources", "display", "locations", "system", "info"]
-    if requested_section not in available_sections:
-        requested_section = "info" if not auth_context.get("can_manage_settings") else "devices"
+    return render_template("settings_page.html", **build_settings_page_context())
 
-    locked_sections = set()
-    if not auth_context.get("can_manage_settings"):
-        locked_sections = {"devices", "sources", "display", "locations", "system"}
-        if requested_section in locked_sections:
-            active_section = requested_section
-        else:
-            active_section = "info"
-    else:
-        active_section = requested_section
-
-    return render_template(
-        "settings_page.html",
-        settings_active_section=active_section,
-        settings_locked_sections=locked_sections,
-        observing_sites=list_observing_sites(),
-        device_sources_settings=list_device_sources_settings(),
-        device_instances_settings=list_device_instances_settings(),
-        csrf_token=issue_csrf_token(),
-    )
 
 
 def render_login_page(*, error: str = "", message: str = "", status_code: int = 200):
@@ -346,6 +313,33 @@ def login_page_post():
         return render_login_page(message=message) if ok else render_login_page(error=message, status_code=400)
 
     return render_login_page(error="Unbekannte Login-Aktion.", status_code=400)
+
+@APP.post("/settings/device-instances")
+@require_permission("manage_settings")
+def settings_device_instance_create():
+    if not validate_csrf_token(request.form.get("csrf_token")):
+        return redirect("/settings?section=devices")
+    create_device_instance(request.form)
+    return redirect("/settings?section=devices")
+
+
+@APP.post("/settings/device-instances/<int:instance_id>")
+@require_permission("manage_settings")
+def settings_device_instance_update(instance_id: int):
+    if not validate_csrf_token(request.form.get("csrf_token")):
+        return redirect("/settings?section=devices")
+    update_device_instance(instance_id, request.form)
+    return redirect("/settings?section=devices")
+
+
+@APP.post("/settings/device-instances/<int:instance_id>/delete")
+@require_permission("manage_settings")
+def settings_device_instance_delete(instance_id: int):
+    if not validate_csrf_token(request.form.get("csrf_token")):
+        return redirect("/settings?section=devices")
+    delete_device_instance(instance_id)
+    return redirect("/settings?section=devices")
+
 
 
 @APP.get("/sessions/<int:session_id>")

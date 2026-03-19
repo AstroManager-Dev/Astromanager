@@ -1,0 +1,123 @@
+.settings-device-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.settings-device-module--wide {
+  grid-column: 1 / -1;
+}
+
+.settings-device-module__intro {
+  margin: 6px 0 0;
+  opacity: 0.82;
+}
+
+.settings-collapsible-list {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-collapsible-item {
+  border: 1px solid rgba(112, 176, 255, 0.18);
+  border-radius: 18px;
+  background: rgba(3, 10, 28, 0.42);
+  overflow: hidden;
+}
+
+.settings-collapsible-item summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.settings-collapsible-item__meta {
+  opacity: 0.72;
+  font-weight: 500;
+  text-align: right;
+}
+
+.settings-collapsible-item__body {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
+  opacity: 0.92;
+}
+
+.settings-device-instance-meta {
+  display: grid;
+  gap: 4px;
+  font-size: 0.95rem;
+}
+
+.settings-device-form {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-device-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.settings-device-form input,
+.settings-device-form select,
+.settings-device-form textarea {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(112, 176, 255, 0.18);
+  background: rgba(3, 10, 28, 0.58);
+  color: inherit;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+
+.settings-device-form textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.settings-device-form__cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.settings-device-form__checks,
+.settings-device-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.settings-device-check {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-device-check input {
+  width: auto;
+  min-height: 0;
+}
+
+.settings-device-delete-form {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .settings-device-form__cols,
+  .settings-collapsible-item summary {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-collapsible-item__meta {
+    text-align: left;
+  }
+}

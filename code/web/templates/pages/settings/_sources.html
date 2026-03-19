@@ -3,12 +3,11 @@
     <div class="hud-section-head hud-section-head--tight">
       <div>
         <div class="eyebrow">Quellen</div>
-        <h3>Device-Templates und Geräteinstanzen</h3>
+        <h3>Systemweite Source-Templates</h3>
       </div>
     </div>
-    <div class="hud-card-grid settings-module-grid">
-      {% include "pages/settings/sources/_source_defaults_module.html" %}
-      {% include "pages/settings/sources/_device_instances_module.html" %}
+    <div class="hud-card-grid settings-module-grid settings-device-grid">
+      {% include "pages/settings/devices/_source_templates_info_module.html" %}
     </div>
   </article>
 </section>

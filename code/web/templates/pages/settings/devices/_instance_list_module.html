@@ -1,0 +1,130 @@
+<article class="hud-mini-card settings-device-module settings-device-module--wide">
+  <div class="hud-section-head hud-section-head--tight">
+    <div>
+      <h4>Angelegte Geräteinstanzen</h4>
+      <p class="settings-device-module__intro">Bearbeiten und Löschen direkt pro Instanz. Source-Defaults bleiben read-only und werden nur per Overrides überschrieben.</p>
+    </div>
+  </div>
+  {% if device_instances_settings %}
+    <div class="settings-collapsible-list">
+      {% for item in device_instances_settings %}
+        <details class="settings-collapsible-item" {% if item.is_default %}open{% endif %}>
+          <summary>
+            <span>{{ item.display_name }}</span>
+            <span class="settings-collapsible-item__meta">{{ item.source_key }}{% if item.is_default %} · Standard{% endif %}{% if not item.is_active %} · inaktiv{% endif %}</span>
+          </summary>
+          <div class="settings-collapsible-item__body">
+            <div class="settings-device-instance-meta">
+              <div>Key: {{ item.instance_key }}</div>
+              <div>Template: {{ item.vendor }} {{ item.model }}</div>
+              <div>Host: {{ item.host or '—' }}:{{ item.port or 21 }}</div>
+              <div>Auth: {{ item.auth_mode or 'anonymous' }} · User: {{ item.username or 'anonymous' }} · Passwort: {{ item.password_masked }}</div>
+              <div>Effektiv Root: {{ item.effective_remote_base_dir or '—' }}</div>
+              <div>Effektive Extensions: {{ item.effective_allowed_extensions or '—' }}</div>
+            </div>
+            <form class="settings-device-form settings-device-form--edit" method="post" action="/settings/device-instances/{{ item.id }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <label>
+                <span>Anzeigename</span>
+                <input type="text" name="display_name" value="{{ item.display_name }}" required>
+              </label>
+              <label>
+                <span>Instance-Key</span>
+                <input type="text" name="instance_key" value="{{ item.instance_key }}" required>
+              </label>
+              <label>
+                <span>Source</span>
+                <select name="source_id" required>
+                  {% for source in device_sources_settings %}
+                    <option value="{{ source.id }}"{% if source.id == item.source_id %} selected{% endif %}>{{ source.vendor }} {{ source.model }} · {{ source.source_key }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label>
+                <span>Host / IP</span>
+                <input type="text" name="host" value="{{ item.host }}" required>
+              </label>
+              <div class="settings-device-form__cols">
+                <label>
+                  <span>Port</span>
+                  <input type="number" name="port" value="{{ item.port or 21 }}" min="1" max="65535">
+                </label>
+                <label>
+                  <span>Timeout (s)</span>
+                  <input type="number" name="timeout_seconds" value="{{ item.timeout_seconds or 15 }}" min="1" max="600">
+                </label>
+              </div>
+              <label>
+                <span>Authentifizierung</span>
+                <select name="auth_mode" data-auth-mode-select>
+                  <option value="anonymous"{% if not item.is_login %} selected{% endif %}>Anonymous</option>
+                  <option value="login"{% if item.is_login %} selected{% endif %}>Login mit User/Pass</option>
+                </select>
+              </label>
+              <div class="settings-device-auth-fields" data-auth-mode-fields {% if not item.is_login %}hidden{% endif %}>
+                <label>
+                  <span>Benutzername</span>
+                  <input type="text" name="username" value="{{ '' if not item.is_login else item.username }}" placeholder="ftp-user">
+                </label>
+                <label>
+                  <span>Neues Passwort</span>
+                  <input type="password" name="password" placeholder="leer lassen = unverändert">
+                </label>
+              </div>
+              <div class="settings-device-form__cols">
+                <label>
+                  <span>Remote-Root Override</span>
+                  <input type="text" name="remote_base_dir_override" value="{{ item.remote_base_dir_override }}" placeholder="optional">
+                </label>
+                <label>
+                  <span>Extensions Override</span>
+                  <input type="text" name="allowed_extensions_override" value="{{ item.allowed_extensions_override }}" placeholder="optional">
+                </label>
+              </div>
+              <label>
+                <span>Notiz</span>
+                <textarea name="notes" rows="3" placeholder="optional">{{ item.notes }}</textarea>
+              </label>
+              <div class="settings-device-form__checks">
+                <label class="settings-device-check"><input type="checkbox" name="is_active" value="1"{% if item.is_active %} checked{% endif %}> <span>Aktiv</span></label>
+                <label class="settings-device-check"><input type="checkbox" name="is_default" value="1"{% if item.is_default %} checked{% endif %}> <span>Standard</span></label>
+              </div>
+              <div class="settings-device-form__actions">
+                <button class="astro-btn astro-btn--primary astro-btn--sm" type="submit">Änderungen speichern</button>
+              </div>
+            </form>
+            <form method="post" action="/settings/device-instances/{{ item.id }}/delete" class="settings-device-delete-form" onsubmit="return confirm('Geräteinstanz wirklich löschen?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="astro-btn astro-btn--ghost astro-btn--sm" type="submit">Instanz löschen</button>
+            </form>
+          </div>
+        </details>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Noch keine Geräteinstanzen vorhanden.</p>
+  {% endif %}
+</article>
+<script>
+(function() {
+  function syncAuthVisibility(root) {
+    var select = root.querySelector('[data-auth-mode-select]');
+    var box = root.querySelector('[data-auth-mode-fields]');
+    if (!select || !box) return;
+    var isLogin = select.value === 'login';
+    box.hidden = !isLogin;
+    box.querySelectorAll('input').forEach(function(input) {
+      if (input.name === 'username') {
+        input.required = isLogin;
+      }
+    });
+  }
+  document.querySelectorAll('.settings-device-form').forEach(function(form) {
+    syncAuthVisibility(form);
+    var select = form.querySelector('[data-auth-mode-select]');
+    if (select) {
+      select.addEventListener('change', function() { syncAuthVisibility(form); });
+    }
+  });
+})();
+</script>

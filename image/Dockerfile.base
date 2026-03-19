@@ -30,7 +30,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rpm2cpio \
     astrometry.net \
     astrometry-data-tycho2 \
- && pip3 install --break-system-packages --no-cache-dir pyswisseph \
+ && pip3 install --break-system-packages --no-cache-dir \
+    pyswisseph \
+    cryptography \
  && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app /raw /data /runtime /logs /work /tmp /cache /config /opt/astrometry-extra /tmp/astrometry-rpms

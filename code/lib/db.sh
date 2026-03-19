@@ -88,7 +88,7 @@ db_seed_device_instances() {
   db_exec "
     INSERT INTO device_instances (
       instance_key, display_name, source_id, connection_kind, host, port,
-      auth_mode, username, password_text, timeout_seconds, is_active, is_default,
+      auth_mode, username, password_enc, timeout_seconds, is_active, is_default,
       created_at, updated_at
     )
     SELECT
@@ -105,7 +105,7 @@ db_seed_device_instances() {
       port=excluded.port,
       auth_mode=excluded.auth_mode,
       username=excluded.username,
-      password_text=excluded.password_text,
+      password_enc=excluded.password_enc,
       timeout_seconds=excluded.timeout_seconds,
       is_active=excluded.is_active,
       is_default=excluded.is_default,
@@ -245,6 +245,11 @@ db_exec "CREATE TABLE IF NOT EXISTS capture_profiles (
   db_exec "CREATE INDEX IF NOT EXISTS idx_targets_name_status ON targets(name_status);"
 
   db_apply_migrations "$root"
+
+  if db_exec "SELECT 1 FROM sqlite_master WHERE type='table' AND name='device_instances' LIMIT 1;" | grep -q 1 && ! db_column_exists device_instances password_enc; then
+    db_exec "ALTER TABLE device_instances ADD COLUMN password_enc TEXT NOT NULL DEFAULT '';"
+    db_exec "UPDATE device_instances SET password_enc = COALESCE(password_text, '') WHERE COALESCE(password_enc, '') = '';"
+  fi
 
   for c in wikidata_id label_de label_en aliases_de aliases_en wiki_de_title wiki_en_title object_type mag_value mag_band distance_value distance_unit meta_status meta_source meta_resolved_at; do
     if ! db_column_exists targets "$c"; then

@@ -6,6 +6,8 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 
+from astromanager.security.device_credentials import decrypt_device_password
+
 from .constants import RAW_FITS_EXTENSIONS, RAW_REMOTE_BASE_DIR
 
 
@@ -65,7 +67,7 @@ SELECT
   di.port,
   di.auth_mode,
   di.username,
-  di.password_text,
+  COALESCE(NULLIF(di.password_enc, ''), di.password_text, '') AS password_text,
   di.timeout_seconds,
   COALESCE(NULLIF(di.remote_base_dir_override, ''), NULLIF(ds.remote_base_dir, ''), ?) AS remote_base_dir,
   COALESCE(NULLIF(di.allowed_extensions_override, ''), NULLIF(ds.allowed_extensions, ''), ?) AS allowed_extensions_csv,
@@ -86,6 +88,7 @@ def _row_to_instance(row: sqlite3.Row | None) -> DeviceInstance:
     payload["timeout_seconds"] = int(payload.get("timeout_seconds") or 15)
     payload["is_active"] = int(payload.get("is_active") or 0)
     payload["is_default"] = int(payload.get("is_default") or 0)
+    payload["password_text"] = decrypt_device_password(payload.get("password_text"))
     return DeviceInstance(**payload)
 
 

@@ -3,12 +3,13 @@
     <div class="hud-section-head hud-section-head--tight">
       <div>
         <div class="eyebrow">Geräte</div>
-        <h3>Verbundene Teleskope und Standardgeräte</h3>
+        <h3>Geräteinstanzen und verfügbare Source-Templates</h3>
       </div>
     </div>
-    <div class="hud-card-grid settings-module-grid">
-      {% include "pages/settings/devices/_dummy_module.html" %}
-      {% include "pages/settings/devices/_profiles_module.html" %}
+    <div class="hud-card-grid settings-module-grid settings-device-grid">
+      {% include "pages/settings/devices/_source_templates_info_module.html" %}
+      {% include "pages/settings/devices/_instance_create_module.html" %}
+      {% include "pages/settings/devices/_instance_list_module.html" %}
     </div>
   </article>
 </section>

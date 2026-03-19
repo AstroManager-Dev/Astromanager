@@ -1,3 +1,4 @@
+0.4.041 | 2026-03-19 11:43:11 | geräte konfiguration der Teleskope in die UI hinzugefügt
 0.4.040 | 2026-03-19 10:08:33 | Settings mobile: Sektionsbuttons bei Gast/Admin auf 3er-Grid im Mobile-Breakpoint angepasst
 0.4.039 | 2026-03-19 09:52:08 | RAW-Sync auf device_instances umgestellt, PNG/JPEG/TIFF/JSON Sync aktiviert, Settings Quellen stabilisiert und Container-User auf 1000:1000 gesetzt
 0.4.038 | 2026-03-19 09:15:39 | RAW-Sync auf device_instances umgestellt, DB-Extensions/Overrides aktiv und Workflow 0030/0040/9999 repariert

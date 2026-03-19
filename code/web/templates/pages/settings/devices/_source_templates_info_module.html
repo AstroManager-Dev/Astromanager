@@ -1,0 +1,31 @@
+<article class="hud-mini-card settings-device-module">
+  <div class="hud-section-head hud-section-head--tight">
+    <div>
+      <h4>Verfügbare Device-Sources</h4>
+      <p class="settings-device-module__intro">Reiner Info-Bereich zu den im System verfügbaren Templates. Die eigentliche Gerätekonfiguration erfolgt darunter über Geräteinstanzen.</p>
+    </div>
+  </div>
+  {% if device_sources_settings %}
+    <div class="settings-collapsible-list">
+      {% for source in device_sources_settings %}
+        <details class="settings-collapsible-item">
+          <summary>
+            <span>{{ source.vendor }} {{ source.model }}</span>
+            <span class="settings-collapsible-item__meta">{{ source.source_key }}</span>
+          </summary>
+          <div class="settings-collapsible-item__body">
+            <div>Familie: {{ source.family or '—' }}</div>
+            <div>Protokoll: {{ source.protocol or '—' }}</div>
+            <div>Remote-Root: {{ source.remote_base_dir or '—' }}</div>
+            <div>Pattern: {{ source.root_pattern or '—' }}</div>
+            <div>Extensions: {{ source.allowed_extensions or '—' }}</div>
+            <div>Status: {{ 'aktiv' if source.is_active else 'inaktiv' }}</div>
+            {% if source.notes %}<div>Hinweis: {{ source.notes }}</div>{% endif %}
+          </div>
+        </details>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Keine Source-Templates vorhanden.</p>
+  {% endif %}
+</article>

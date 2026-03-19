@@ -9,7 +9,7 @@
   const closeMenuBtn = document.getElementById("close-menu-btn");
   const menuSheet = document.getElementById("menu-sheet");
   const menuBackdrop = document.getElementById("menu-backdrop");
-  const validTabs = ["gallery", "atlas", "targets", "overview", "logs", "info", "admin", "dev", "database"];
+  const validTabs = ["gallery", "atlas", "targets", "overview", "settings", "logs", "info", "admin", "dev", "database"];
 
   function showResponse(text) {
     if (!responseBox) return;
