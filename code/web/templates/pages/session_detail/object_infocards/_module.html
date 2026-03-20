@@ -1,1 +1,11 @@
-{% include "pages/session_detail/object_infocards/_moon_card.html" %}
+{% set card_template = (session.object_info_card_template | default(session.object_info_card.template, true) | string | lower | trim) %}
+
+{% if card_template == "moon" %}
+  {% include "pages/session_detail/object_infocards/_moon_card.html" %}
+{% elif card_template == "sun" %}
+  {% include "pages/session_detail/object_infocards/_sun_card.html" %}
+{% elif card_template == "deepsky" %}
+  {% include "pages/session_detail/object_infocards/_deepsky_card.html" %}
+{% elif card_template == "planet" %}
+  {% include "pages/session_detail/object_infocards/_planet_card.html" %}
+{% endif %}

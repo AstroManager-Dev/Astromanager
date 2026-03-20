@@ -1,3 +1,4 @@
+0.4.054 | 2026-03-20 07:50:40 | Optische Anpassungen
 0.4.053 | 2026-03-19 23:57:59 | Session detail object infocards modularisiert, Moon progress card visual verbessert, device source templates erweitert
 0.4.052 | 2026-03-19 23:35:47 | Mond Beleuchtung grafische Darstellung umgesetzt
 0.4.051 | 2026-03-19 21:57:48 | Aufbau der Mond Infocard.
