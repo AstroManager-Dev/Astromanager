@@ -1,11 +1,30 @@
 # Changelog
 
-## 2026-03-18  Version: 0.4.035
+## 2026-03-20  Version: 0.4.054
 - Backup-Stand erzeugt
-- Projektversion: 0.4.035
+- Projektversion: 0.4.054
 - Schema-Version: 4
 - Backup-Label: patch
 - SQLite-Quelle: /opt/astro/runtime/pipeline.db
+- Optische Anpassungen
+- Session detail object infocards modularisiert, Moon progress card visual verbessert, device source templates erweitert
+- Mond Beleuchtung grafische Darstellung umgesetzt
+- Aufbau der Mond Infocard.
+- Template Ordner aufgeräumt
+- Settings-Info bereinigt: äußeren Programm-Infos-Bereich vereinheitlicht, doppelte Info-Eyebrow entfernt und Kartenstruktur der Settings-Sektionen weiter konsolidiert
+- Templateanpassungen im Bereich Programminfos
+- Standorte finalisiert
+- Settings Geräte finalisiert: Geräteverwaltung in eigenständige Cards aufgeteilt, Instanzansicht kompakt überarbeitet, Device-Sources als Collapsible integriert und Mobile-Layout für Formulare und Abstände bereinigt
+- Settings Seite layout verbessert
+- Settings Seite layout verbessert
+- Settings Seite layout verbessert
+- Settings Seite angepasst
+- Gerätekonfiguration der Teleskope in die UI hinzugefügt
+- Settings mobile: Sektionsbuttons bei Gast/Admin auf 3er-Grid im Mobile-Breakpoint angepasst
+- RAW-Sync auf device_instances umgestellt, PNG/JPEG/TIFF/JSON Sync aktiviert, Settings Quellen stabilisiert und Container-User auf 1000:1000 gesetzt
+- RAW-Sync auf device_instances umgestellt, DB-Extensions/Overrides aktiv und Workflow 0030/0040/9999 repariert
+- Settings Quellen: device_sources Defaults + device_instances DB/UI vorbereitet, Web-500 in settings behoben
+- Datenbankerweiterung Vorbereitung 
 - Moon/Sun-Infos, Standorte, Session-Detail-UI kompakter
 - Bottom-Navigation per Grid-Wrapper stabilisiert und Button-Set-Anbindung korrigiert
 - Settings-Inhalte repariert, Lock-Hinweise ergänzt sowie Menü-, Bottom-Navigation- und Login-UI bereinigt

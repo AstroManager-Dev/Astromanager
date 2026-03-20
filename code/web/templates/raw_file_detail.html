@@ -1,3 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ raw_file.display_name }} · AstroManager{% endblock %}
+{% block head %}
+  <script src="/static/vendor/openseadragon/openseadragon.min.js"></script>
+{% endblock %}
 {% block content %}{% include "pages/_raw_file_detail.html" %}{% endblock %}
+{% block scripts %}
+  <script src="/static/js/raw_file_viewer_fullscreen.js"></script>
+{% endblock %}

@@ -16,6 +16,7 @@
   {% for css_file in css_module_files or [] %}
   <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}">
   {% endfor %}
+  {% block head %}{% endblock %}
 </head>
 <body>
   <div class="app-shell app-shell--new-layout">
@@ -44,5 +45,6 @@
 
   <script src="/static/js/app.js"></script>
   <script src="/static/progress.js"></script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

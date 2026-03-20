@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Session {{ session.session_datetime_label }} · AstroManager{% endblock %}
+{% block head_extra %}
+  <script src="/static/vendor/openseadragon/openseadragon.min.js"></script>
+{% endblock %}
 {% block content %}
   {% include "pages/_session_detail.html" %}
+{% endblock %}
+{% block page_scripts %}
+  <script src="/static/js/raw_file_viewer_fullscreen.js"></script>
 {% endblock %}

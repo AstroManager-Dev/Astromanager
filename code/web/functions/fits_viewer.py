@@ -25,9 +25,10 @@ VALID_DEBAYER_MODES = {"auto", "mono", "rggb", "bggr", "grbg", "gbrg"}
 
 
 def _normalize_view_mode(value: str | None, is_fits: bool) -> str:
-    mode = (value or "file").strip().lower()
-    if mode == "fits" and is_fits:
-        return "fits"
+    default_mode = "fits" if is_fits else "file"
+    mode = (value or default_mode).strip().lower()
+    if is_fits:
+        return "fits" if mode == "fits" else default_mode
     return "file"
 
 
@@ -96,8 +97,10 @@ def _load_fits_viewer_presets() -> list[dict[str, Any]]:
 
 
 def _auto_preset_key(raw_file: dict[str, Any]) -> str:
-    category = str(raw_file.get("session", {}).get("category") or raw_file.get("category") or "").strip().lower()
-    target_name = str(raw_file.get("session", {}).get("target") or raw_file.get("header_object") or raw_file.get("display_name") or "").strip().lower()
+    session = raw_file.get("session")
+    session_data = session if isinstance(session, dict) else {}
+    category = str(session_data.get("category") or raw_file.get("category") or "").strip().lower()
+    target_name = str(session_data.get("target") or raw_file.get("header_object") or raw_file.get("display_name") or "").strip().lower()
     filter_name = str(raw_file.get("header_filter") or raw_file.get("filter_set") or "").strip().lower()
     exposure = raw_file.get("header_exptime") if raw_file.get("header_exptime") not in (None, "") else raw_file.get("exp")
     try:
@@ -255,9 +258,14 @@ def enrich_raw_file_viewer_context(
         for key, preset_row in sorted(preset_map.items(), key=lambda item: (0 if item[0] == DEFAULT_PRESET_KEY else 1, str(item[1].get("label") or "")))
     ]
 
+    is_image_preview = bool(item.get("is_image_preview"))
+    viewer_type = "fits" if is_fits else ("image" if is_image_preview else "none")
+    image_preview_url = str(item.get("media_url") or "").strip()
+
     item.update(
         {
             "view_mode": view_mode,
+            "viewer_type": viewer_type,
             "preset_key": preset_key,
             "selected_preset_key": selected_preset_key,
             "selected_preset_label": selected_preset_label,
@@ -274,6 +282,9 @@ def enrich_raw_file_viewer_context(
             "fits_preview_format": preview_ext.upper(),
             "fits_viewer_available": is_fits,
             "fits_viewer_note": f"Serverseitige Vorschau mit OpenCV-Debayer, Presets, Stretch und {preview_ext.upper()}-Ausgabe.",
+            "viewer_preview_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?{viewer_query}&kind=detail" if is_fits else image_preview_url,
+            "viewer_fullscreen_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?{viewer_query}&kind=detail" if is_fits else image_preview_url,
+            "viewer_format_label": preview_ext.upper() if is_fits else str(item.get("extension") or item.get("file_ext") or "Bild").replace(".", "").upper(),
         }
     )
     return item

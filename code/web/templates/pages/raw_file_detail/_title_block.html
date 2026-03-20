@@ -1,1 +1,5 @@
-<section class="hud-info-shell raw-file-title-shell"><h1 class="raw-file-title">{{ raw_file.display_name }}</h1><div class="raw-file-subtitle">{{ raw_file.session.session_target_names_label if raw_file.session else 'Einzeldatei' }}</div><div class="raw-file-meta-line">{{ raw_file.meta_line }}</div></section>
+<section class="hud-info-shell raw-file-title-shell">
+  <h1 class="raw-file-title">{{ raw_file.session.session_target_names_label if raw_file.session and raw_file.session.session_target_names_label else raw_file.display_name }}</h1>
+  <div class="raw-file-primary-meta">{{ raw_file.header_exptime or raw_file.exp or '—' }}s · Gain {{ raw_file.header_gain or raw_file.gain or '—' }} · {{ raw_file.header_filter or raw_file.filter_set or '—' }}</div>
+  <div class="raw-file-filename-small">{{ raw_file.display_name }}</div>
+</section>

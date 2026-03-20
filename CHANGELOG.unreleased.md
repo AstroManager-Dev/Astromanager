@@ -1,3 +1,4 @@
+0.4.055 | 2026-03-21 00:06:24 | Neuer dateitypspezifischer FITS-Viewer mit Vollbild-Overlay, automatischer Viewer-Wahl nach Dateityp, kompakter Kopfzeile und eingeklappten Render-/Meta-Bereichen.
 0.4.054 | 2026-03-20 07:50:40 | Optische Anpassungen
 0.4.053 | 2026-03-19 23:57:59 | Session detail object infocards modularisiert, Moon progress card visual verbessert, device source templates erweitert
 0.4.052 | 2026-03-19 23:35:47 | Mond Beleuchtung grafische Darstellung umgesetzt
