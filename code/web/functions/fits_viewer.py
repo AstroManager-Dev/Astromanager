@@ -226,6 +226,9 @@ def enrich_raw_file_viewer_context(
     gamma_value = _format_float(gamma_value_num, 2)
     raw_file_id = int(item.get("id") or 0)
     preview_ext = _preview_extension()
+    file_name_lower = str(item.get("file_name") or "").strip().lower()
+    suffix_lower = Path(file_name_lower).suffix.lower()
+    is_tiff = suffix_lower in {".tif", ".tiff"} or file_name_lower.endswith((".tif", ".tiff"))
 
     viewer_query = (
         f"preset={preset_key}&debayer={debayer_mode}&stretch={stretch_mode}"
@@ -260,7 +263,7 @@ def enrich_raw_file_viewer_context(
 
     is_image_preview = bool(item.get("is_image_preview"))
     viewer_type = "fits" if is_fits else ("image" if is_image_preview else "none")
-    image_preview_url = str(item.get("media_url") or "").strip()
+    image_preview_url = str(item.get("raster_preview_url") or item.get("media_url") or "").strip()
 
     item.update(
         {
@@ -281,12 +284,16 @@ def enrich_raw_file_viewer_context(
             "fits_thumb_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?preset={preset_key}&debayer={debayer_mode}&stretch={stretch_mode}&black={black_value}&white={white_value}&gamma={gamma_value}&kind=thumb",
             "fits_preview_format": preview_ext.upper(),
             "fits_viewer_available": is_fits,
+            "is_tiff_preview": is_tiff,
+            "image_preview_url": f"/media/raw-file-raster-preview/{raw_file_id}.{preview_ext}" if is_tiff else item.get("media_url"),
             "fits_viewer_note": f"Serverseitige Vorschau mit OpenCV-Debayer, Presets, Stretch und {preview_ext.upper()}-Ausgabe.",
             "viewer_preview_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?{viewer_query}&kind=detail" if is_fits else image_preview_url,
             "viewer_fullscreen_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?{viewer_query}&kind=detail" if is_fits else image_preview_url,
             "viewer_format_label": preview_ext.upper() if is_fits else str(item.get("extension") or item.get("file_ext") or "Bild").replace(".", "").upper(),
         }
     )
+    if is_tiff:
+        item["media_url"] = str(item.get("image_preview_url") or item.get("media_url") or "")
     return item
 
 

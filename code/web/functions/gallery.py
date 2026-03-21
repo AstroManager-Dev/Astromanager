@@ -442,6 +442,24 @@ def _format_file_size_label(value: Any) -> str:
     return ""
 
 
+
+
+def _is_astromanager_auxiliary_asset(file_name: str) -> bool:
+    lower_name = str(file_name or '').strip().lower()
+    if not lower_name:
+        return False
+    if lower_name == 'shotsinfo.json':
+        return True
+    if lower_name.startswith('stacked_thumbnail.'):
+        return True
+    if lower_name.startswith('img_reference.'):
+        return True
+    if lower_name.startswith('img_stacked_counter.'):
+        return True
+    if 'thumbnail' in lower_name and not lower_name.startswith('stacked.'):
+        return True
+    return False
+
 def _collect_session_raw_assets(conn, session_key: str | None) -> list[dict[str, Any]]:
     if not session_key or not db_table_exists(conn, "raw_files"):
         return []
@@ -490,11 +508,14 @@ def _collect_session_raw_assets(conn, session_key: str | None) -> list[dict[str,
         quality_flag = str(item.get("quality_flag") or "").strip()
         is_fits = ext in {".fit", ".fits", ".fts"}
         is_image = ext in {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".tif", ".tiff"}
+        lower_name = file_name.lower()
+        is_auxiliary_asset = _is_astromanager_auxiliary_asset(file_name)
         is_preview = is_image and (
             source_subtype == "dwarf_preview"
             or derivative_kind == "dwarf_preview"
-            or file_name.lower() in {"stacked.jpg", "stacked_thumbnail.jpg", "img_reference.png", "img_stacked_counter.png"}
-            or (ext == ".png" and "stack" in file_name.lower())
+            or lower_name == "stacked.jpg"
+            or is_auxiliary_asset
+            or (ext == ".png" and "stack" in lower_name)
         )
         is_light = (
             source_subtype in {"light_raw_frame", "light", "raw_light"}
@@ -535,6 +556,7 @@ def _collect_session_raw_assets(conn, session_key: str | None) -> list[dict[str,
             "is_fits": is_fits,
             "is_image": is_image,
             "is_preview": is_preview,
+            "is_auxiliary_asset": is_auxiliary_asset,
             "is_light": is_light,
             "is_failed": is_failed,
             "is_bad_fits": is_bad_fits,
@@ -560,7 +582,7 @@ def _build_session_raw_list(session: dict[str, Any], source: str, page: int, pag
     if source_mode == "dwarf":
         filtered = [a for a in assets if a.get("is_light")]
     else:
-        filtered = [a for a in assets if not a.get("is_light")]
+        filtered = [a for a in assets if not a.get("is_light") and not a.get("is_auxiliary_asset")]
 
     filtered.sort(key=lambda a: (-int(a.get("mtime_epoch") or 0), -int(a.get("id") or 0)))
     total = len(filtered)
@@ -648,7 +670,9 @@ def _load_raw_file_detail(raw_file_id: int) -> dict[str, Any] | None:
             "display_name": file_name or f"RAW {raw_file_id}",
             "is_fits": ext in {".fit", ".fits", ".fts"},
             "is_image_preview": ext in {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".tif", ".tiff"},
+            "is_tiff": ext in {".tif", ".tiff"},
             "media_url": f"/media/raw-file/{raw_file_id}",
+            "raster_preview_url": f"/media/raw-file-raster-preview/{raw_file_id}.png" if ext in {".tif", ".tiff"} else f"/media/raw-file/{raw_file_id}",
             "download_url": f"/download/raw-file/{raw_file_id}",
             "meta_line": " · ".join(meta_bits) if meta_bits else "Keine Aufnahme-Metadaten verfügbar",
             "path_label": str(item.get("rel_path") or item.get("abs_path") or ""),

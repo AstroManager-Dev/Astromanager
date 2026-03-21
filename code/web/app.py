@@ -3,11 +3,13 @@ import os
 import secrets
 import sqlite3
 import subprocess
+from io import BytesIO
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 from flask import Flask, Response, abort, jsonify, redirect, render_template, request, send_file, session, url_for
+from PIL import Image, ImageOps
 
 from actions import ACTION_HANDLERS
 from progress_runtime import get_live_progress
@@ -454,6 +456,177 @@ def media_raw_file(raw_file_id: int):
 
 
 
+
+
+
+
+def _load_raw_file_media_item(raw_file_id: int):
+    conn = db_conn()
+    try:
+        if not db_table_exists(conn, "raw_files"):
+            return None
+        columns = set(db_table_columns(conn, "raw_files"))
+        path_expr = "COALESCE(abs_path, rel_path)" if {"abs_path", "rel_path"} <= columns else ("abs_path" if "abs_path" in columns else "rel_path")
+        row = conn.execute(
+            f"SELECT id, file_name, {path_expr} AS file_path FROM raw_files WHERE id = ? LIMIT 1",
+            (raw_file_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+    if row is None:
+        return None
+
+    item = row_to_dict(row)
+    from pathlib import Path as _Path
+    file_path = _Path(str(item.get("file_path") or ""))
+    if not file_path.exists() or not file_path.is_file():
+        return None
+
+    item["file_path"] = file_path
+    return item
+
+
+@APP.get("/media/raw-file-raster-preview/<int:raw_file_id>.<fmt>")
+def media_raw_file_raster_preview(raw_file_id: int, fmt: str):
+    item = _load_raw_file_media_item(raw_file_id)
+    if item is None:
+        abort(404)
+
+    file_path = item["file_path"]
+    suffix = str(file_path.suffix).lower()
+
+    if suffix not in {".tif", ".tiff"}:
+        return send_file(
+            file_path,
+            as_attachment=False,
+            download_name=str(item.get("file_name") or file_path.name),
+            conditional=True,
+        )
+
+    from io import BytesIO
+
+    try:
+        from PIL import Image
+        with Image.open(file_path) as pil_img:
+            try:
+                pil_img.seek(0)
+            except Exception:
+                pass
+
+            if pil_img.mode == "RGBA":
+                bg = Image.new("RGB", pil_img.size, (0, 0, 0))
+                bg.paste(pil_img, mask=pil_img.getchannel("A"))
+                pil_img = bg
+            elif pil_img.mode != "RGB":
+                pil_img = pil_img.convert("RGB")
+
+            out = BytesIO()
+            pil_img.save(out, format="PNG", optimize=True)
+            out.seek(0)
+
+            base_name = str(item.get("file_name") or file_path.stem or f"raw-file-{raw_file_id}")
+            if "." in base_name:
+                base_name = base_name.rsplit(".", 1)[0]
+
+            return send_file(
+                out,
+                mimetype="image/png",
+                as_attachment=False,
+                download_name=f"{base_name}.png",
+                conditional=True,
+            )
+    except Exception as exc:
+        print(f"[raster-preview] Pillow failed for {file_path}: {exc}")
+
+    try:
+        import cv2
+        import numpy as np
+
+        arr = cv2.imread(str(file_path), cv2.IMREAD_UNCHANGED)
+        if arr is None:
+            raise RuntimeError("cv2.imread returned None")
+
+        arr = np.asarray(arr)
+
+        if arr.ndim == 2:
+            arr = arr.astype("float32")
+            finite = np.isfinite(arr)
+            if not finite.any():
+                raise RuntimeError("no finite pixels")
+            lo = float(np.nanpercentile(arr[finite], 20.0))
+            hi = float(np.nanpercentile(arr[finite], 99.7))
+            if hi <= lo:
+                hi = lo + 1.0
+            scaled = np.clip((arr - lo) / (hi - lo), 0.0, 1.0)
+            gamma = 2.2
+            toned = np.power(scaled, gamma)
+            rgb = (np.clip(toned, 0.0, 1.0) * 255.0).astype("uint8")
+            rgb = cv2.cvtColor(rgb, cv2.COLOR_GRAY2RGB)
+        elif arr.ndim == 3:
+            if arr.shape[2] == 4:
+                rgb = cv2.cvtColor(arr, cv2.COLOR_BGRA2RGB)
+            else:
+                rgb = cv2.cvtColor(arr, cv2.COLOR_BGR2RGB)
+
+            rgb = rgb.astype("float32")
+            if not np.isfinite(rgb).any():
+                raise RuntimeError("no finite pixels")
+
+            # per-channel black point
+            lo_r = float(np.nanpercentile(rgb[..., 0], 20.0))
+            lo_g = float(np.nanpercentile(rgb[..., 1], 20.0))
+            lo_b = float(np.nanpercentile(rgb[..., 2], 20.0))
+
+            rgb[..., 0] = np.clip(rgb[..., 0] - lo_r, 0.0, None)
+            rgb[..., 1] = np.clip(rgb[..., 1] - lo_g, 0.0, None)
+            rgb[..., 2] = np.clip(rgb[..., 2] - lo_b, 0.0, None)
+
+            # neutralize background a bit
+            med_r = float(np.nanmedian(rgb[..., 0]))
+            med_g = float(np.nanmedian(rgb[..., 1]))
+            med_b = float(np.nanmedian(rgb[..., 2]))
+            med_ref = max((med_r + med_g + med_b) / 3.0, 1e-6)
+
+            rgb[..., 0] *= med_ref / max(med_r, 1e-6)
+            rgb[..., 1] *= med_ref / max(med_g, 1e-6)
+            rgb[..., 2] *= med_ref / max(med_b, 1e-6)
+
+            hi = float(np.nanpercentile(rgb, 99.7))
+            if hi <= 0:
+                hi = 1.0
+
+            scaled = np.clip(rgb / hi, 0.0, 1.0)
+
+            gamma = 1.6
+            rgb = np.power(scaled, gamma)
+            rgb = (np.clip(rgb, 0.0, 1.0) * 255.0).astype("uint8")
+        else:
+            raise RuntimeError(f"unsupported TIFF shape: {arr.shape}")
+
+        ok, enc = cv2.imencode(".png", cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR))
+        if not ok:
+            raise RuntimeError("cv2.imencode failed")
+
+        out = BytesIO(enc.tobytes())
+        out.seek(0)
+
+        base_name = str(item.get("file_name") or file_path.stem or f"raw-file-{raw_file_id}")
+        if "." in base_name:
+            base_name = base_name.rsplit(".", 1)[0]
+
+        return send_file(
+            out,
+            mimetype="image/png",
+            as_attachment=False,
+            download_name=f"{base_name}.png",
+            conditional=True,
+        )
+    except Exception as exc:
+        print(f"[raster-preview] OpenCV failed for {file_path}: {exc}")
+        abort(500)
+def media_raw_file_image_preview(raw_file_id: int, fmt: str):
+    return media_raw_file_raster_preview(raw_file_id, fmt)
 
 @APP.get("/sessions/<int:session_id>/raw")
 def session_raw_list_page(session_id: int):
