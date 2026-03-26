@@ -4,6 +4,7 @@ import secrets
 import sqlite3
 import subprocess
 from io import BytesIO
+from urllib.parse import urlencode
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
@@ -52,7 +53,12 @@ from functions.gallery import (
     load_session_detail,
     load_session_raw_list,
 )
-from functions.fits_viewer import enrich_raw_file_viewer_context, render_raw_file_fits_preview
+from functions.fits_viewer import (
+    delete_user_fits_viewer_preset,
+    enrich_raw_file_viewer_context,
+    render_raw_file_fits_preview,
+    save_user_fits_viewer_preset,
+)
 from functions.ephemeris import load_session_ephemeris_context
 from functions.session_detail import build_session_object_infocard_context
 from functions.observing import assign_session_observing_site, create_observing_site, delete_observing_site, list_observing_sites, set_default_observing_site
@@ -66,6 +72,7 @@ from functions.settings_devices import (
 from functions.program_info import load_program_info
 from functions.status import append_web_log, dev_assets, latest_web_log, resolve_download, summarize_service_state
 from functions.targets import deepsky_targets, load_target_detail, system_targets
+from functions.licensing import build_license_context
 
 APP = Flask(__name__)
 
@@ -135,6 +142,7 @@ def inject_global_ui_context() -> dict[str, Any]:
             "login_info_global": build_login_info(auth_context),
             "login_user": auth_context.get("display_name", "Gast"),
             "login_href": auth_context.get("action_href", "/login"),
+            "license_context_global": build_license_context(),
         }
     except Exception:
         return {
@@ -144,6 +152,7 @@ def inject_global_ui_context() -> dict[str, Any]:
             "login_info_global": build_login_info(auth_context),
             "login_user": auth_context.get("display_name", "Gast"),
             "login_href": auth_context.get("action_href", "/login"),
+            "license_context_global": build_license_context(),
         }
 
 
@@ -640,6 +649,20 @@ def session_raw_list_page(session_id: int):
     return render_template("session_raw_list.html", session=session)
 
 
+def _redirect_raw_file_viewer_state(raw_file_id: int, *, preset: str | None, debayer: str, stretch: str, black: str, white: str, gamma: str):
+    query = {
+        "view": "fits",
+        "debayer": debayer,
+        "stretch": stretch,
+        "black": black,
+        "white": white,
+        "gamma": gamma,
+    }
+    if preset:
+        query["preset"] = preset
+    return redirect(f"{url_for('raw_file_detail_page', raw_file_id=raw_file_id)}?{urlencode(query)}")
+
+
 @APP.get("/raw-files/<int:raw_file_id>")
 def raw_file_detail_page(raw_file_id: int):
     raw_file = load_raw_file_detail(raw_file_id)
@@ -648,6 +671,8 @@ def raw_file_detail_page(raw_file_id: int):
     requested_view = request.args.get("view")
     if requested_view is None and raw_file.get("is_fits"):
         requested_view = "fits"
+    auth_context = get_auth_context()
+    auth_user_id = int(auth_context.get("user_id") or 0) or None
     raw_file = enrich_raw_file_viewer_context(
         raw_file,
         requested_view,
@@ -657,8 +682,67 @@ def raw_file_detail_page(raw_file_id: int):
         request.args.get("white"),
         request.args.get("gamma"),
         request.args.get("preset"),
+        auth_user_id=auth_user_id,
     )
-    return render_template("raw_file_detail.html", raw_file=raw_file)
+    raw_file["can_manage_user_presets"] = bool(auth_context.get("is_logged_in") and auth_user_id)
+    return render_template("raw_file_detail.html", raw_file=raw_file, csrf_token=issue_csrf_token())
+
+
+@APP.post("/raw-files/<int:raw_file_id>/presets/save")
+def save_raw_file_user_preset(raw_file_id: int):
+    raw_file = load_raw_file_detail(raw_file_id)
+    if raw_file is None or not raw_file.get("is_fits"):
+        abort(404)
+    if not validate_csrf_token(request.form.get("csrf_token")):
+        abort(403)
+    auth_context = get_auth_context()
+    user_id = int(auth_context.get("user_id") or 0)
+    if not auth_context.get("is_logged_in") or user_id <= 0:
+        abort(403)
+    overwrite_id = int(request.form.get("overwrite_preset_id") or 0) or None
+    ok, message, preset_meta = save_user_fits_viewer_preset(
+        user_id=user_id,
+        label=request.form.get("preset_label") or "",
+        debayer_mode=request.form.get("debayer") or "auto",
+        stretch_mode=request.form.get("stretch") or "auto",
+        black_value=request.form.get("black") or str(0.5),
+        white_value=request.form.get("white") or str(99.5),
+        gamma_value=request.form.get("gamma") or str(1.0),
+        overwrite_preset_id=overwrite_id,
+    )
+    target_preset = str((preset_meta or {}).get("select_key") or (request.form.get("preset") or ""))
+    return _redirect_raw_file_viewer_state(
+        raw_file_id,
+        preset=target_preset if ok else (request.form.get("preset") or ""),
+        debayer=request.form.get("debayer") or "auto",
+        stretch=request.form.get("stretch") or "auto",
+        black=request.form.get("black") or str(0.5),
+        white=request.form.get("white") or str(99.5),
+        gamma=request.form.get("gamma") or str(1.0),
+    )
+
+
+@APP.post("/raw-files/<int:raw_file_id>/presets/delete")
+def delete_raw_file_user_preset(raw_file_id: int):
+    raw_file = load_raw_file_detail(raw_file_id)
+    if raw_file is None or not raw_file.get("is_fits"):
+        abort(404)
+    if not validate_csrf_token(request.form.get("csrf_token")):
+        abort(403)
+    auth_context = get_auth_context()
+    user_id = int(auth_context.get("user_id") or 0)
+    if not auth_context.get("is_logged_in") or user_id <= 0:
+        abort(403)
+    delete_user_fits_viewer_preset(user_id, int(request.form.get("delete_preset_id") or 0))
+    return _redirect_raw_file_viewer_state(
+        raw_file_id,
+        preset="auto",
+        debayer=request.form.get("debayer") or "auto",
+        stretch=request.form.get("stretch") or "auto",
+        black=request.form.get("black") or str(0.5),
+        white=request.form.get("white") or str(99.5),
+        gamma=request.form.get("gamma") or str(1.0),
+    )
 
 
 @APP.get("/media/raw-file-fits-preview/<int:raw_file_id>.<string:fmt>")

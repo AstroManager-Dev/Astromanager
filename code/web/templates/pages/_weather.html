@@ -1,0 +1,34 @@
+<section class="tab-panel" data-panel="weather">
+  {% set page_eyebrow = 'Wetter' %}
+  {% set page_title = 'Nachtqualität und Forecast' %}
+  {% set page_description = 'Vorbereitete Oberfläche für Wolken, Wind, Luftfeuchte, Temperatur, Taupunkt und spätere Astro-Bedingungen.' %}
+  {% set page_chip = 'Planungsschicht' %}
+  {% include 'includes/_page_intro.html' %}
+
+  <div class="hud-info-shell">
+    <div class="hud-month-section__head">
+      <h3>Forecast-Bausteine</h3>
+      <span>Ideenstatus</span>
+    </div>
+    <div class="hud-session-list">
+      <div class="hud-session-row">
+        <div class="hud-session-row__meta">
+          <strong>Basisdaten</strong>
+          <div class="muted">Wolken, Wind, Luftfeuchte, Temperatur, Taupunkt, Niederschlag.</div>
+        </div>
+      </div>
+      <div class="hud-session-row">
+        <div class="hud-session-row__meta">
+          <strong>Nachtqualitätsprofil</strong>
+          <div class="muted">Einordnung für RGB, Schmalband, Mond/Planeten und kurze nutzbare Nächte.</div>
+        </div>
+      </div>
+      <div class="hud-session-row">
+        <div class="hud-session-row__meta">
+          <strong>Späterer Ausbau</strong>
+          <div class="muted">Seeing, Transparenz und Kombination mit Sichtbarkeit und Fortschritt.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

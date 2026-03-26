@@ -1,11 +1,11 @@
 /* AstroManager bottom navigation module */
 .app-shell--new-layout {
-  padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 .app-content,
 .app-content--spacious {
-  padding-bottom: 20px !important;
+  padding-bottom: 18px !important;
 }
 
 .am-bottom-nav {
@@ -15,7 +15,7 @@
   bottom: 0 !important;
   z-index: 90 !important;
   margin: 0 !important;
-  padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px)) 10px !important;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px !important;
   display: block !important;
   min-height: 0 !important;
   box-sizing: border-box !important;
@@ -45,8 +45,8 @@
 
 .am-bottom-nav__grid {
   display: grid !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 8px !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  gap: 6px !important;
   align-items: stretch !important;
   width: 100% !important;
   min-width: 0 !important;
@@ -61,22 +61,21 @@
 .am-bottom-nav__button.astro-btn,
 .am-bottom-nav a.am-bottom-nav__button,
 .am-bottom-nav button.am-bottom-nav__button {
-  display: inline-flex !important;
+  position: relative !important;
+  display: grid !important;
+  grid-auto-rows: min-content !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 4px !important;
   width: 100% !important;
   min-width: 0 !important;
   max-width: none !important;
   box-sizing: border-box !important;
   margin: 0 !important;
-  padding: 0 8px !important;
-  min-height: 57px !important;
-  justify-content: center !important;
-  align-items: center !important;
+  padding: 7px 4px 6px !important;
+  min-height: 58px !important;
   text-align: center !important;
-  font-size: 13px !important;
-  line-height: 1 !important;
   border-radius: 14px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
   color: #d7e4f7 !important;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35) !important;
   border: 1px solid rgba(118, 170, 228, 0.24) !important;
@@ -94,22 +93,41 @@
     transform 0.2s ease !important;
 }
 
-.am-bottom-nav__button span {
+.am-bottom-nav__icon {
+  position: relative !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 4px !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(124, 188, 255, 0.12) !important;
+  background: radial-gradient(circle at top, rgba(94, 166, 255, 0.16), rgba(9, 21, 38, 0.12) 70%) !important;
+  box-shadow: inset 0 1px 0 rgba(230, 242, 255, 0.08), 0 3px 10px rgba(0, 0, 0, 0.16) !important;
+}
+
+.am-bottom-nav__icon i {
+  font-size: 14px !important;
+}
+
+.am-bottom-nav__label {
+  display: none !important;
   width: 100% !important;
   min-width: 0 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  letter-spacing: .02em !important;
 }
 
-.am-bottom-nav__button i {
-  flex: 0 0 auto !important;
-  font-size: 11px !important;
-  opacity: .9 !important;
+.am-bottom-nav__icon--locked .am-bottom-nav__lock {
+  position: absolute !important;
+  right: -2px !important;
+  bottom: -2px !important;
+  font-size: 8px !important;
+  color: #dcecff !important;
 }
 
 .am-bottom-nav__button:hover,
@@ -147,13 +165,39 @@
     0 8px 12px rgba(0, 0, 0, 0.14) !important;
 }
 
+.am-bottom-nav__button.active .am-bottom-nav__icon,
+.am-bottom-nav__button.is-active .am-bottom-nav__icon,
+.am-bottom-nav__button[aria-current="page"] .am-bottom-nav__icon,
+.am-bottom-nav__button.astro-btn--primary .am-bottom-nav__icon {
+  border-color: rgba(132, 206, 255, 0.24) !important;
+  box-shadow: inset 0 1px 0 rgba(236, 246, 255, 0.12), 0 0 14px rgba(86, 170, 255, 0.16), 0 3px 10px rgba(0, 0, 0, 0.18) !important;
+}
+
+@media (min-width: 920px) {
+  .app-shell--new-layout {
+    padding-bottom: calc(126px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .am-bottom-nav__button,
+  .am-bottom-nav__button.astro-btn,
+  .am-bottom-nav a.am-bottom-nav__button,
+  .am-bottom-nav button.am-bottom-nav__button {
+    min-height: 66px !important;
+    padding: 8px 6px !important;
+  }
+
+  .am-bottom-nav__label {
+    display: block !important;
+  }
+}
+
 @media (max-width: 640px) {
   .app-shell--new-layout {
-    padding-bottom: calc(108px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .am-bottom-nav {
-    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px !important;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)) 6px !important;
   }
 
   .am-bottom-nav__frame {
@@ -161,7 +205,7 @@
   }
 
   .am-bottom-nav__grid {
-    gap: 6px !important;
+    gap: 4px !important;
   }
 
   .am-bottom-nav__button,
@@ -169,8 +213,16 @@
   .am-bottom-nav a.am-bottom-nav__button,
   .am-bottom-nav button.am-bottom-nav__button {
     min-height: 54px !important;
-    padding: 0 6px !important;
-    font-size: 12px !important;
+    padding: 6px 2px 5px !important;
     border-radius: 12px !important;
+  }
+
+  .am-bottom-nav__icon {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .am-bottom-nav__icon i {
+    font-size: 13px !important;
   }
 }

@@ -5,33 +5,50 @@
         <img class="raw-file-image raw-file-image--fits" src="{{ raw_file.viewer_preview_url }}" alt="{{ raw_file.display_name }} FITS Preview" loading="eager">
       </button>
     </div>
-    <details class="hud-info-shell raw-file-collapse raw-file-render-collapse">
-      <summary>Render-Einstellungen</summary>
-      <form class="raw-file-viewer-form" method="get" action="/raw-files/{{ raw_file.id }}" data-fits-preset-form>
-        <input type="hidden" name="view" value="fits">
-        <div class="raw-file-viewer-grid">
-          <label class="raw-file-field raw-file-field--wide">
-            <span>Preset</span>
-            <select name="preset" data-fits-preset-select>
-              {% for preset in raw_file.fits_preset_options %}
-                <option
-                  value="{{ preset.key }}"
-                  data-debayer="{{ preset.debayer_mode }}"
-                  data-stretch="{{ preset.stretch_mode }}"
-                  data-black="{{ preset.black_value }}"
-                  data-white="{{ preset.white_value }}"
-                  data-gamma="{{ preset.gamma_value }}"
-                  {% if preset.selected %}selected{% endif %}
-                >
-                  {{ preset.label }}{% if preset.key == 'auto' and preset.resolved_label %} → {{ preset.resolved_label }}{% endif %}
-                </option>
-              {% endfor %}
-              {% if raw_file.selected_preset_key == 'custom' %}
-                <option value="custom" selected>Custom</option>
-              {% endif %}
-            </select>
-          </label>
 
+    <form class="raw-file-viewer-form" method="get" action="/raw-files/{{ raw_file.id }}" data-fits-preset-form>
+      <input type="hidden" name="view" value="fits">
+
+      <div class="raw-file-preset-row">
+        <label class="raw-file-field raw-file-field--wide raw-file-preset-field">
+          <span>Preset</span>
+          <select name="preset" data-fits-preset-select>
+            {% for preset in raw_file.fits_preset_options %}
+              <option
+                value="{{ preset.key }}"
+                data-debayer="{{ preset.debayer_mode }}"
+                data-stretch="{{ preset.stretch_mode }}"
+                data-black="{{ preset.black_value }}"
+                data-white="{{ preset.white_value }}"
+                data-gamma="{{ preset.gamma_value }}"
+                data-source="{{ preset.source }}"
+                data-preset-id="{{ preset.preset_id }}"
+                data-preset-label="{{ preset.label }}"
+                data-preset-is-user="{{ '1' if preset.is_user else '0' }}"
+                {% if preset.selected %}selected{% endif %}
+              >
+                {{ preset.label }}{% if preset.is_user %} • Eigenes{% endif %}{% if preset.key == 'auto' and preset.resolved_label %} → {{ preset.resolved_label }}{% endif %}
+              </option>
+            {% endfor %}
+            {% if raw_file.current_preset_key == 'custom' %}
+              <option value="custom" data-source="custom" data-preset-id="0" data-preset-label="Custom" selected>Custom</option>
+            {% endif %}
+          </select>
+        </label>
+        {% if raw_file.can_manage_user_presets %}
+          <div class="raw-file-preset-actions">
+            <button type="button" class="astro-btn astro-btn--md astro-btn--secondary" data-open-user-preset-modal data-current-preset-id="{{ raw_file.current_preset_id }}" data-current-preset-is-user="{{ '1' if raw_file.current_preset_is_user else '0' }}" data-current-preset-label="{{ raw_file.current_preset_label or raw_file.selected_preset_label }}">Preset speichern</button>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if raw_file.current_preset_modified and raw_file.current_preset_label %}
+        <div class="muted raw-file-preset-note">Aktive Werte weichen von „{{ raw_file.current_preset_label }}“ ab.</div>
+      {% endif %}
+
+      <details class="hud-info-shell raw-file-collapse raw-file-render-collapse">
+        <summary>Render-Einstellungen</summary>
+        <div class="raw-file-viewer-grid">
           <label class="raw-file-field">
             <span>Debayer</span>
             <select name="debayer" data-fits-control="debayer">
@@ -71,12 +88,54 @@
             <output id="gamma-{{ raw_file.id }}" class="raw-file-field__value">{{ raw_file.gamma_value }}</output>
           </label>
 
-          <div class="raw-file-field raw-file-field--submit raw-file-field--wide">
+          <div class="raw-file-field raw-file-field--submit raw-file-field--wide raw-file-field--submit-stack">
             <button type="submit" class="astro-btn astro-btn--md astro-btn--primary">Vorschau aktualisieren</button>
+            {% if raw_file.can_manage_user_presets %}
+              <button type="button" class="astro-btn astro-btn--md astro-btn--secondary" data-delete-user-preset data-current-preset-id="{{ raw_file.current_preset_id }}" {% if not raw_file.current_preset_is_user %}hidden{% endif %}>Preset löschen</button>
+            {% endif %}
           </div>
         </div>
+      </details>
+    </form>
+
+    {% if raw_file.can_manage_user_presets %}
+      <form method="post" action="/raw-files/{{ raw_file.id }}/presets/save" hidden data-user-preset-save-form>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="preset" value="{{ raw_file.current_preset_key if raw_file.current_preset_key != 'custom' else '' }}" data-user-preset-hidden="preset">
+        <input type="hidden" name="debayer" value="{{ raw_file.debayer_mode }}" data-user-preset-hidden="debayer">
+        <input type="hidden" name="stretch" value="{{ raw_file.stretch_mode }}" data-user-preset-hidden="stretch">
+        <input type="hidden" name="black" value="{{ raw_file.black_value }}" data-user-preset-hidden="black">
+        <input type="hidden" name="white" value="{{ raw_file.white_value }}" data-user-preset-hidden="white">
+        <input type="hidden" name="gamma" value="{{ raw_file.gamma_value }}" data-user-preset-hidden="gamma">
+        <input type="hidden" name="preset_label" value="" data-user-preset-hidden="preset_label">
+        <input type="hidden" name="overwrite_preset_id" value="" data-user-preset-hidden="overwrite_preset_id">
       </form>
-    </details>
+
+      <form method="post" action="/raw-files/{{ raw_file.id }}/presets/delete" hidden data-user-preset-delete-form>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="debayer" value="{{ raw_file.debayer_mode }}" data-user-preset-hidden="debayer">
+        <input type="hidden" name="stretch" value="{{ raw_file.stretch_mode }}" data-user-preset-hidden="stretch">
+        <input type="hidden" name="black" value="{{ raw_file.black_value }}" data-user-preset-hidden="black">
+        <input type="hidden" name="white" value="{{ raw_file.white_value }}" data-user-preset-hidden="white">
+        <input type="hidden" name="gamma" value="{{ raw_file.gamma_value }}" data-user-preset-hidden="gamma">
+        <input type="hidden" name="delete_preset_id" value="{{ raw_file.current_preset_id }}" data-user-preset-hidden="delete_preset_id">
+      </form>
+
+      <div class="raw-preset-modal" hidden data-user-preset-modal>
+        <div class="hud-info-shell raw-preset-dialog">
+          <div class="eyebrow">Eigenes FITS-Preset</div>
+          <strong>Aktuelle Einstellungen speichern</strong>
+          <label class="raw-file-field raw-file-field--wide">
+            <span>Name</span>
+            <input type="text" value="{{ raw_file.current_preset_label if raw_file.current_preset_is_user else '' }}" maxlength="80" data-user-preset-label-input>
+          </label>
+          <div class="raw-preset-dialog-actions">
+            <button type="button" class="astro-btn astro-btn--md astro-btn--secondary" data-close-user-preset-modal>Abbrechen</button>
+            <button type="button" class="astro-btn astro-btn--md astro-btn--primary" data-submit-user-preset>Speichern</button>
+          </div>
+        </div>
+      </div>
+    {% endif %}
   {% elif raw_file.viewer_type == 'image' %}
     <div class="raw-file-view-stage">
       <button type="button" class="raw-file-preview-button" data-open-fullscreen data-viewer-kind="image" data-image-url="{{ raw_file.viewer_fullscreen_url }}" aria-label="Bild-Vollbild öffnen">

@@ -9,7 +9,7 @@
   const closeMenuBtn = document.getElementById("close-menu-btn");
   const menuSheet = document.getElementById("menu-sheet");
   const menuBackdrop = document.getElementById("menu-backdrop");
-  const validTabs = ["gallery", "atlas", "targets", "overview", "settings", "logs", "info", "admin", "dev", "database"];
+  const validTabs = ["gallery", "atlas", "targets", "weather", "planner", "overview", "settings", "logs", "info", "admin", "dev", "database"];
 
   function showResponse(text) {
     if (!responseBox) return;
@@ -225,6 +225,15 @@ ${name}`)) {
         white: form.querySelector('[data-fits-control="white"]'),
         gamma: form.querySelector('[data-fits-control="gamma"]'),
       };
+      const saveButton = document.querySelector('[data-open-user-preset-modal]');
+      const deleteButton = form.querySelector('[data-delete-user-preset]');
+      const saveForm = document.querySelector('[data-user-preset-save-form]');
+      const deleteForm = document.querySelector('[data-user-preset-delete-form]');
+      const modal = document.querySelector('[data-user-preset-modal]');
+      const modalInput = modal ? modal.querySelector('[data-user-preset-label-input]') : null;
+      const modalClose = modal ? modal.querySelector('[data-close-user-preset-modal]') : null;
+      const modalSubmit = modal ? modal.querySelector('[data-submit-user-preset]') : null;
+
       const syncOutput = (input) => {
         if (!input || !input.dataset.rangeOutput) return;
         const output = document.getElementById(input.dataset.rangeOutput);
@@ -232,8 +241,46 @@ ${name}`)) {
         output.value = input.value;
         output.textContent = input.value;
       };
+
+      const currentOption = () => presetSelect.options[presetSelect.selectedIndex] || null;
+
+      const syncHiddenFormValues = (targetForm) => {
+        if (!targetForm) return;
+        const option = currentOption();
+        targetForm.querySelectorAll('[data-user-preset-hidden]').forEach((input) => {
+          const key = input.dataset.userPresetHidden;
+          if (!key) return;
+          if (key === 'preset') {
+            input.value = option && option.value !== 'custom' ? option.value : '';
+          } else if (key === 'debayer' && controls.debayer) {
+            input.value = controls.debayer.value;
+          } else if (key === 'stretch' && controls.stretch) {
+            input.value = controls.stretch.value;
+          } else if (key === 'black' && controls.black) {
+            input.value = controls.black.value;
+          } else if (key === 'white' && controls.white) {
+            input.value = controls.white.value;
+          } else if (key === 'gamma' && controls.gamma) {
+            input.value = controls.gamma.value;
+          } else if (key === 'delete_preset_id') {
+            input.value = option ? (option.dataset.presetId || '') : '';
+          }
+        });
+      };
+
+      const syncPresetActionState = () => {
+        const option = currentOption();
+        const isUser = !!(option && (option.dataset.presetIsUser === '1' || (option.dataset.source === 'user' && option.dataset.presetId)));
+        if (deleteButton) deleteButton.hidden = !isUser;
+        if (saveButton) {
+          saveButton.dataset.currentPresetId = isUser ? (option.dataset.presetId || '') : '';
+          saveButton.dataset.currentPresetIsUser = isUser ? '1' : '0';
+          saveButton.dataset.currentPresetLabel = option ? (option.dataset.presetLabel || option.textContent.trim()) : '';
+        }
+      };
+
       const applyPreset = () => {
-        const option = presetSelect.options[presetSelect.selectedIndex];
+        const option = currentOption();
         if (!option) return;
         if (controls.debayer && option.dataset.debayer) controls.debayer.value = option.dataset.debayer;
         if (controls.stretch && option.dataset.stretch) controls.stretch.value = option.dataset.stretch;
@@ -249,8 +296,65 @@ ${name}`)) {
           controls.gamma.value = option.dataset.gamma;
           syncOutput(controls.gamma);
         }
+        syncPresetActionState();
       };
+
       presetSelect.addEventListener('change', applyPreset);
+      syncPresetActionState();
+
+      if (saveButton && modal && modalInput && modalSubmit) {
+        saveButton.addEventListener('click', () => {
+          const option = currentOption();
+          modalInput.value = option ? (option.dataset.presetLabel || option.textContent.replace(/• Eigenes/g, '').trim()) : '';
+          modal.hidden = false;
+          modal.classList.add('is-open');
+          window.requestAnimationFrame(() => modalInput.focus());
+        });
+        if (modalClose) {
+          modalClose.addEventListener('click', () => {
+            modal.hidden = true;
+            modal.classList.remove('is-open');
+          });
+        }
+        modalSubmit.addEventListener('click', () => {
+          if (!saveForm) return;
+          syncHiddenFormValues(saveForm);
+          const option = currentOption();
+          const hiddenLabel = saveForm.querySelector('[data-user-preset-hidden="preset_label"]');
+          const hiddenOverwrite = saveForm.querySelector('[data-user-preset-hidden="overwrite_preset_id"]');
+          if (hiddenLabel) hiddenLabel.value = (modalInput.value || '').trim();
+          if (!hiddenLabel || !hiddenLabel.value) {
+            showToast('Preset-Name fehlt.', false);
+            modalInput.focus();
+            return;
+          }
+          let overwriteId = '';
+          if (option && option.dataset.source === 'user' && option.dataset.presetId) {
+            const ok = window.confirm(`Preset „${option.dataset.presetLabel || option.textContent.trim()}“ überschreiben?`);
+            overwriteId = ok ? (option.dataset.presetId || '') : '';
+          }
+          if (hiddenOverwrite) hiddenOverwrite.value = overwriteId;
+          saveForm.submit();
+        });
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) {
+            modal.hidden = true;
+            modal.classList.remove('is-open');
+          }
+        });
+      }
+
+      if (deleteButton && deleteForm) {
+        deleteButton.addEventListener('click', () => {
+          const option = currentOption();
+          if (!option || option.dataset.source !== 'user' || !option.dataset.presetId) return;
+          if (!window.confirm(`Preset „${option.dataset.presetLabel || option.textContent.trim()}“ löschen?`)) return;
+          syncHiddenFormValues(deleteForm);
+          const hiddenDelete = deleteForm.querySelector('[data-user-preset-hidden="delete_preset_id"]');
+          if (hiddenDelete) hiddenDelete.value = option.dataset.presetId || '';
+          deleteForm.submit();
+        });
+      }
     });
   }
 
@@ -348,3 +452,10 @@ ${name}`)) {
 
   setActiveTabButton(fallbackTab);
 })();
+
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-user-preset-modal]').forEach(function (modal) {
+    modal.hidden = true;
+    modal.classList.remove('is-open', 'active', 'show');
+  });
+});

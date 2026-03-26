@@ -1,0 +1,34 @@
+<section class="tab-panel" data-panel="planner">
+  {% set page_eyebrow = 'Planner' %}
+  {% set page_title = 'Nachtplanung und Slots' %}
+  {% set page_description = 'Vorbereitete Seite für geplante Nächte, Targets, Zeitfenster, freie Slots und Soll/Ist-Abgleich.' %}
+  {% set page_chip = 'Arbeitsplanung' %}
+  {% include 'includes/_page_intro.html' %}
+
+  <div class="hud-info-shell">
+    <div class="hud-month-section__head">
+      <h3>Planungsbausteine</h3>
+      <span>Ideenstatus</span>
+    </div>
+    <div class="hud-session-list">
+      <div class="hud-session-row">
+        <div class="hud-session-row__meta">
+          <strong>Geplante Nächte</strong>
+          <div class="muted">Heute Nacht, morgen Nacht, nächste 3 Nächte, Wochenansicht und Nachtlistenansicht.</div>
+        </div>
+      </div>
+      <div class="hud-session-row">
+        <div class="hud-session-row__meta">
+          <strong>Slots und Status</strong>
+          <div class="muted">Target, Standort, Dauer, Status und Notizen pro Nachtfenster.</div>
+        </div>
+      </div>
+      <div class="hud-session-row">
+        <div class="hud-session-row__meta">
+          <strong>Späterer Ausbau</strong>
+          <div class="muted">Übernahme von Empfehlungen, Sichtbarkeit, Wetter und Fortschritt in die Planung.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

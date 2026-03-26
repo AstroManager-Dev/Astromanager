@@ -1,15 +1,41 @@
 <nav class="am-bottom-nav astro-glow-soft" aria-label="Hauptnavigation">
   <div class="am-bottom-nav__frame">
     <div class="am-bottom-nav__grid">
-      <button class="am-bottom-nav__button astro-btn astro-btn--sm astro-btn--primary" data-tab="gallery" aria-current="page"><span>Galerie</span></button>
-      <button class="am-bottom-nav__button astro-btn astro-btn--sm" data-tab="atlas"><span>Atlas</span></button>
-      <button class="am-bottom-nav__button astro-btn astro-btn--sm" data-tab="targets"><span>Targets</span></button>
+      <button class="am-bottom-nav__button bottom-nav-btn astro-btn astro-btn--sm astro-btn--primary" data-tab="gallery" aria-current="page" aria-label="Galerie" title="Galerie">
+        <span class="am-bottom-nav__icon"><i class="fa-solid fa-images" aria-hidden="true"></i></span>
+        <span class="am-bottom-nav__label">Galerie</span>
+      </button>
+      <button class="am-bottom-nav__button bottom-nav-btn astro-btn astro-btn--sm" data-tab="atlas" aria-label="Atlas" title="Atlas">
+        <span class="am-bottom-nav__icon"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i></span>
+        <span class="am-bottom-nav__label">Atlas</span>
+      </button>
+      <button class="am-bottom-nav__button bottom-nav-btn astro-btn astro-btn--sm" data-tab="targets" aria-label="Targets" title="Targets">
+        <span class="am-bottom-nav__icon"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></span>
+        <span class="am-bottom-nav__label">Targets</span>
+      </button>
+      <button class="am-bottom-nav__button bottom-nav-btn astro-btn astro-btn--sm" data-tab="weather" aria-label="Wetter" title="Wetter">
+        <span class="am-bottom-nav__icon"><i class="fa-solid fa-cloud-moon" aria-hidden="true"></i></span>
+        <span class="am-bottom-nav__label">Wetter</span>
+      </button>
+      <button class="am-bottom-nav__button bottom-nav-btn astro-btn astro-btn--sm" data-tab="planner" aria-label="Planner" title="Planner">
+        <span class="am-bottom-nav__icon"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
+        <span class="am-bottom-nav__label">Planner</span>
+      </button>
 {% if auth_context_global.can_view_overview %}
-      <button class="am-bottom-nav__button astro-btn astro-btn--sm" data-tab="overview"><span>Zentrale</span></button>
+      <button class="am-bottom-nav__button bottom-nav-btn astro-btn astro-btn--sm" data-tab="overview" aria-label="Zentrale" title="Zentrale">
+        <span class="am-bottom-nav__icon"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
+        <span class="am-bottom-nav__label">Zentrale</span>
+      </button>
 {% else %}
-      <a class="am-bottom-nav__button am-bottom-nav__button--locked astro-btn astro-btn--sm" href="/forbidden"><span>Zentrale <i class="fa-solid fa-lock" aria-hidden="true"></i></span></a>
+      <a class="am-bottom-nav__button am-bottom-nav__button--locked bottom-nav-btn astro-btn astro-btn--sm" href="/forbidden" aria-label="Zentrale gesperrt" title="Zentrale gesperrt">
+        <span class="am-bottom-nav__icon am-bottom-nav__icon--locked"><i class="fa-solid fa-sliders" aria-hidden="true"></i><i class="fa-solid fa-lock am-bottom-nav__lock" aria-hidden="true"></i></span>
+        <span class="am-bottom-nav__label">Zentrale</span>
+      </a>
 {% endif %}
-      <button class="am-bottom-nav__button am-bottom-nav__button--menu astro-btn astro-btn--sm" id="open-menu-btn-bottom" aria-label="Menü öffnen" aria-controls="menu-sheet" aria-expanded="false"><span>Menü</span></button>
+      <button class="am-bottom-nav__button am-bottom-nav__button--menu bottom-nav-btn astro-btn astro-btn--sm" id="open-menu-btn-bottom" aria-label="Menü öffnen" title="Menü" aria-controls="menu-sheet" aria-expanded="false">
+        <span class="am-bottom-nav__icon"><i class="fa-solid fa-bars" aria-hidden="true"></i></span>
+        <span class="am-bottom-nav__label">Menü</span>
+      </button>
     </div>
   </div>
 </nav>

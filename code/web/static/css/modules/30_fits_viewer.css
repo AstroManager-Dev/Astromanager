@@ -81,3 +81,33 @@
 body.raw-fullscreen-open { overflow: hidden; }
 @media (min-width: 860px) { .raw-file-meta-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .raw-file-meta-grid, .raw-file-viewer-grid { grid-template-columns: 1fr; } }
+.raw-file-preset-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: end; }
+.raw-file-preset-field { margin-bottom: 0; }
+.raw-file-preset-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.raw-file-preset-note { margin-top: -4px; }
+.raw-file-field--submit-stack { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.raw-preset-modal { position: fixed; inset: 0; z-index: 180; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(3, 8, 20, 0.78); }
+.raw-preset-dialog { width: min(100%, 440px); display: grid; gap: 14px; }
+.raw-preset-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .raw-file-preset-row { grid-template-columns: 1fr; }
+  .raw-file-preset-actions, .raw-file-field--submit-stack, .raw-preset-dialog-actions { justify-content: stretch; }
+  .raw-file-preset-actions > *, .raw-file-field--submit-stack > *, .raw-preset-dialog-actions > * { width: 100%; }
+}
+
+.raw-preset-modal[hidden] {
+  display: none !important;
+}
+
+.raw-preset-modal {
+  display: none;
+}
+
+.raw-preset-modal.is-open {
+  display: block;
+}
+
+
+.raw-file-viewer-shell [hidden] {
+  display: none !important;
+}

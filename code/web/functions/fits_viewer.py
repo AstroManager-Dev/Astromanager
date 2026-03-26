@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from pathlib import Path
+import re
 from typing import Any
 
 import numpy as np
@@ -77,24 +78,174 @@ def _preview_mimetype() -> str:
     return "image/webp" if _supports_webp() else "image/png"
 
 
-def _load_fits_viewer_presets() -> list[dict[str, Any]]:
+def _slugify_preset_label(value: str) -> str:
+    label = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+    return label or "preset"
+
+
+def _load_fits_viewer_presets(user_id: int | None = None) -> list[dict[str, Any]]:
     conn = db_conn()
+    rows: list[dict[str, Any]] = []
     try:
-        if not db_table_exists(conn, "fits_viewer_presets"):
-            return []
-        rows = conn.execute(
-            """
-            SELECT id, preset_key, label, description, sort_order, is_active,
-                   debayer_mode, stretch_mode, black_value, white_value, gamma_value
-            FROM fits_viewer_presets
-            WHERE is_active = 1
-            ORDER BY sort_order ASC, label COLLATE NOCASE ASC
-            """
-        ).fetchall()
-        return [row_to_dict(row) for row in rows]
+        if db_table_exists(conn, "fits_viewer_presets"):
+            system_rows = conn.execute(
+                """
+                SELECT id, preset_key, label, description, sort_order, is_active,
+                       debayer_mode, stretch_mode, black_value, white_value, gamma_value
+                FROM fits_viewer_presets
+                WHERE is_active = 1
+                ORDER BY sort_order ASC, label COLLATE NOCASE ASC
+                """
+            ).fetchall()
+            for row in system_rows:
+                item = row_to_dict(row)
+                item["source"] = "system"
+                item["select_key"] = str(item.get("preset_key") or "").strip().lower()
+                item["preset_id"] = int(item.get("id") or 0)
+                rows.append(item)
+
+        if user_id and db_table_exists(conn, "user_fits_viewer_presets"):
+            user_rows = conn.execute(
+                """
+                SELECT id, preset_key, label, description, sort_order, is_active,
+                       debayer_mode, stretch_mode, black_value, white_value, gamma_value,
+                       user_id
+                FROM user_fits_viewer_presets
+                WHERE is_active = 1 AND user_id = ?
+                ORDER BY sort_order ASC, label COLLATE NOCASE ASC
+                """,
+                (int(user_id),),
+            ).fetchall()
+            for row in user_rows:
+                item = row_to_dict(row)
+                item["source"] = "user"
+                item["select_key"] = f"user:{int(item.get('id') or 0)}"
+                item["preset_id"] = int(item.get("id") or 0)
+                rows.append(item)
+        return rows
     finally:
         conn.close()
 
+
+def _next_user_preset_key(conn, user_id: int, label: str, exclude_id: int | None = None) -> str:
+    base_key = _slugify_preset_label(label)
+    candidate = base_key
+    suffix = 2
+    while True:
+        sql = "SELECT id FROM user_fits_viewer_presets WHERE user_id = ? AND preset_key = ?"
+        params: list[Any] = [int(user_id), candidate]
+        if exclude_id:
+            sql += " AND id != ?"
+            params.append(int(exclude_id))
+        sql += " LIMIT 1"
+        row = conn.execute(sql, tuple(params)).fetchone()
+        if row is None:
+            return candidate
+        candidate = f"{base_key}-{suffix}"
+        suffix += 1
+
+
+def save_user_fits_viewer_preset(
+    user_id: int,
+    label: str,
+    debayer_mode: str,
+    stretch_mode: str,
+    black_value: str | float,
+    white_value: str | float,
+    gamma_value: str | float,
+    overwrite_preset_id: int | None = None,
+) -> tuple[bool, str, dict[str, Any] | None]:
+    owner_id = int(user_id or 0)
+    if owner_id <= 0:
+        return False, "Nur angemeldete Benutzer können eigene Presets speichern.", None
+
+    preset_label = str(label or "").strip()
+    if not preset_label:
+        return False, "Preset-Name fehlt.", None
+    if len(preset_label) > 80:
+        preset_label = preset_label[:80].strip()
+
+    debayer_value = _normalize_debayer_mode(str(debayer_mode or DEFAULT_DEBAYER))
+    stretch_value = _normalize_stretch_mode(str(stretch_mode or DEFAULT_STRETCH))
+    black_num = _parse_float(str(black_value), DEFAULT_BLACK, 0.0, 25.0)
+    white_num = _parse_float(str(white_value), DEFAULT_WHITE, 75.0, 100.0)
+    gamma_num = _parse_float(str(gamma_value), DEFAULT_GAMMA, 0.2, 4.0)
+
+    conn = db_conn()
+    try:
+        if not db_table_exists(conn, "user_fits_viewer_presets"):
+            return False, "User-Preset-Tabelle fehlt. Migration noch nicht eingespielt.", None
+
+        if overwrite_preset_id:
+            row = conn.execute(
+                "SELECT id, preset_key FROM user_fits_viewer_presets WHERE id = ? AND user_id = ? LIMIT 1",
+                (int(overwrite_preset_id), owner_id),
+            ).fetchone()
+            if row is None:
+                return False, "Eigenes Preset zum Überschreiben nicht gefunden.", None
+            preset_id = int(row[0])
+            preset_key = _next_user_preset_key(conn, owner_id, preset_label, exclude_id=preset_id)
+            conn.execute(
+                """
+                UPDATE user_fits_viewer_presets
+                SET preset_key = ?,
+                    label = ?,
+                    debayer_mode = ?,
+                    stretch_mode = ?,
+                    black_value = ?,
+                    white_value = ?,
+                    gamma_value = ?,
+                    updated_at = datetime('now')
+                WHERE id = ? AND user_id = ?
+                """,
+                (preset_key, preset_label, debayer_value, stretch_value, black_num, white_num, gamma_num, preset_id, owner_id),
+            )
+            conn.commit()
+            return True, "Preset überschrieben.", {"id": preset_id, "select_key": f"user:{preset_id}", "label": preset_label}
+
+        preset_key = _next_user_preset_key(conn, owner_id, preset_label)
+        row = conn.execute(
+            "SELECT COALESCE(MAX(sort_order), 1000) + 10 FROM user_fits_viewer_presets WHERE user_id = ?",
+            (owner_id,),
+        ).fetchone()
+        sort_order = int((row[0] if row is not None else 1010) or 1010)
+        cur = conn.execute(
+            """
+            INSERT INTO user_fits_viewer_presets (
+                user_id, preset_key, label, description, sort_order, is_active,
+                debayer_mode, stretch_mode, black_value, white_value, gamma_value,
+                created_at, updated_at
+            ) VALUES (?, ?, ?, '', ?, 1, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            """,
+            (owner_id, preset_key, preset_label, sort_order, debayer_value, stretch_value, black_num, white_num, gamma_num),
+        )
+        conn.commit()
+        preset_id = int(cur.lastrowid)
+        return True, "Preset gespeichert.", {"id": preset_id, "select_key": f"user:{preset_id}", "label": preset_label}
+    finally:
+        conn.close()
+
+
+def delete_user_fits_viewer_preset(user_id: int, preset_id: int) -> tuple[bool, str]:
+    owner_id = int(user_id or 0)
+    target_id = int(preset_id or 0)
+    if owner_id <= 0 or target_id <= 0:
+        return False, "Preset konnte nicht gelöscht werden."
+    conn = db_conn()
+    try:
+        if not db_table_exists(conn, "user_fits_viewer_presets"):
+            return False, "User-Preset-Tabelle fehlt. Migration noch nicht eingespielt."
+        row = conn.execute(
+            "SELECT id FROM user_fits_viewer_presets WHERE id = ? AND user_id = ? LIMIT 1",
+            (target_id, owner_id),
+        ).fetchone()
+        if row is None:
+            return False, "Eigenes Preset nicht gefunden."
+        conn.execute("DELETE FROM user_fits_viewer_presets WHERE id = ? AND user_id = ?", (target_id, owner_id))
+        conn.commit()
+        return True, "Preset gelöscht."
+    finally:
+        conn.close()
 
 def _auto_preset_key(raw_file: dict[str, Any]) -> str:
     session = raw_file.get("session")
@@ -120,11 +271,11 @@ def _auto_preset_key(raw_file: dict[str, Any]) -> str:
     return "neutral"
 
 
-def _build_preset_map(raw_file: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    rows = _load_fits_viewer_presets()
+def _build_preset_map(raw_file: dict[str, Any], user_id: int | None = None) -> dict[str, dict[str, Any]]:
+    rows = _load_fits_viewer_presets(user_id)
     preset_map: dict[str, dict[str, Any]] = {}
     for row in rows:
-        key = str(row.get("preset_key") or "").strip().lower()
+        key = str(row.get("select_key") or row.get("preset_key") or "").strip().lower()
         if not key:
             continue
         preset_map[key] = {
@@ -136,6 +287,9 @@ def _build_preset_map(raw_file: dict[str, Any]) -> dict[str, dict[str, Any]]:
             "black_value": _parse_float(str(row.get("black_value") or DEFAULT_BLACK), DEFAULT_BLACK, 0.0, 25.0),
             "white_value": _parse_float(str(row.get("white_value") or DEFAULT_WHITE), DEFAULT_WHITE, 75.0, 100.0),
             "gamma_value": _parse_float(str(row.get("gamma_value") or DEFAULT_GAMMA), DEFAULT_GAMMA, 0.2, 4.0),
+            "source": str(row.get("source") or "system"),
+            "preset_id": int(row.get("preset_id") or row.get("id") or 0),
+            "owner_user_id": int(row.get("user_id") or 0),
         }
     if DEFAULT_PRESET_KEY not in preset_map:
         preset_map[DEFAULT_PRESET_KEY] = {
@@ -147,6 +301,9 @@ def _build_preset_map(raw_file: dict[str, Any]) -> dict[str, dict[str, Any]]:
             "black_value": DEFAULT_BLACK,
             "white_value": DEFAULT_WHITE,
             "gamma_value": DEFAULT_GAMMA,
+            "source": "system",
+            "preset_id": 0,
+            "owner_user_id": 0,
         }
     resolved_auto_key = _auto_preset_key(raw_file)
     if resolved_auto_key in preset_map:
@@ -199,12 +356,13 @@ def enrich_raw_file_viewer_context(
     white: str | None = None,
     gamma: str | None = None,
     preset: str | None = None,
+    auth_user_id: int | None = None,
 ) -> dict[str, Any]:
     item = dict(raw_file)
     is_fits = bool(item.get("is_fits"))
     view_mode = _normalize_view_mode(view, is_fits)
     preset_key = (preset or DEFAULT_PRESET_KEY).strip().lower() or DEFAULT_PRESET_KEY
-    preset_map = _build_preset_map(item)
+    preset_map = _build_preset_map(item, auth_user_id)
     base_preset = preset_map.get(preset_key) or preset_map.get(DEFAULT_PRESET_KEY) or {
         "key": DEFAULT_PRESET_KEY,
         "label": "Auto",
@@ -235,7 +393,7 @@ def enrich_raw_file_viewer_context(
         f"&black={black_value}&white={white_value}&gamma={gamma_value}"
     )
 
-    selected_preset_key = _active_preset_key(
+    active_preset_key = _active_preset_key(
         preset_key,
         preset_map,
         debayer_mode,
@@ -244,21 +402,32 @@ def enrich_raw_file_viewer_context(
         white_value_num,
         gamma_value_num,
     )
+    current_preset = preset_map.get(preset_key)
+    current_preset_select_key = preset_key if current_preset is not None else (active_preset_key if active_preset_key in preset_map else "custom")
+    selected_preset_key = active_preset_key
     selected_preset_label = "Custom" if selected_preset_key == "custom" else str((preset_map.get(selected_preset_key) or {}).get("label") or selected_preset_key.title())
+    current_preset_source = str((current_preset or {}).get("source") or "")
+    current_preset_id = int((current_preset or {}).get("preset_id") or 0)
+    current_preset_label = str((current_preset or {}).get("label") or "")
+    current_preset_is_user = current_preset_source == "user" and current_preset_id > 0
+    current_preset_modified = bool(current_preset is not None and selected_preset_key == "custom")
 
     preset_options = [
         {
             "key": key,
             "label": str(preset_row.get("label") or key.title()),
-            "selected": key == selected_preset_key,
+            "selected": key == current_preset_select_key,
             "resolved_label": str(preset_row.get("resolved_label") or "").strip(),
             "debayer_mode": str(preset_row.get("debayer_mode") or DEFAULT_DEBAYER),
             "stretch_mode": str(preset_row.get("stretch_mode") or DEFAULT_STRETCH),
             "black_value": _format_float(float(preset_row.get("black_value") or DEFAULT_BLACK), 2),
             "white_value": _format_float(float(preset_row.get("white_value") or DEFAULT_WHITE), 2),
             "gamma_value": _format_float(float(preset_row.get("gamma_value") or DEFAULT_GAMMA), 2),
+            "source": str(preset_row.get("source") or "system"),
+            "preset_id": int(preset_row.get("preset_id") or 0),
+            "is_user": str(preset_row.get("source") or "") == "user",
         }
-        for key, preset_row in sorted(preset_map.items(), key=lambda item: (0 if item[0] == DEFAULT_PRESET_KEY else 1, str(item[1].get("label") or "")))
+        for key, preset_row in sorted(preset_map.items(), key=lambda item: (0 if str(item[1].get("source") or "system") == "system" and item[0] == DEFAULT_PRESET_KEY else 1 if str(item[1].get("source") or "system") == "system" else 2, str(item[1].get("label") or "")))
     ]
 
     is_image_preview = bool(item.get("is_image_preview"))
@@ -272,6 +441,12 @@ def enrich_raw_file_viewer_context(
             "preset_key": preset_key,
             "selected_preset_key": selected_preset_key,
             "selected_preset_label": selected_preset_label,
+            "current_preset_key": current_preset_select_key,
+            "current_preset_label": current_preset_label or selected_preset_label,
+            "current_preset_source": current_preset_source,
+            "current_preset_id": current_preset_id,
+            "current_preset_is_user": current_preset_is_user,
+            "current_preset_modified": current_preset_modified,
             "fits_preset_options": preset_options,
             "debayer_mode": debayer_mode,
             "stretch_mode": stretch_mode,
@@ -290,6 +465,15 @@ def enrich_raw_file_viewer_context(
             "viewer_preview_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?{viewer_query}&kind=detail" if is_fits else image_preview_url,
             "viewer_fullscreen_url": f"/media/raw-file-fits-preview/{raw_file_id}.{preview_ext}?{viewer_query}&kind=detail" if is_fits else image_preview_url,
             "viewer_format_label": preview_ext.upper() if is_fits else str(item.get("extension") or item.get("file_ext") or "Bild").replace(".", "").upper(),
+            "viewer_state": {
+                "view": "fits" if is_fits else "file",
+                "preset": current_preset_select_key if current_preset_select_key != "custom" else "",
+                "debayer": debayer_mode,
+                "stretch": stretch_mode,
+                "black": black_value,
+                "white": white_value,
+                "gamma": gamma_value,
+            },
         }
     )
     if is_tiff:

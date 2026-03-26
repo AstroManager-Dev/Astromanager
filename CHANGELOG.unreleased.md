@@ -1,3 +1,4 @@
+0.4.057 | 2026-03-26 22:48:04 | Bottom-Navigation auf kompakte Icon-Buttons umgestellt und um Wetter sowie Planner als neue Hauptbereiche erweitert.
 0.4.056 | 2026-03-21 01:20:10 | TIFF-Raster-Viewer ergänzt, technische Hilfsdateien in der Astromanager-RAW-Liste bereinigt und Preview-Routen für nicht-browsernative Rasterformate stabilisiert.
 0.4.055 | 2026-03-21 00:06:24 | Neuer dateitypspezifischer FITS-Viewer mit Vollbild-Overlay, automatischer Viewer-Wahl nach Dateityp, kompakter Kopfzeile und eingeklappten Render-/Meta-Bereichen.
 0.4.054 | 2026-03-20 07:50:40 | Optische Anpassungen

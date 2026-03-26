@@ -27,20 +27,7 @@
     </main>
 
     {% include "includes/_menu.html" %}
-
-    <nav class="bottom-nav bottom-nav--edge astro-glow-soft" aria-label="Hauptnavigation">
-      <div class="bottom-nav__inner bottom-nav__grid">
-        <button class="bottom-nav-btn astro-btn astro-btn--sm astro-btn--primary" data-tab="gallery" aria-current="page"><span>Galerie</span></button>
-        <button class="bottom-nav-btn astro-btn astro-btn--sm" data-tab="atlas"><span>Atlas</span></button>
-        <button class="bottom-nav-btn astro-btn astro-btn--sm" data-tab="targets"><span>Targets</span></button>
-{% if auth_context_global.can_view_overview %}
-        <button class="bottom-nav-btn astro-btn astro-btn--sm" data-tab="overview"><span>Zentrale</span></button>
-{% else %}
-        <a class="bottom-nav-btn bottom-nav-btn--locked astro-btn astro-btn--sm" href="/forbidden"><span>Zentrale <i class="fa-solid fa-lock" aria-hidden="true"></i></span></a>
-{% endif %}
-        <button class="bottom-nav-btn bottom-nav-btn--menu astro-btn astro-btn--sm" id="open-menu-btn-bottom" aria-label="Menü öffnen" aria-controls="menu-sheet" aria-expanded="false"><span>Menü</span></button>
-      </div>
-    </nav>
+    {% include "includes/_bottom_nav.html" %}
   </div>
 
   <script src="/static/js/app.js"></script>

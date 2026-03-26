@@ -8,6 +8,7 @@
 
     const url = button.dataset.imageUrl || "";
     const kind = button.dataset.viewerKind || "image";
+    const fallbackUrl = button.dataset.fallbackUrl || url;
     if (!url) return;
 
     document.body.classList.add("raw-fullscreen-open");
@@ -21,23 +22,20 @@
       window.rawFullscreenViewer = null;
     }
 
-    if (kind === "fits" && window.OpenSeadragon) {
+    if ((kind === "fits" || kind === "tiff_dzi") && window.OpenSeadragon) {
       osd.hidden = false;
       window.rawFullscreenViewer = window.OpenSeadragon({
         element: osd,
         prefixUrl: "/static/vendor/openseadragon/images/",
-        tileSources: {
-          type: "image",
-          url: url
-        },
+        tileSources: kind === "fits" ? { type: "image", url: url } : url,
         showNavigationControl: false,
         gestureSettingsTouch: { pinchToZoom: true, flickEnabled: true, dblClickToZoom: true },
-        maxZoomPixelRatio: 4,
+        maxZoomPixelRatio: kind === "tiff_dzi" ? 8 : 4,
       });
       return;
     }
 
-    image.src = url;
+    image.src = fallbackUrl;
     image.hidden = false;
   }
 

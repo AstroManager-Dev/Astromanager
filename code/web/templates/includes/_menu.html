@@ -16,6 +16,11 @@
 
   <div class="menu-group">
     <div class="menu-group-title">Navigation</div>
+    <button class="sheet-link menu-sheet-btn" data-tab="gallery"><strong>Galerie</strong><span>Chronologische Sessions und Vorschaubilder</span></button>
+    <button class="sheet-link menu-sheet-btn" data-tab="atlas"><strong>Atlas</strong><span>Räumliche Himmelsansicht und Layer</span></button>
+    <button class="sheet-link menu-sheet-btn" data-tab="targets"><strong>Targets</strong><span>Zielübersicht und Detailzugriff</span></button>
+    <button class="sheet-link menu-sheet-btn" data-tab="weather"><strong>Wetter</strong><span>Nachtqualität, Forecast und Beobachtungsfenster</span></button>
+    <button class="sheet-link menu-sheet-btn" data-tab="planner"><strong>Planner</strong><span>Nachtplanung, Slots und nächste Aktionen</span></button>
     {% if auth_context_global.can_view_overview %}
     <button class="sheet-link menu-sheet-btn" data-tab="overview"><strong>Zentrale</strong><span>Workflows, Status und Aktionen</span></button>
     {% else %}
