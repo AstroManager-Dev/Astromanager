@@ -1,34 +1,162 @@
 <section class="tab-panel" data-panel="weather">
   {% set page_eyebrow = 'Wetter' %}
-  {% set page_title = 'Nachtqualität und Forecast' %}
-  {% set page_description = 'Vorbereitete Oberfläche für Wolken, Wind, Luftfeuchte, Temperatur, Taupunkt und spätere Astro-Bedingungen.' %}
-  {% set page_chip = 'Planungsschicht' %}
   {% include 'includes/_page_intro.html' %}
 
-  <div class="hud-info-shell">
-    <div class="hud-month-section__head">
-      <h3>Forecast-Bausteine</h3>
-      <span>Ideenstatus</span>
-    </div>
-    <div class="hud-session-list">
-      <div class="hud-session-row">
-        <div class="hud-session-row__meta">
-          <strong>Basisdaten</strong>
-          <div class="muted">Wolken, Wind, Luftfeuchte, Temperatur, Taupunkt, Niederschlag.</div>
+  <div class="weather-shell">
+    <article class="hud-card weather-card weather-card--selector">
+      <div class="weather-site-head">
+        <div class="weather-site-copy">
+          <div class="eyebrow">Standort</div>
+          <h3>{{ weather_site_display.site_name if weather_site_display else 'Kein Standort' }}</h3>
+          {% if weather_site_display.locality_line %}
+          <div class="weather-site-locality">{{ weather_site_display.locality_line }}</div>
+          {% endif %}
+          {% if weather_site_display.detail_line %}
+          <div class="weather-site-detail muted">{{ weather_site_display.detail_line }}</div>
+          {% endif %}
+          {% if weather_site_display.timezone_name %}
+          <div class="weather-site-detail muted">{{ weather_site_display.timezone_name }}</div>
+          {% endif %}
+        </div>
+        {% if weather_site_display and weather_site_display.is_default %}
+        <span class="hud-chip weather-chip weather-chip--default">Standard</span>
+        {% endif %}
+      </div>
+
+      {% if weather_available_sites %}
+      <form method="get" action="/" class="weather-site-form">
+        <input type="hidden" name="tab" value="weather">
+        <label class="raw-file-field raw-file-field--wide weather-site-field">
+          <span>Standort wechseln</span>
+          <select name="weather_site_id" onchange="this.form.submit()">
+            {% for site in weather_available_sites %}
+            <option value="{{ site.id }}" {% if weather_selected_site and weather_selected_site.id == site.id %}selected{% endif %}>
+              {{ site.name }}{% if site.is_default %} · Standard{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+      </form>
+      {% else %}
+      <div class="hud-empty-state">Noch kein Standort vorhanden. Bitte zuerst unter Einstellungen → Standorte einen Beobachtungsort anlegen.</div>
+      {% endif %}
+    </article>
+
+    {% if weather_error %}
+    <article class="hud-card weather-card weather-card--error">
+      <div class="hud-empty-state">{{ weather_error }}</div>
+    </article>
+    {% elif weather_current %}
+
+    <article class="hud-card weather-card weather-card--current">
+      <div class="hud-section-head hud-section-head--tight">
+        <div>
+          <h3>Aktuell</h3>
+          <div class="muted">{{ weather_current.weather_label }}{% if weather_updated_at_label %} · Stand {{ weather_updated_at_label }}{% endif %}</div>
         </div>
       </div>
-      <div class="hud-session-row">
-        <div class="hud-session-row__meta">
-          <strong>Nachtqualitätsprofil</strong>
-          <div class="muted">Einordnung für RGB, Schmalband, Mond/Planeten und kurze nutzbare Nächte.</div>
+      <div class="weather-current-grid">
+        <div class="weather-metric-card"><span>Temperatur</span><strong>{{ '%.1f'|format(weather_current.temperature) if weather_current.temperature is not none else '—' }} °C</strong></div>
+        <div class="weather-metric-card"><span>Wolken</span><strong>{{ '%.0f'|format(weather_current.cloud_cover) if weather_current.cloud_cover is not none else '—' }} %</strong></div>
+        <div class="weather-metric-card"><span>Feuchte</span><strong>{{ '%.0f'|format(weather_current.humidity) if weather_current.humidity is not none else '—' }} %</strong></div>
+        <div class="weather-metric-card"><span>Wind</span><strong>{{ '%.1f'|format(weather_current.wind_speed) if weather_current.wind_speed is not none else '—' }} km/h</strong></div>
+      </div>
+    </article>
+
+    {% if weather_featured_night %}
+    <article class="hud-card weather-card weather-card--featured-night">
+      <div class="hud-section-head hud-section-head--tight">
+        <div>
+          <h3>Heute Nacht</h3>
+          <div class="muted">Schnellbewertung für die nächste Beobachtungsnacht.</div>
         </div>
       </div>
-      <div class="hud-session-row">
-        <div class="hud-session-row__meta">
-          <strong>Späterer Ausbau</strong>
-          <div class="muted">Seeing, Transparenz und Kombination mit Sichtbarkeit und Fortschritt.</div>
+      <div class="weather-night-card weather-night-card--featured weather-night-card--{{ weather_featured_night.quality_kind }}">
+        <div class="weather-night-card__head">
+          <div>
+            <strong>{{ weather_featured_night.label }}</strong>
+            <div class="weather-night-card__meta muted">{{ weather_featured_night.weather_label }}</div>
+          </div>
+          <span class="hud-chip weather-chip weather-chip--{{ weather_featured_night.quality_kind }}">{{ weather_featured_night.quality_label }} · {{ weather_featured_night.quality_score }}</span>
+        </div>
+        <div class="weather-night-card__grid">
+          <div><span>Wolken</span><strong>{{ '%.0f'|format(weather_featured_night.cloud_avg) if weather_featured_night.cloud_avg is not none else '—' }} %</strong></div>
+          <div><span>Feuchte</span><strong>{{ '%.0f'|format(weather_featured_night.humidity_avg) if weather_featured_night.humidity_avg is not none else '—' }} %</strong></div>
+          <div><span>Wind max</span><strong>{{ '%.1f'|format(weather_featured_night.wind_max) if weather_featured_night.wind_max is not none else '—' }} km/h</strong></div>
+          <div><span>Regenrisiko</span><strong>{{ '%.0f'|format(weather_featured_night.precip_prob_max) if weather_featured_night.precip_prob_max is not none else '—' }} %</strong></div>
         </div>
       </div>
-    </div>
+    </article>
+    {% endif %}
+
+    {% if weather_upcoming_nights %}
+    <article class="hud-card weather-card weather-card--nights">
+      <div class="hud-section-head hud-section-head--tight">
+        <div>
+          <h3>Nächste Nächte</h3>
+          <div class="muted">Bewertung aus Nachtwolken, Luftfeuchte, Wind und Regenwahrscheinlichkeit.</div>
+        </div>
+      </div>
+      <div class="weather-night-stack">
+        {% for night in weather_upcoming_nights %}
+        <div class="weather-night-card weather-night-card--{{ night.quality_kind }}">
+          <div class="weather-night-card__head">
+            <strong>{{ night.label }}</strong>
+            <span class="hud-chip weather-chip weather-chip--{{ night.quality_kind }}">{{ night.quality_label }} · {{ night.quality_score }}</span>
+          </div>
+          <div class="weather-night-card__meta muted">{{ night.weather_label }}</div>
+          <div class="weather-night-card__grid">
+            <div><span>Wolken</span><strong>{{ '%.0f'|format(night.cloud_avg) if night.cloud_avg is not none else '—' }} %</strong></div>
+            <div><span>Feuchte</span><strong>{{ '%.0f'|format(night.humidity_avg) if night.humidity_avg is not none else '—' }} %</strong></div>
+            <div><span>Wind max</span><strong>{{ '%.1f'|format(night.wind_max) if night.wind_max is not none else '—' }} km/h</strong></div>
+            <div><span>Regenrisiko</span><strong>{{ '%.0f'|format(night.precip_prob_max) if night.precip_prob_max is not none else '—' }} %</strong></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+    {% endif %}
+
+    <article class="hud-card weather-card weather-card--hourly">
+      <div class="hud-section-head hud-section-head--tight">
+        <div>
+          <h3>Nächste 12 Stunden</h3>
+          <div class="muted">Kompakter Stundenverlauf für Temperatur, Wolken, Wind und Regenrisiko.</div>
+        </div>
+      </div>
+      <div class="weather-hourly-strip">
+        {% for row in weather_hourly_rows %}
+        <div class="weather-hour-card">
+          <strong>{{ row.hour_label }}</strong>
+          <div class="weather-hour-card__meta muted">{{ row.weather_label }}</div>
+          <div class="weather-hour-card__line">{{ '%.1f'|format(row.temperature) if row.temperature is not none else '—' }} °C</div>
+          <div class="weather-hour-card__line">Wolken {{ '%.0f'|format(row.cloud_cover) if row.cloud_cover is not none else '—' }} %</div>
+          <div class="weather-hour-card__line">Wind {{ '%.1f'|format(row.wind_speed) if row.wind_speed is not none else '—' }} km/h</div>
+          <div class="weather-hour-card__line">Regen {{ '%.0f'|format(row.precipitation_probability) if row.precipitation_probability is not none else '—' }} %</div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="hud-card weather-card weather-card--daily">
+      <div class="hud-section-head hud-section-head--tight">
+        <div>
+          <h3>7 Tage</h3>
+        </div>
+      </div>
+      <div class="weather-daily-grid">
+        {% for day in weather_daily_rows %}
+        <div class="weather-day-card">
+          <strong>{{ day.label }}</strong>
+          <div class="weather-day-card__meta muted">{{ day.weather_label }}</div>
+          <div class="weather-day-card__temps">{{ '%.0f'|format(day.temp_min) if day.temp_min is not none else '—' }}° / {{ '%.0f'|format(day.temp_max) if day.temp_max is not none else '—' }}°</div>
+          <div class="weather-day-card__detail">Regen {{ '%.0f'|format(day.precipitation_probability_max) if day.precipitation_probability_max is not none else '—' }} %</div>
+          <div class="weather-day-card__detail">{{ '%.1f'|format(day.precipitation_sum) if day.precipitation_sum is not none else '—' }} mm</div>
+          <div class="weather-day-card__detail">Auf {{ day.sunrise[11:16] if day.sunrise else '—' }} · Unter {{ day.sunset[11:16] if day.sunset else '—' }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </article>
+    {% endif %}
   </div>
 </section>

@@ -62,6 +62,7 @@ from functions.fits_viewer import (
 from functions.ephemeris import load_session_ephemeris_context
 from functions.session_detail import build_session_object_infocard_context
 from functions.observing import assign_session_observing_site, create_observing_site, delete_observing_site, list_observing_sites, set_default_observing_site
+from functions.weather import build_weather_context
 from functions.settings_devices import (
     create_device_instance,
     delete_device_instance,
@@ -192,6 +193,8 @@ def index():
     gallery_sessions = load_gallery_sessions()
     gallery_session_groups = group_gallery_sessions(gallery_sessions)
     program_info = load_program_info()
+    weather_site_id = request.args.get("weather_site_id", "").strip()
+    weather_context = build_weather_context(int(weather_site_id) if weather_site_id.isdigit() else None)
 
     return render_template(
         "index.html",
@@ -208,6 +211,7 @@ def index():
         service_state=summarize_service_state(),
         dev_assets=dev_assets(),
         program_info=program_info,
+        **weather_context,
     )
 
 
